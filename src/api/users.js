@@ -60,7 +60,7 @@ app.post("/login", async (c) => {
       return c.json({ error: "Email dan password harus diisi" }, 400);
     }
 
-    // SELECT tanpa last_active
+    // SELECT dengan last_active (sudah ada di database)
     const [user] = await db
       .select({
         id: users_26.id,
@@ -77,7 +77,7 @@ app.post("/login", async (c) => {
         tokenAkses: users_26.tokenAkses,
         tokenExpired: users_26.tokenExpired,
         isActive: users_26.isActive,
-        // HAPUS last_active
+        lastActive: users_26.lastActive,           // <-- TAMBAHKAN KEMBALI
         lastNotifRead: users_26.lastNotifRead,
         createdAt: users_26.createdAt,
         updatedAt: users_26.updatedAt
@@ -106,7 +106,8 @@ app.post("/login", async (c) => {
       .update(users_26)
       .set({ 
         tokenAkses: token, 
-        tokenExpired: expiredAt 
+        tokenExpired: expiredAt,
+        lastActive: new Date()                    // <-- UPDATE last_active saat login
       })
       .where(eq(users_26.id, user.id));
 
@@ -145,8 +146,9 @@ app.post("/register", async (c) => {
       return c.json({ error: "Password minimal 6 karakter" }, 400);
     }
 
+    // Cek email sudah terdaftar
     const existingUser = await db
-      .select()
+      .select({ id: users_26.id })
       .from(users_26)
       .where(eq(users_26.email, body.email))
       .limit(1);
@@ -160,6 +162,7 @@ app.post("/register", async (c) => {
     const expiredAt = new Date();
     expiredAt.setDate(expiredAt.getDate() + 20);
 
+    // INSERT dengan last_active
     const [newUser] = await db
       .insert(users_26)
       .values({
@@ -175,6 +178,7 @@ app.post("/register", async (c) => {
         fotoProfil: "https://media.istockphoto.com/id/1495088043/id/vektor/ikon-profil-pengguna-avatar-atau-ikon-orang-gambar-profil-simbol-potret-gambar-potret.jpg?s=2048x2048&w=is&k=20&c=G7qTBxWs68Pm03TIb6rsOCo_m2JptQ8SVTrFfXq0kfU=",
         isActive: true,
         role: "user",
+        lastActive: new Date(),                    // <-- SET last_active saat register
       })
       .returning();
 
@@ -203,6 +207,7 @@ app.get("/", async (c) => {
         asalSekolah: users_26.asalSekolah,
         title: users_26.title,
         fotoProfil: users_26.fotoProfil,
+        lastActive: users_26.lastActive,           // <-- TAMBAHKAN untuk online status
         isActive: users_26.isActive
       })
       .from(users_26)
@@ -227,6 +232,7 @@ app.get("/leaderboard", async (c) => {
         asalSekolah: users_26.asalSekolah,
         title: users_26.title,
         fotoProfil: users_26.fotoProfil,
+        lastActive: users_26.lastActive,           // <-- TAMBAHKAN
         totalLikes: sql`COALESCE(SUM(${posts.likeCount}), 0)::integer`
       })
       .from(users_26)
@@ -272,7 +278,7 @@ app.get("/:id", async (c) => {
         tokenAkses: users_26.tokenAkses,
         tokenExpired: users_26.tokenExpired,
         isActive: users_26.isActive,
-        // HAPUS last_active
+        lastActive: users_26.lastActive,           // <-- TAMBAHKAN
         lastNotifRead: users_26.lastNotifRead,
         createdAt: users_26.createdAt,
         updatedAt: users_26.updatedAt
@@ -304,7 +310,10 @@ app.put("/:id", async (c) => {
       return c.json({ error: "ID tidak valid" }, 400);
     }
     
-    const [existingUser] = await db.select()
+    const [existingUser] = await db
+      .select({
+        id: users_26.id
+      })
       .from(users_26)
       .where(eq(users_26.id, id))
       .limit(1);
@@ -334,7 +343,7 @@ app.put("/:id", async (c) => {
   }
 });
 
-// ========== HEARTBEAT - TANPA last_active ==========
+// ========== HEARTBEAT - UPDATE last_active ==========
 app.post("/:id/heartbeat", async (c) => {
   try {
     const idParam = c.req.param("id");
@@ -344,10 +353,11 @@ app.post("/:id/heartbeat", async (c) => {
       return c.json({ error: "ID tidak valid" }, 400);
     }
     
-    // Update hanya updatedAt, tanpa last_active
+    // Update last_active
     await db
       .update(users_26)
       .set({ 
+        lastActive: new Date(),
         updatedAt: new Date() 
       })
       .where(eq(users_26.id, id));
@@ -363,7 +373,7 @@ app.post("/:id/heartbeat", async (c) => {
   }
 });
 
-// ========== ONLINE STATUS - TANPA last_active ==========
+// ========== ONLINE STATUS ==========
 app.post("/online-status", async (c) => {
   try {
     const { userIds } = await c.req.json();
@@ -379,8 +389,7 @@ app.post("/online-status", async (c) => {
     const users = await db
       .select({
         id: users_26.id,
-        // Gunakan updatedAt sebagai fallback
-        lastActive: users_26.updatedAt
+        lastActive: users_26.lastActive
       })
       .from(users_26)
       .where(sql`${users_26.id} IN (${userIds.join(',')})`);
@@ -414,7 +423,12 @@ app.post("/:id/upload-photo", async (c) => {
       return c.json({ error: "ID tidak valid" }, 400);
     }
     
-    const [existingUser] = await db.select()
+    const [existingUser] = await db
+      .select({
+        id: users_26.id,
+        fotoProfil: users_26.fotoProfil,
+        fotoProfilPath: users_26.fotoProfilPath
+      })
       .from(users_26)
       .where(eq(users_26.id, id))
       .limit(1);
@@ -462,6 +476,7 @@ app.post("/:id/upload-photo", async (c) => {
       .set({
         fotoProfil: publicUrl,
         fotoProfilPath: filePath,
+        lastActive: new Date(),                    // <-- UPDATE last_active
         updatedAt: new Date()
       })
       .where(eq(users_26.id, id))
@@ -486,7 +501,9 @@ app.post("/logout", async (c) => {
     const token = body.token;
 
     const [user] = await db
-      .select()
+      .select({
+        id: users_26.id
+      })
       .from(users_26)
       .where(and(
         eq(users_26.tokenAkses, token), 
@@ -500,7 +517,11 @@ app.post("/logout", async (c) => {
 
     await db
       .update(users_26)
-      .set({ tokenAkses: null, tokenExpired: null })
+      .set({ 
+        tokenAkses: null, 
+        tokenExpired: null,
+        lastActive: new Date()                     // <-- UPDATE last_active saat logout
+      })
       .where(eq(users_26.id, user.id));
 
     return c.json({ message: "Logout berhasil" });

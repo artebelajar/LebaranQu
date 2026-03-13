@@ -75,7 +75,7 @@ async function setupDatabase() {
         token_akses VARCHAR(100) UNIQUE,
         token_expired TIMESTAMP,
         is_active BOOLEAN DEFAULT true,
-        lastActive TIMESTAMP DEFAULT NOW(),
+        last_active TIMESTAMP DEFAULT NOW(),        -- PERBAIKAN: dari lastActive jadi last_active
         last_notif_read TIMESTAMP DEFAULT NOW(),
         created_at TIMESTAMP DEFAULT NOW(),
         updated_at TIMESTAMP DEFAULT NOW()
@@ -163,7 +163,7 @@ async function setupDatabase() {
     await sql`CREATE INDEX IF NOT EXISTS idx_likes_post_id ON likes(post_id);`;
     await sql`CREATE INDEX IF NOT EXISTS idx_likes_user_id ON likes(user_id);`;
     
-    // Index untuk comments (perbaiki nama tabel dari 'comments' menjadi 'comments_26')
+    // Index untuk comments
     await sql`CREATE INDEX IF NOT EXISTS idx_comments_post_id ON comments_26(post_id);`;
     await sql`CREATE INDEX IF NOT EXISTS idx_comments_created_at ON comments_26(created_at DESC);`;
     
@@ -207,17 +207,60 @@ async function setupDatabase() {
 
     console.log("✅ Admin berhasil ditambahkan!");
 
-    // ============= 6. VERIFIKASI =============
+    // ============= 6. INSERT CONTOH DATA (Opsional) =============
+    console.log("📝 Menambahkan contoh data...");
+    
+    // Ambil ID admin
+    const [admin] = await sql`SELECT id FROM users_26 WHERE email = 'afan@almahir.com'`;
+    
+    // Buat contoh post
+    const [samplePost] = await sql`
+      INSERT INTO posts (user_id, judul, konten, view_count)
+      VALUES (
+        ${admin.id},
+        'Selamat Datang di LebaranQu',
+        'Assalamualaikum warahmatullahi wabarakatuh! Selamat datang di platform silaturahmi alumni LebaranQu. Mari kita sambung tali silaturahmi dan berbagi cerita di bulan suci ini.',
+        42
+      )
+      RETURNING id;
+    `;
+    
+    // Buat contoh komentar
+    await sql`
+      INSERT INTO comments_26 (post_id, user_id, text)
+      VALUES (
+        ${samplePost.id},
+        ${admin.id},
+        'Semoga platform ini bermanfaat untuk kita semua. Aamiin.'
+      );
+    `;
+    
+    console.log("✅ Contoh data berhasil ditambahkan");
+
+    // ============= 7. VERIFIKASI =============
     const users = await sql`SELECT COUNT(*) FROM users_26`;
-    const posts = await sql`SELECT COUNT(*) FROM posts`;
-    const comments = await sql`SELECT COUNT(*) FROM comments_26`;
-    const notifications = await sql`SELECT COUNT(*) FROM notifications`;
+    const postsCount = await sql`SELECT COUNT(*) FROM posts`;
+    const commentsCount = await sql`SELECT COUNT(*) FROM comments_26`;
+    const notificationsCount = await sql`SELECT COUNT(*) FROM notifications`;
     
     console.log("\n📊 **STATISTIK DATABASE**");
     console.log(`👥 Total users: ${users[0].count}`);
-    console.log(`📝 Total posts: ${posts[0].count}`);
-    console.log(`💬 Total comments: ${comments[0].count}`);
-    console.log(`🔔 Total notifications: ${notifications[0].count}`);
+    console.log(`📝 Total posts: ${postsCount[0].count}`);
+    console.log(`💬 Total comments: ${commentsCount[0].count}`);
+    console.log(`🔔 Total notifications: ${notificationsCount[0].count}`);
+    
+    // Tampilkan struktur tabel
+    console.log("\n📋 **STRUKTUR TABEL users_26**");
+    const columns = await sql`
+      SELECT column_name, data_type 
+      FROM information_schema.columns 
+      WHERE table_name = 'users_26'
+      ORDER BY ordinal_position;
+    `;
+    columns.forEach(col => {
+      console.log(`   - ${col.column_name}: ${col.data_type}`);
+    });
+    
     console.log("\n✅ **SETUP DATABASE BERHASIL!**");
 
   } catch (error) {

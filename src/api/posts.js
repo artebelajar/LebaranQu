@@ -15,7 +15,7 @@ app.get("/", async (c) => {
     const offset = (page - 1) * limit;
     const sekolah = c.req.query("sekolah");
     
-    // Query posts
+    // Query posts dengan lastActive dari user
     let query = db
       .select({
         id: posts.id,
@@ -31,7 +31,7 @@ app.get("/", async (c) => {
           asalSekolah: users_26.asalSekolah,
           title: users_26.title,
           fotoProfil: users_26.fotoProfil,
-          // HAPUS BARIS INI: lastActive: users_26.lastActive
+          lastActive: users_26.lastActive,           // <-- TAMBAHKAN untuk online status
         },
       })
       .from(posts)
@@ -143,12 +143,11 @@ app.post("/", async (c) => {
       return c.json({ error: "Data tidak lengkap" }, 400);
     }
 
-    // Cek apakah user ada - HAPUS last_active dari SELECT
+    // Cek user dan update lastActive
     const [user] = await db
       .select({
         id: users_26.id,
         namaLengkap: users_26.namaLengkap,
-        // HAPUS SEMUA KOLOM LAIN YANG TIDAK DIPERLUKAN
       })
       .from(users_26)
       .where(eq(users_26.id, body.userId))
@@ -157,6 +156,12 @@ app.post("/", async (c) => {
     if (!user) {
       return c.json({ error: "User tidak ditemukan" }, 404);
     }
+
+    // Update lastActive user
+    await db
+      .update(users_26)
+      .set({ lastActive: new Date() })
+      .where(eq(users_26.id, body.userId));
 
     const [newPost] = await db
       .insert(posts)
@@ -201,6 +206,12 @@ app.post("/:id/like", async (c) => {
       return c.json({ error: "Postingan tidak ditemukan" }, 404);
     }
 
+    // Update lastActive user yang like
+    await db
+      .update(users_26)
+      .set({ lastActive: new Date() })
+      .where(eq(users_26.id, userId));
+
     // Cek existing like
     const existingLike = await db
       .select()
@@ -212,6 +223,7 @@ app.post("/:id/like", async (c) => {
     let action;
 
     if (existingLike.length > 0) {
+      // UNLIKE
       await db
         .delete(likes)
         .where(and(eq(likes.postId, postId), eq(likes.userId, userId)));
@@ -224,6 +236,7 @@ app.post("/:id/like", async (c) => {
       
       action = 'unliked';
     } else {
+      // LIKE
       await db.insert(likes).values({ postId, userId });
 
       [updatedPost] = await db
@@ -239,7 +252,10 @@ app.post("/:id/like", async (c) => {
         (async () => {
           try {
             const [userData] = await db
-              .select({ namaLengkap: users_26.namaLengkap })
+              .select({ 
+                namaLengkap: users_26.namaLengkap,
+                lastActive: users_26.lastActive 
+              })
               .from(users_26)
               .where(eq(users_26.id, userId))
               .limit(1);
@@ -297,6 +313,7 @@ app.get("/:postId/comments", async (c) => {
           id: users_26.id,
           namaLengkap: users_26.namaLengkap,
           fotoProfil: users_26.fotoProfil,
+          lastActive: users_26.lastActive,           // <-- TAMBAHKAN
         },
       })
       .from(comments)
@@ -336,6 +353,12 @@ app.post("/:postId/comments", async (c) => {
       return c.json({ error: "Postingan tidak ditemukan" }, 404);
     }
 
+    // Update lastActive user yang comment
+    await db
+      .update(users_26)
+      .set({ lastActive: new Date() })
+      .where(eq(users_26.id, body.userId));
+
     const [newComment] = await db
       .insert(comments)
       .values({
@@ -350,6 +373,7 @@ app.post("/:postId/comments", async (c) => {
         id: users_26.id,
         namaLengkap: users_26.namaLengkap,
         fotoProfil: users_26.fotoProfil,
+        lastActive: users_26.lastActive,
       })
       .from(users_26)
       .where(eq(users_26.id, body.userId))
@@ -406,6 +430,12 @@ app.put("/:id", async (c) => {
       return c.json({ error: "Postingan tidak ditemukan" }, 404);
     }
 
+    // Update lastActive user yang edit post
+    await db
+      .update(users_26)
+      .set({ lastActive: new Date() })
+      .where(eq(users_26.id, existingPost.userId));
+
     const [updatedPost] = await db
       .update(posts)
       .set({
@@ -446,6 +476,12 @@ app.delete("/:id", async (c) => {
       return c.json({ error: "Postingan tidak ditemukan" }, 404);
     }
 
+    // Update lastActive user yang hapus post
+    await db
+      .update(users_26)
+      .set({ lastActive: new Date() })
+      .where(eq(users_26.id, existingPost.userId));
+
     await Promise.all([
       db.delete(notifications).where(eq(notifications.postId, postId)),
       db.delete(postViews).where(eq(postViews.postId, postId)),
@@ -480,6 +516,7 @@ app.get("/leaderboard", async (c) => {
           namaLengkap: users_26.namaLengkap,
           asalSekolah: users_26.asalSekolah,
           fotoProfil: users_26.fotoProfil,
+          lastActive: users_26.lastActive,           // <-- TAMBAHKAN
         },
       })
       .from(posts)
@@ -502,7 +539,7 @@ app.get("/leaderboard", async (c) => {
   }
 });
 
-// ========== TRACK VIEW (TAMBAHKAN ROUTE INI) ==========
+// ========== TRACK VIEW ==========
 app.post("/:id/view", async (c) => {
   const startTime = Date.now();
   
@@ -513,6 +550,12 @@ app.post("/:id/view", async (c) => {
     if (isNaN(postId) || !userId) {
       return c.json({ error: "Data tidak valid" }, 400);
     }
+
+    // Update lastActive user yang view
+    await db
+      .update(users_26)
+      .set({ lastActive: new Date() })
+      .where(eq(users_26.id, userId));
 
     // Cek di database
     const existingView = await db
