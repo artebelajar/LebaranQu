@@ -1,0 +1,853 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard - LebaranQu</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap");
+      @import url("https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap");
+
+      * {
+        font-family: "Poppins", sans-serif;
+      }
+
+      :root {
+        --sd-color: #3b82f6;
+        --smp-color: #10b981;
+        --sma-color: #8b5cf6;
+      }
+
+      .school-badge {
+        transition: all 0.3s ease;
+      }
+      .school-badge:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+      }
+      [data-school="sdit_sahabat"] {
+        border-left-color: var(--sd-color);
+      }
+      [data-school="pptq_almadinah"] {
+        border-left-color: var(--smp-color);
+      }
+      [data-school="ppqit_almahir"] {
+        border-left-color: var(--sma-color);
+      }
+
+      .fade-in {
+        animation: fadeIn 0.5s ease-in;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .modal {
+        transition: all 0.3s ease;
+      }
+
+      /* Post card hover effect */
+      .post-card {
+        transition: all 0.3s ease;
+        cursor: pointer;
+      }
+      .post-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.15);
+      }
+      .post-card.selected {
+        border-left: 6px solid #10b981;
+        background-color: #f0fdf4;
+      }
+
+      /* Leaderboard item */
+      .leaderboard-item {
+        transition: all 0.3s ease;
+      }
+      .leaderboard-item:hover {
+        transform: translateX(5px);
+        background-color: #f9fafb;
+      }
+
+      /* Loading skeleton */
+      .loading-skeleton {
+        background: linear-gradient(
+          90deg,
+          #f0f0f0 25%,
+          #e0e0e0 50%,
+          #f0f0f0 75%
+        );
+        background-size: 200% 100%;
+        animation: loading 1.5s infinite;
+      }
+
+      @keyframes loading {
+        0% {
+          background-position: 200% 0;
+        }
+        100% {
+          background-position: -200% 0;
+        }
+      }
+
+      /* Arabic font */
+      .arabic {
+        font-family: "Amiri", serif;
+      }
+
+      /* Greeting section animations */
+      .greeting-card {
+        position: relative;
+        overflow: hidden;
+      }
+      .greeting-card::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(
+          circle,
+          rgba(255, 255, 255, 0.1) 0%,
+          transparent 70%
+        );
+        opacity: 0;
+        transition: opacity 0.5s ease;
+      }
+      .greeting-card:hover::before {
+        opacity: 1;
+      }
+      .moon-icon {
+        animation: float 3s ease-in-out infinite;
+      }
+      @keyframes float {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
+      }
+      .greeting-message {
+        transition: all 0.3s ease;
+      }
+      .greeting-message:hover {
+        transform: scale(1.02);
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      /* Pagination */
+      .pagination-item {
+        transition: all 0.3s ease;
+      }
+      .pagination-item:hover {
+        background-color: #e5e7eb;
+      }
+      .pagination-item.active {
+        background-color: #10b981;
+        color: white;
+      }
+
+      /* Post detail sidebar */
+      .post-detail-sidebar {
+        transition: all 0.3s ease;
+        max-height: calc(100vh - 120px);
+        overflow-y: auto;
+      }
+      .post-detail-sidebar.sticky {
+        top: 100px;
+      }
+
+      /* Custom scrollbar for sidebar */
+      .post-detail-sidebar::-webkit-scrollbar {
+        width: 6px;
+      }
+      .post-detail-sidebar::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+      }
+      .post-detail-sidebar::-webkit-scrollbar-thumb {
+        background: #10b981;
+        border-radius: 10px;
+      }
+
+      /* Comment section */
+      .comment-item {
+        transition: all 0.3s ease;
+      }
+      .comment-item:hover {
+        background-color: #f9fafb;
+      }
+
+      /* Layout baru untuk post di bawah */
+      .main-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 2rem;
+      }
+
+      @media (min-width: 1024px) {
+        .main-grid {
+          grid-template-columns: 1fr 2fr;
+        }
+      }
+
+      .posts-section {
+        order: 2;
+      }
+
+      .detail-section {
+        order: 1;
+      }
+
+      @media (min-width: 1024px) {
+        .posts-section {
+          order: 1;
+        }
+        .detail-section {
+          order: 2;
+        }
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50">
+    <!-- Navbar (TANPA TOKEN) -->
+    <nav class="bg-white shadow-lg sticky top-0 z-50">
+      <div class="container mx-auto px-4">
+        <div class="flex justify-between items-center h-16">
+          <div
+            class="flex items-center space-x-2 cursor-pointer"
+            onclick="window.location.href = '/'"
+          >
+            <i class="fas fa-mosque text-emerald-600 text-2xl"></i>
+            <span class="font-bold text-xl text-gray-800"
+              >Lebaran<span class="text-emerald-600">Qu</span></span
+            >
+          </div>
+
+          <div class="hidden md:flex items-center space-x-8">
+            <a
+              href="/"
+              class="text-emerald-600 font-semibold border-b-2 border-emerald-600"
+              >Beranda</a
+            >
+            <a href="/syarat.html" class="text-gray-600 hover:text-emerald-600"
+              >Persyaratan</a
+            >
+            <a href="/profile.html" class="text-gray-600 hover:text-emerald-600"
+              >Profile</a
+            >
+          </div>
+
+          <!-- Di bagian navbar, ganti bagian userInfo dengan yang baru -->
+          <div class="flex items-center space-x-4">
+            <!-- Notifikasi Bell -->
+            <div class="relative" id="notificationContainer">
+              <button
+                onclick="toggleNotificationDropdown()"
+                class="relative p-2 text-gray-600 hover:text-emerald-600 transition"
+              >
+                <i class="fas fa-bell text-xl"></i>
+                <span
+                  id="notificationBadge"
+                  class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center hidden"
+                  >0</span
+                >
+              </button>
+
+              <!-- Dropdown Notifikasi -->
+              <div
+                id="notificationDropdown"
+                class="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 hidden z-50"
+              >
+                <div
+                  class="p-3 border-b border-gray-200 flex justify-between items-center"
+                >
+                  <h3 class="font-semibold text-gray-800">Notifikasi</h3>
+                  <button
+                    onclick="markAllNotificationsRead()"
+                    class="text-xs text-emerald-600 hover:text-emerald-800"
+                  >
+                    Tandai semua dibaca
+                  </button>
+                </div>
+
+                <div id="notificationList" class="max-h-96 overflow-y-auto">
+                  <!-- Akan diisi JavaScript -->
+                  <div class="p-4 text-center text-gray-500">
+                    <i class="fas fa-spinner fa-spin mb-2"></i>
+                    <p class="text-sm">Memuat notifikasi...</p>
+                  </div>
+                </div>
+
+                <div class="p-2 border-t border-gray-200 text-center">
+                  <button
+                    onclick="viewAllNotifications()"
+                    class="text-sm text-emerald-600 hover:text-emerald-800 w-full py-1"
+                  >
+                    Lihat Semua
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div id="userInfo" class="hidden items-center">
+              <span
+                class="text-sm text-gray-600 mr-3"
+                id="userNameDisplay"
+              ></span>
+            </div>
+            <button
+              onclick="logout()"
+              class="flex items-center space-x-2 bg-red-50 text-red-600 px-4 py-2 rounded-lg hover:bg-red-100 transition"
+            >
+              <i class="fas fa-sign-out-alt"></i>
+              <span class="hidden md:inline">Logout</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Loading State -->
+    <div
+      id="loadingState"
+      class="flex flex-col items-center justify-center min-h-[60vh]"
+    >
+      <div
+        class="animate-spin rounded-full h-16 w-16 border-4 border-emerald-600 border-t-transparent mb-4"
+      ></div>
+      <p class="text-gray-600 text-lg">Memuat dashboard...</p>
+    </div>
+
+    <!-- Error State -->
+    <div
+      id="errorState"
+      class="hidden flex flex-col items-center justify-center min-h-[60vh]"
+    >
+      <div class="bg-red-50 rounded-2xl p-8 max-w-md mx-auto text-center">
+        <i class="fas fa-exclamation-circle text-6xl text-red-500 mb-4"></i>
+        <h2 class="text-2xl font-bold text-red-700 mb-2">Oops!</h2>
+        <p id="errorMessage" class="text-red-600 mb-6">
+          Terjadi kesalahan saat memuat dashboard
+        </p>
+        <button
+          onclick="window.location.reload()"
+          class="bg-red-600 text-white px-6 py-3 rounded-xl hover:bg-red-700 transition"
+        >
+          <i class="fas fa-sync-alt mr-2"></i>Coba Lagi
+        </button>
+        <button
+          onclick="logout()"
+          class="mt-4 text-gray-600 hover:text-gray-800 block"
+        >
+          <i class="fas fa-sign-out-alt mr-1"></i>Logout
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div id="mainContent" class="hidden container mx-auto px-4 py-8">
+      <div class="space-y-8 fade-in">
+        <!-- SECTION 1: Greeting Card -->
+        <div
+          class="greeting-card bg-gradient-to-br from-emerald-600 via-emerald-700 to-emerald-800 rounded-3xl p-8 text-white shadow-2xl relative overflow-hidden"
+        >
+          <div
+            class="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-20 -mt-20"
+          ></div>
+          <div
+            class="absolute bottom-0 left-0 w-48 h-48 bg-emerald-500/20 rounded-full -ml-16 -mb-16"
+          ></div>
+
+          <div
+            class="absolute inset-0 opacity-10"
+            style="
+              background-image: url(&quot;data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 5L55 30L30 55L5 30L30 5z' fill='%23ffffff' fill-opacity='0.1'/%3E%3C/svg%3E&quot;);
+            "
+          ></div>
+
+          <div class="relative z-10">
+            <div class="text-center mb-6">
+              <p class="arabic text-3xl md:text-4xl text-emerald-200 mb-2">
+                السلام عليكم ورحمة الله وبركاته
+              </p>
+              <div class="w-24 h-1 bg-emerald-400 mx-auto rounded-full"></div>
+            </div>
+
+            <div
+              class="flex flex-col md:flex-row items-center justify-between gap-6"
+            >
+              <div class="flex-1 text-center md:text-left">
+                <div
+                  class="inline-flex items-center gap-2 bg-emerald-500/30 backdrop-blur-sm px-4 py-2 rounded-full mb-4"
+                >
+                  <i class="fas fa-star text-yellow-300 text-sm"></i>
+                  <span class="text-sm font-medium text-emerald-100"
+                    >Ramadan 1447 H</span
+                  >
+                </div>
+
+                <h2
+                  class="text-4xl md:text-5xl font-bold mb-3 greeting-message"
+                >
+                  <span
+                    class="bg-gradient-to-r from-yellow-200 to-yellow-400 bg-clip-text text-transparent"
+                    >Mohon Maaf</span
+                  >
+                  <br />Lahir & Batin
+                </h2>
+
+                <p
+                  class="text-xl md:text-2xl text-emerald-100 mb-4 flex items-center justify-center md:justify-start gap-2"
+                >
+                  <i class="fas fa-user-circle text-2xl"></i>
+                  <span id="ucapanNama" class="font-semibold">-</span>
+                </p>
+
+                <p class="text-lg text-emerald-200 max-w-2xl italic">
+                  "Di bulan yang suci ini, mari kita sambung tali silaturahmi,
+                  saling memaafkan, dan berbagi kebahagiaan. Semoga setiap
+                  langkah kita diberkahi dan setiap doa diijabah."
+                </p>
+
+                <div
+                  class="flex flex-wrap gap-3 mt-6 justify-center md:justify-start"
+                >
+                  <div
+                    class="bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full"
+                  >
+                    <i class="fas fa-pray text-yellow-300 mr-2"></i>
+                    <span class="text-sm">Taqabbalallahu minna wa minkum</span>
+                  </div>
+                  <div
+                    class="bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full"
+                  >
+                    <i class="fas fa-heart text-red-300 mr-2"></i>
+                    <span class="text-sm">Minal aidin wal faizin</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="hidden lg:block relative">
+                <div
+                  class="moon-icon w-48 h-48 bg-gradient-to-br from-yellow-200 to-yellow-400 rounded-full shadow-2xl flex items-center justify-center"
+                >
+                  <div
+                    class="w-32 h-32 bg-gradient-to-br from-emerald-600 to-emerald-800 rounded-full flex items-center justify-center"
+                  >
+                    <i class="fas fa-moon text-6xl text-yellow-200"></i>
+                  </div>
+                </div>
+                <div
+                  class="absolute -top-4 -right-4 w-12 h-12 bg-yellow-300 rounded-full opacity-50"
+                ></div>
+                <div
+                  class="absolute -bottom-2 -left-2 w-8 h-8 bg-yellow-300 rounded-full opacity-30"
+                ></div>
+              </div>
+            </div>
+
+            <div class="mt-8 pt-6 border-t border-white/20 text-center">
+              <p class="arabic text-xl text-emerald-200 mb-2">
+                وَسَارِعُوا إِلَىٰ مَغْفِرَةٍ مِّن رَّبِّكُمْ وَجَنَّةٍ
+                عَرْضُهَا السَّمَاوَاتُ وَالْأَرْضُ
+              </p>
+              <p class="text-sm text-emerald-300">
+                "Dan bersegeralah kamu kepada ampunan dari Tuhanmu dan kepada
+                surga yang luasnya seluas langit dan bumi" (QS. Ali Imran: 133)
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 2: Penjelasan Sekolah -->
+        <div id="schoolInfo" class="space-y-6">
+          <div
+            class="bg-white rounded-2xl shadow-lg p-6 loading-skeleton"
+            style="height: 300px"
+          ></div>
+        </div>
+
+        <!-- SECTION 3: Leaderboard -->
+        <div class="bg-white rounded-2xl shadow-lg p-6">
+          <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+            <i class="fas fa-trophy text-yellow-500 mr-2"></i>
+            Top Alumni Leaderboard
+          </h2>
+
+          <div class="mb-4 flex flex-wrap gap-4 items-center">
+            <select
+              id="leaderboardFilter"
+              onchange="loadLeaderboard()"
+              class="px-3 py-2 border border-gray-300 rounded-lg"
+            >
+              <option value="all">Semua Sekolah</option>
+              <option value="sdit_sahabat">SDIT Sahabat</option>
+              <option value="pptq_almadinah">PPTQ Al-Madinah</option>
+              <option value="ppqit_almahir">PPQIT Al-Mahir</option>
+            </select>
+
+            <div class="flex gap-2 ml-auto">
+              <span class="text-sm text-gray-500"
+                >Total 27 pemenang • 9 per sekolah</span
+              >
+            </div>
+          </div>
+
+          <div
+            id="leaderboardList"
+            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4"
+          ></div>
+
+          <div
+            class="mt-6 p-4 bg-emerald-50 rounded-xl flex flex-wrap items-center justify-between"
+          >
+            <div>
+              <h3 class="font-semibold text-emerald-800">🏆 Info Pemenang</h3>
+              <p class="text-sm text-emerald-700">
+                9 pemenang per sekolah • Total 27 pemenang
+              </p>
+              <p class="text-sm text-emerald-700 mt-1">
+                Hadiah Rp 50.000 untuk setiap pemenang
+              </p>
+            </div>
+            <div class="text-xs text-emerald-600 bg-white px-3 py-2 rounded-lg">
+              Pemilihan: 29 April 2026
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 4: Posts dengan Layout Baru (Post di Bawah di Mobile, Sejajar di Desktop) -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <!-- Posts Feed (Left Column) -->
+          <div class="lg:col-span-2 space-y-6">
+            <div class="flex justify-between items-center">
+              <h2 class="text-2xl font-bold text-gray-800">
+                <i class="fas fa-newspaper text-emerald-600 mr-2"></i>
+                Cerita Alumni
+              </h2>
+              <button
+                onclick="showCreatePostModal()"
+                class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition"
+              >
+                <i class="fas fa-plus mr-2"></i>Buat Cerita
+              </button>
+            </div>
+
+            <!-- Search & Filter Bar (TANPA FILTER SEKOLAH) -->
+            <div class="bg-white rounded-xl shadow p-4 space-y-3">
+              <!-- Search Input -->
+              <div class="relative">
+                <i
+                  class="fas fa-search absolute left-3 top-3 text-gray-400"
+                ></i>
+                <input
+                  type="text"
+                  id="searchInput"
+                  placeholder="Cari judul, konten, atau nama penulis..."
+                  class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+
+              <!-- Filter Row -->
+              <div class="flex flex-wrap gap-3">
+                <!-- Filter User -->
+                <div class="flex-1 min-w-[200px]">
+                  <select
+                    id="userFilter"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                  >
+                    <option value="">Semua Penulis</option>
+                  </select>
+                </div>
+
+                <!-- Sort By -->
+                <div class="flex-1 min-w-[150px]">
+                  <select
+                    id="sortFilter"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                  >
+                    <option value="newest">Terbaru</option>
+                    <option value="oldest">Terlama</option>
+                    <option value="popular">Populer (Like Terbanyak)</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Active Filters -->
+              <div
+                id="activeFilters"
+                class="flex flex-wrap gap-2 text-sm hidden"
+              >
+                <span class="text-gray-600">Filter aktif:</span>
+              </div>
+            </div>
+
+            <!-- Posts List -->
+            <div id="postsList" class="space-y-4">
+              <!-- Posts will be loaded here -->
+            </div>
+
+            <!-- Pagination -->
+            <div
+              id="paginationContainer"
+              class="flex justify-center items-center space-x-2 mt-6"
+            ></div>
+          </div>
+
+          <!-- Right Column - Post Detail Sidebar -->
+          <div class="lg:col-span-1">
+            <div
+              id="postDetailSidebar"
+              class="bg-white rounded-2xl shadow-lg p-6 sticky top-24 post-detail-sidebar"
+            >
+              <div id="postDetailContent" class="space-y-4">
+                <!-- Default/Empty State -->
+                <div class="text-center py-8">
+                  <i
+                    class="fas fa-hand-pointer text-4xl text-gray-300 mb-3"
+                  ></i>
+                  <h3 class="text-lg font-semibold text-gray-700">
+                    Belum ada post dipilih
+                  </h3>
+                  <p class="text-sm text-gray-500 mt-1">
+                    Klik pada salah satu post untuk melihat detail lengkapnya
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Buat Postingan -->
+    <div
+      id="createPostModal"
+      class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50"
+    >
+      <div class="bg-white rounded-2xl p-8 max-w-lg w-full mx-4">
+        <h3 class="text-2xl font-bold mb-4">Buat Cerita Baru</h3>
+        <form id="createPostForm" class="space-y-4">
+          <input
+            type="text"
+            id="postJudul"
+            placeholder="Judul Cerita"
+            required
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg"
+          />
+          <textarea
+            id="postKonten"
+            rows="4"
+            placeholder="Tulis cerita Anda..."
+            required
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg"
+          ></textarea>
+          <button
+            type="submit"
+            class="w-full bg-emerald-600 text-white py-3 rounded-lg hover:bg-emerald-700"
+          >
+            Posting Cerita
+          </button>
+        </form>
+        <button
+          onclick="hideCreatePostModal()"
+          class="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+        >
+          <i class="fas fa-times text-xl"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="bg-gray-900 text-white mt-16">
+      <div class="container mx-auto px-4 py-12">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <!-- Profil Pembuat -->
+          <div>
+            <div class="flex items-center space-x-4 mb-4">
+              <div
+                class="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center"
+              >
+                <span class="text-2xl font-bold text-white">A</span>
+              </div>
+              <div>
+                <h3 class="font-bold text-lg">Ahmad Afan Shobari</h3>
+                <p class="text-gray-400 text-sm">Web Developer & Alumni</p>
+              </div>
+            </div>
+            <p class="text-gray-400 text-sm">
+              Penggagas silaturahmi alumni lintas generasi. Dari santri untuk
+              ummat, membangun koneksi dan berbagi berkah.
+            </p>
+          </div>
+
+          <!-- Pintasan -->
+          <div>
+            <h4 class="font-bold text-lg mb-4">Pintasan</h4>
+            <ul class="space-y-2">
+              <li>
+                <a href="/" class="text-gray-400 hover:text-white transition"
+                  ><i class="fas fa-chevron-right text-xs mr-2"></i>Beranda</a
+                >
+              </li>
+              <li>
+                <a
+                  href="/syarat.html"
+                  class="text-gray-400 hover:text-white transition"
+                  ><i class="fas fa-chevron-right text-xs mr-2"></i
+                  >Persyaratan</a
+                >
+              </li>
+              <li>
+                <a
+                  href="/profile.html"
+                  class="text-gray-400 hover:text-white transition"
+                  ><i class="fas fa-chevron-right text-xs mr-2"></i>Profile</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#"
+                  onclick="scrollToTop()"
+                  class="text-gray-400 hover:text-white transition"
+                  ><i class="fas fa-chevron-right text-xs mr-2"></i>Kembali ke
+                  Atas</a
+                >
+              </li>
+            </ul>
+          </div>
+
+          <!-- Info Kontak -->
+          <div>
+            <h4 class="font-bold text-lg mb-4">Info Alumni</h4>
+            <ul class="space-y-2 text-gray-400">
+              <li>
+                <i class="fas fa-school mr-2"></i>SDIT Sahabat - Karanganyar
+              </li>
+              <li><i class="fas fa-mosque mr-2"></i>PPTQ Al-Madinah - Solo</li>
+              <li>
+                <i class="fas fa-laptop-code mr-2"></i>PPQIT Al-Mahir - IT &
+                Tahfidz
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div
+          class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400"
+        >
+          <p>© 2026 LebaranQu. All rights reserved.</p>
+          <p class="text-sm mt-2">
+            Dibuat dengan <i class="fas fa-heart text-red-500"></i> oleh Ahmad
+            Afan Shobari
+          </p>
+        </div>
+      </div>
+    </footer>
+
+    <script src="js/dashboard.js"></script>
+    <script>
+        function goToProfile(userId) {
+          window.location.href = `/profile.html?id=${userId}`;
+      }
+
+       function startHeartbeat() {
+        if (!currentUser) return;
+        
+        // Kirim heartbeat setiap 2 menit
+        setInterval(async () => {
+            try {
+                await fetch(`${API_BASE}/users/${currentUser.id}/heartbeat`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('userToken')}`
+                    }
+                });
+            } catch (error) {
+                console.error('Heartbeat error:', error);
+            }
+        }, 120000); // 2 menit
+        
+        // Kirim heartbeat pertama
+        fetch(`${API_BASE}/users/${currentUser.id}/heartbeat`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('userToken')}`
+            }
+        }).catch(error => console.error('Initial heartbeat error:', error));
+    }
+    
+    // ========== FUNGSI SHARE GLOBAL ==========
+    window.shareToWhatsApp = function(post) {
+        try {
+            // Parse post jika berupa string JSON
+            const postData = typeof post === 'string' ? JSON.parse(post) : post;
+            
+            const text = `${postData.judul}\n\n${postData.konten.substring(0, 100)}...\n\nDibaca selengkapnya di LebaranQu`;
+            const url = `https://wa.me/?text=${encodeURIComponent(text)}%20${encodeURIComponent(window.location.origin + '/?post=' + postData.id)}`;
+            window.open(url, '_blank');
+        } catch (error) {
+            console.error('WhatsApp share error:', error);
+            showToast('Gagal membagikan ke WhatsApp', 'error');
+        }
+    };
+
+    window.shareToFacebook = function(post) {
+        try {
+            const postData = typeof post === 'string' ? JSON.parse(post) : post;
+            
+            const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.origin + '/?post=' + postData.id)}&quote=${encodeURIComponent(postData.judul)}`;
+            window.open(url, '_blank');
+        } catch (error) {
+            console.error('Facebook share error:', error);
+            showToast('Gagal membagikan ke Facebook', 'error');
+        }
+    };
+
+    window.shareToTwitter = function(post) {
+        try {
+            const postData = typeof post === 'string' ? JSON.parse(post) : post;
+            
+            const text = `${postData.judul}`;
+            const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(window.location.origin + '/?post=' + postData.id)}`;
+            window.open(url, '_blank');
+        } catch (error) {
+            console.error('Twitter share error:', error);
+            showToast('Gagal membagikan ke Twitter', 'error');
+        }
+    };
+
+    window.shareToInstagram = function(post) {
+        try {
+            const postData = typeof post === 'string' ? JSON.parse(post) : post;
+            
+            const text = `${postData.judul}\n\n${window.location.origin}/?post=${postData.id}`;
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('Link berhasil disalin! Silakan paste di Instagram', 'success');
+            }).catch(() => {
+                showToast('Gagal menyalin link', 'error');
+            });
+        } catch (error) {
+            console.error('Instagram share error:', error);
+            showToast('Gagal memproses link Instagram', 'error');
+        }
+    };
+    </script>
+  </body>
+</html>

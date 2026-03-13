@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Persyaratan - THR 50k</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap");
+      * {
+        font-family: "Poppins", sans-serif;
+      }
+
+      .fade-in {
+        animation: fadeIn 0.5s ease-in;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50">
+    <!-- Navbar (Sama dengan profile.html) -->
+    <nav class="bg-white shadow-lg sticky top-0 z-50">
+      <div class="container mx-auto px-4">
+        <div class="flex justify-between items-center h-16">
+          <div
+            class="flex items-center space-x-2 cursor-pointer"
+            onclick="window.location.href = '/'"
+          >
+            <i class="fas fa-mosque text-emerald-600 text-2xl"></i>
+            <span class="font-bold text-xl text-gray-800"
+              >Lebaran<span class="text-emerald-600">Qu</span></span
+            >
+          </div>
+
+          <div class="hidden md:flex items-center space-x-8">
+            <a href="/" class="text-gray-600 hover:text-emerald-600">Beranda</a>
+            <a
+              href="/syarat.html"
+              class="text-emerald-600 font-semibold border-b-2 border-emerald-600"
+              >Persyaratan</a
+            >
+            <a href="/profile.html" class="text-gray-600 hover:text-emerald-600"
+              >Profile</a
+            >
+          </div>
+
+          <!-- Di navbar, ganti bagian userInfo dengan yang baru seperti di index.html -->
+          <div class="flex items-center space-x-4">
+            <div id="userInfo" class="hidden items-center space-x-3">
+              <span class="text-sm text-gray-600" id="userNameDisplay"></span>
+            </div>
+            <div id="authButtons" class="flex items-center space-x-2">
+              <a
+                href="/login.html"
+                class="text-emerald-600 hover:text-emerald-800 font-medium px-3 py-2"
+              >
+                <i class="fas fa-sign-in-alt mr-1"></i>Login
+              </a>
+              <a
+                href="/register.html"
+                class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition"
+              >
+                <i class="fas fa-user-plus mr-1"></i>Register
+              </a>
+            </div>
+            <button
+              onclick="logout()"
+              class="hidden text-red-500 hover:text-red-700"
+            >
+              <i class="fas fa-sign-out-alt"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-8 max-w-4xl fade-in">
+      <div class="bg-white rounded-2xl shadow-xl p-8">
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">
+          Persyaratan & Ketentuan
+        </h1>
+        <p class="text-gray-600 mb-8">
+          THR 50k untuk 27 Pemenang (9 per sekolah)
+        </p>
+
+        <div class="space-y-6">
+          <!-- Syarat 1 -->
+          <div class="flex items-start space-x-4 p-4 bg-emerald-50 rounded-xl">
+            <div
+              class="w-8 h-8 bg-emerald-600 text-white rounded-full flex items-center justify-center flex-shrink-0"
+            >
+              1
+            </div>
+            <div>
+              <h3 class="font-semibold text-lg">Terdaftar sebagai Alumni</h3>
+              <p class="text-gray-600">
+                Mengisi form registrasi dengan data valid (nama, email, asal
+                sekolah)
+              </p>
+            </div>
+          </div>
+
+          <!-- Syarat 2 -->
+          <div class="flex items-start space-x-4 p-4 bg-emerald-50 rounded-xl">
+            <div
+              class="w-8 h-8 bg-emerald-600 text-white rounded-full flex items-center justify-center flex-shrink-0"
+            >
+              2
+            </div>
+            <div>
+              <h3 class="font-semibold text-lg">Membuat Cerita</h3>
+              <p class="text-gray-600">
+                Setiap peserta wajib membuat minimal 1 cerita di halaman utama
+              </p>
+            </div>
+          </div>
+
+          <!-- Syarat 3 -->
+          <div class="flex items-start space-x-4 p-4 bg-emerald-50 rounded-xl">
+            <div
+              class="w-8 h-8 bg-emerald-600 text-white rounded-full flex items-center justify-center flex-shrink-0"
+            >
+              3
+            </div>
+            <div>
+              <h3 class="font-semibold text-lg">Mendapatkan Like</h3>
+              <p class="text-gray-600">
+                Cerita dengan like terbanyak di masing-masing sekolah berhak
+                menang
+              </p>
+            </div>
+          </div>
+
+          <!-- Info Pemenang -->
+          <div
+            class="mt-8 p-6 bg-gradient-to-r from-emerald-600 to-emerald-800 text-white rounded-xl"
+          >
+            <h3 class="text-2xl font-bold mb-4">🏆 Hadiah Pemenang</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div class="text-center">
+                <div class="text-4xl font-bold">9</div>
+                <div class="text-sm opacity-90">Pemenang SDIT Sahabat</div>
+              </div>
+              <div class="text-center">
+                <div class="text-4xl font-bold">9</div>
+                <div class="text-sm opacity-90">Pemenang PPTQ Al-Madinah</div>
+              </div>
+              <div class="text-center">
+                <div class="text-4xl font-bold">9</div>
+                <div class="text-sm opacity-90">Pemenang PPQIT Al-Mahir</div>
+              </div>
+            </div>
+            <div class="text-center mt-4 text-2xl font-bold">
+              Total: 27 Pemenang x Rp 50.000
+            </div>
+          </div>
+
+          <!-- Timeline -->
+          <div class="mt-8">
+            <h3 class="text-xl font-bold mb-4">📅 Timeline</h3>
+            <div class="space-y-3">
+              <div class="flex items-center">
+                <div class="w-32 font-semibold">1-20 April 2026</div>
+                <div class="flex-1">Periode registrasi & posting cerita</div>
+              </div>
+              <div class="flex items-center">
+                <div class="w-32 font-semibold">21-28 April 2026</div>
+                <div class="flex-1">Periode voting (like)</div>
+              </div>
+              <div class="flex items-center">
+                <div class="w-32 font-semibold">29 April 2026</div>
+                <div class="flex-1">Pengumuman pemenang</div>
+              </div>
+              <div class="flex items-center">
+                <div class="w-32 font-semibold">30 April 2026</div>
+                <div class="flex-1">Pembagian THR</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="bg-gray-900 text-white mt-16">
+      <div class="container mx-auto px-4 py-12">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <!-- Profil Pembuat -->
+          <div>
+            <div class="flex items-center space-x-4 mb-4">
+              <div
+                class="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center"
+              >
+                <span class="text-2xl font-bold text-white">A</span>
+              </div>
+              <div>
+                <h3 class="font-bold text-lg">Ahmad Afan Shobari</h3>
+                <p class="text-gray-400 text-sm">Web Developer & Alumni</p>
+              </div>
+            </div>
+            <p class="text-gray-400 text-sm">
+              Penggagas silaturahmi alumni lintas generasi. Dari santri untuk
+              ummat, membangun koneksi dan berbagi berkah.
+            </p>
+          </div>
+
+          <!-- Pintasan -->
+          <div>
+            <h4 class="font-bold text-lg mb-4">Pintasan</h4>
+            <ul class="space-y-2">
+              <li>
+                <a href="/" class="text-gray-400 hover:text-white transition"
+                  ><i class="fas fa-chevron-right text-xs mr-2"></i>Beranda</a
+                >
+              </li>
+              <li>
+                <a
+                  href="/syarat.html"
+                  class="text-gray-400 hover:text-white transition"
+                  ><i class="fas fa-chevron-right text-xs mr-2"></i
+                  >Persyaratan</a
+                >
+              </li>
+              <li>
+                <a
+                  href="/profile.html"
+                  class="text-gray-400 hover:text-white transition"
+                  ><i class="fas fa-chevron-right text-xs mr-2"></i>Profile</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#"
+                  onclick="scrollToTop()"
+                  class="text-gray-400 hover:text-white transition"
+                  ><i class="fas fa-chevron-right text-xs mr-2"></i>Kembali ke
+                  Atas</a
+                >
+              </li>
+            </ul>
+          </div>
+
+          <!-- Info Kontak -->
+          <div>
+            <h4 class="font-bold text-lg mb-4">Info Alumni</h4>
+            <ul class="space-y-2 text-gray-400">
+              <li>
+                <i class="fas fa-school mr-2"></i>SDIT Sahabat - Karanganyar
+              </li>
+              <li><i class="fas fa-mosque mr-2"></i>PPTQ Al-Madinah - Solo</li>
+              <li>
+                <i class="fas fa-laptop-code mr-2"></i>PPQIT Al-Mahir - IT &
+                Tahfidz
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div
+          class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400"
+        >
+          <p>© 2026 LebaranQu. All rights reserved.</p>
+          <p class="text-sm mt-2">
+            Dibuat dengan <i class="fas fa-heart text-red-500"></i> oleh Ahmad
+            Afan Shobari
+          </p>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      function logout() {
+        localStorage.removeItem("currentUser");
+        localStorage.removeItem("userToken");
+        window.location.href = "/auth.html";
+      }
+
+      function scrollToTop() {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      // Cek session
+      (function checkSession() {
+        const savedUser = localStorage.getItem("currentUser");
+        if (!savedUser) {
+          window.location.href = "/auth.html";
+        }
+      })();
+    </script>
+  </body>
+</html>
