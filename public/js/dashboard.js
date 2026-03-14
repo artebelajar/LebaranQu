@@ -34,6 +34,13 @@ let filteredPosts = [];
 
 // Online status
 let onlineStatus = {};
+let heartbeatInterval = null;
+
+// ========== WEBSOCKET CLIENT ==========
+let ws = null;
+let sseSource = null;
+let reconnectAttempts = 0;
+const MAX_RECONNECT_ATTEMPTS = 5;
 
 // ========== CEK SESSION ==========
 (function checkSession() {
@@ -69,6 +76,347 @@ let onlineStatus = {};
   }
 })();
 
+function connectWebSocket() {
+  if (!currentUser) return;
+  
+  const wsUrl = `ws://${window.location.host}/ws?userId=${currentUser.id}`;
+  console.log('🔌 Connecting WebSocket...');
+  
+  ws = new WebSocket(wsUrl);
+  
+  ws.onopen = () => {
+    console.log('🔌 WebSocket connected');
+    reconnectAttempts = 0;
+    
+    // Send ping every 30 seconds to keep connection alive
+    setInterval(() => {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'ping' }));
+      }
+    }, 30000);
+  };
+  
+  ws.onmessage = (event) => {
+    try {
+      const data = JSON.parse(event.data);
+      console.log('📨 WebSocket message:', data);
+      handleRealtimeUpdate(data);
+    } catch (error) {
+      console.error('WebSocket message error:', error);
+    }
+  };
+  
+  ws.onclose = () => {
+    console.log('🔌 WebSocket disconnected');
+    if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+      reconnectAttempts++;
+      const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000);
+      console.log(`🔄 Reconnecting in ${delay/1000}s... (attempt ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})`);
+      setTimeout(connectWebSocket, delay);
+    } else {
+      console.log('❌ Max reconnection attempts reached, falling back to SSE');
+      connectSSE();
+    }
+  };
+  
+  ws.onerror = (error) => {
+    console.error('WebSocket error:', error);
+  };
+}
+
+// Fallback menggunakan SSE
+function connectSSE() {
+  if (!currentUser) return;
+  
+  if (sseSource) {
+    sseSource.close();
+  }
+  
+  const sseUrl = `/events?userId=${currentUser.id}`;
+  console.log('📡 Connecting SSE...');
+  
+  sseSource = new EventSource(sseUrl);
+  
+  sseSource.onopen = () => {
+    console.log('📡 SSE connected');
+    reconnectAttempts = 0;
+  };
+  
+  sseSource.onmessage = (event) => {
+    try {
+      // Skip ping messages (they start with ':')
+      if (event.data && !event.data.startsWith(':')) {
+        const data = JSON.parse(event.data);
+        console.log('📡 SSE message:', data);
+        handleRealtimeUpdate(data);
+      }
+    } catch (error) {
+      console.error('SSE message error:', error);
+    }
+  };
+  
+  sseSource.onerror = (error) => {
+    console.error('SSE error:', error);
+    
+    if (sseSource.readyState === EventSource.CLOSED) {
+      console.log('📡 SSE closed');
+      
+      if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+        reconnectAttempts++;
+        const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000);
+        console.log(`🔄 Reconnecting SSE in ${delay/1000}s... (attempt ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})`);
+        setTimeout(connectSSE, delay);
+      } else {
+        console.log('❌ Max reconnection attempts reached');
+      }
+    }
+  };
+}
+
+
+// ========== HANDLE REAL-TIME UPDATES ==========
+function handleRealtimeUpdate(data) {
+  // Skip ping messages
+  if (data.type === 'pong') {
+    console.log('🏓 Pong received');
+    return;
+  }
+  
+  switch (data.type) {
+    case 'new_post':
+      handleNewPost(data.post);
+      break;
+      
+    case 'update_likes':
+      handleLikeUpdate(data.postId, data.likeCount, data.action, data.userId);
+      break;
+      
+    case 'new_comment':
+      handleNewComment(data.postId, data.comment);
+      break;
+      
+    case 'new_like':
+      showToast(`${data.userName} menyukai postingan Anda`, 'info');
+      break;
+      
+    case 'new_comment_notification':
+      showToast(`Komentar baru di postingan Anda`, 'info');
+      break;
+      
+    case 'user_online':
+      updateOnlineStatus(data.userId, data.online);
+      break;
+      
+    case 'typing':
+      handleTypingStatus(data.postId, data.userId, data.isTyping);
+      break;
+      
+    case 'connected':
+      console.log('✅ SSE Connected');
+      break;
+      
+    default:
+      console.log('Unknown event type:', data.type);
+  }
+}
+
+// ========== HANDLE NEW POST ==========
+function handleNewPost(post) {
+    // Tambahkan post ke awal daftar
+    allPosts.unshift(post);
+    totalPosts++;
+    
+    // Re-render posts dan pagination
+    applyFiltersAndRender();
+    
+    // Tampilkan notifikasi - PASTIKAN showToast ADA
+    if (typeof showToast === 'function') {
+        showToast(`Cerita baru dari ${post.user?.namaLengkap || 'Alumni'}`, 'success');
+    } else {
+        console.log('Cerita baru:', post);
+        alert(`Cerita baru dari ${post.user?.namaLengkap || 'Alumni'}`);
+    }
+    
+    // Scroll ke atas jika user ingin
+    if (confirm('Cerita baru tersedia. Lihat sekarang?')) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+}
+
+// ========== HANDLE LIKE UPDATE ==========
+function handleLikeUpdate(postId, likeCount, action, userId) {
+  // Update di allPosts
+  const postIndex = allPosts.findIndex((p) => p.id === postId);
+  if (postIndex !== -1) {
+    allPosts[postIndex].likeCount = likeCount;
+
+    // Update like status untuk user yang sedang login
+    if (userId === currentUser.id) {
+      if (action === "liked") {
+        userLikes.add(postId);
+      } else {
+        userLikes.delete(postId);
+      }
+      saveUserLikes();
+    }
+  }
+
+  // Update di filteredPosts
+  const filteredIndex = filteredPosts.findIndex((p) => p.id === postId);
+  if (filteredIndex !== -1) {
+    filteredPosts[filteredIndex].likeCount = likeCount;
+  }
+
+  // Update UI
+  updateLikeButton(
+    postId,
+    likeCount,
+    action === "liked" && userId === currentUser.id,
+  );
+
+  // Jika post ini sedang dipilih, update detail view
+  if (selectedPostId === postId) {
+    renderPostDetail(postId);
+  }
+}
+
+// ========== UPDATE LIKE BUTTON ==========
+function updateLikeButton(postId, likeCount, isLiked) {
+  const postElement = document.querySelector(`[data-post-id="${postId}"]`);
+  if (!postElement) return;
+
+  const likeButton = postElement.querySelector(".like-button");
+  const likeCountSpan = likeButton?.querySelector(".like-count");
+  const likeIcon = likeButton?.querySelector("i");
+
+  if (likeCountSpan) likeCountSpan.textContent = likeCount;
+
+  if (likeButton) {
+    if (isLiked) {
+      likeButton.classList.remove("text-gray-500", "hover:text-red-500");
+      likeButton.classList.add("text-red-500");
+      if (likeIcon) likeIcon.classList.add("text-red-500");
+    } else {
+      likeButton.classList.remove("text-red-500");
+      likeButton.classList.add("text-gray-500", "hover:text-red-500");
+      if (likeIcon) likeIcon.classList.remove("text-red-500");
+    }
+  }
+}
+
+// ========== HANDLE NEW COMMENT ==========
+function handleNewComment(postId, comment) {
+  // Update comment count di post list
+  const postElement = document.querySelector(`[data-post-id="${postId}"]`);
+  if (postElement) {
+    const commentCountEl = postElement.querySelector(".comment-count");
+    if (commentCountEl) {
+      const currentCount = parseInt(commentCountEl.textContent) || 0;
+      commentCountEl.textContent = currentCount + 1;
+    }
+  }
+
+  // Jika post ini sedang dipilih, refresh comments
+  if (selectedPostId === postId) {
+    renderPostDetail(postId);
+  }
+
+  // Tampilkan notifikasi jika bukan komentar sendiri
+  if (comment.user.id !== currentUser.id) {
+    showToast(`${comment.user.namaLengkap} berkomentar`, "info");
+  }
+}
+
+// ========== UPDATE ONLINE STATUS ==========
+function updateOnlineStatus(userId, online) {
+  onlineStatus[userId] = { online, lastActive: new Date() };
+
+  // Update UI untuk status online
+  const userElement = document.querySelector(`[data-user-id="${userId}"]`);
+  if (userElement) {
+    const statusDot = userElement.querySelector(".online-status-dot");
+    if (statusDot) {
+      statusDot.className = `online-status-dot w-2 h-2 ${online ? "bg-green-500" : "bg-gray-400"} rounded-full absolute bottom-0 right-0`;
+    }
+  }
+}
+
+// ========== HANDLE TYPING STATUS ==========
+function handleTypingStatus(postId, userId, isTyping) {
+  if (selectedPostId === postId) {
+    const typingIndicator = document.getElementById("typingIndicator");
+    if (typingIndicator) {
+      if (isTyping) {
+        typingIndicator.classList.remove("hidden");
+      } else {
+        typingIndicator.classList.add("hidden");
+      }
+    }
+  }
+}
+
+// ========== SEND TYPING STATUS ==========
+let typingTimeout;
+function sendTypingStatus(postId, isTyping) {
+  if (!ws || ws.readyState !== WebSocket.OPEN) return;
+
+  ws.send(
+    JSON.stringify({
+      type: "typing",
+      postId,
+      userId: currentUser.id,
+      isTyping,
+    }),
+  );
+
+  if (isTyping) {
+    clearTimeout(typingTimeout);
+    typingTimeout = setTimeout(() => {
+      sendTypingStatus(postId, false);
+    }, 3000);
+  }
+}
+
+// ========== INIT DASHBOARD ==========
+function initDashboard() {
+  console.log("Initializing dashboard...");
+
+  document.getElementById("userNameDisplay").textContent = currentUser.namaLengkap;
+  document.getElementById("ucapanNama").textContent = currentUser.namaLengkap;
+
+  setupSearchAndFilters();
+  
+  // Try WebSocket first
+  try {
+    connectWebSocket();
+  } catch (error) {
+    console.error('WebSocket connection failed, falling back to SSE:', error);
+    connectSSE();
+  }
+
+  Promise.all([
+    loadSchoolInfo(),
+    loadAllPosts(),
+    loadLeaderboard(),
+    loadNotifications(),
+  ])
+    .then(() => {
+      document.getElementById("loadingState").classList.add("hidden");
+      document.getElementById("mainContent").classList.remove("hidden");
+      document.getElementById("userInfo").classList.remove("hidden");
+      console.log("Dashboard ready");
+    })
+    .catch((error) => {
+      console.error("Error loading dashboard:", error);
+      showError("Gagal memuat data");
+    });
+
+  document.getElementById("leaderboardFilter").addEventListener("change", loadLeaderboard);
+  
+  // Start heartbeat
+  startHeartbeat();
+}
+
 // ========== LOAD USER LIKES ==========
 function loadUserLikes() {
   try {
@@ -93,55 +441,6 @@ function saveUserLikes() {
   } catch (e) {
     console.error("Error saving user likes:", e);
   }
-}
-
-// ========== INIT DASHBOARD ==========
-function initDashboard() {
-  console.log("Initializing dashboard...");
-
-  document.getElementById("userNameDisplay").textContent =
-    currentUser.namaLengkap;
-  document.getElementById("ucapanNama").textContent = currentUser.namaLengkap;
-
-  if (!isAdmin) {
-    currentFilter = currentUser.asalSekolah;
-  }
-
-  setupFilterUI();
-  setupSearchAndFilters();
-
-  // Mulai heartbeat untuk status online
-  startHeartbeat();
-
-  Promise.all([
-    loadSchoolInfo(),
-    loadAllPosts(),
-    loadLeaderboard(),
-    loadNotifications(),
-  ])
-    .then(() => {
-      document.getElementById("loadingState").classList.add("hidden");
-      document.getElementById("mainContent").classList.remove("hidden");
-      document.getElementById("userInfo").classList.remove("hidden");
-      console.log("Dashboard ready");
-    })
-    .catch((error) => {
-      console.error("Error loading dashboard:", error);
-      showError("Gagal memuat data");
-    });
-
-  document
-    .getElementById("leaderboardFilter")
-    .addEventListener("change", loadLeaderboard);
-
-  // Tutup dropdown saat klik di luar
-  document.addEventListener("click", function (event) {
-    const container = document.getElementById("notificationContainer");
-    const dropdown = document.getElementById("notificationDropdown");
-    if (container && dropdown && !container.contains(event.target)) {
-      dropdown.classList.add("hidden");
-    }
-  });
 }
 
 // ========== SHOW ERROR STATE ==========
@@ -261,12 +560,7 @@ async function loadSchoolInfo() {
         "Pembelajaran programming",
         "Kewirausahaan digital",
       ],
-      fasilitas: [
-        "Lab Komputer",
-        "Studio Podcast",
-        "Asrama",
-        "Masjid",
-      ],
+      fasilitas: ["Lab Komputer", "Studio Podcast", "Asrama", "Masjid"],
       img: "/images/almahir.png",
       bgColor: "from-purple-600 to-purple-800",
       lightBg: "bg-purple-50",
@@ -347,14 +641,18 @@ async function loadSchoolInfo() {
             Fasilitas
           </h3>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            ${sekolah.fasilitas.map(f => `
+            ${sekolah.fasilitas
+              .map(
+                (f) => `
               <div class="flex items-center gap-3 p-2 ${sekolah.lightBg} rounded-lg">
                 <div class="w-8 h-8 bg-white rounded-full flex items-center justify-center">
                   <i class="fas fa-check text-${sekolah.accentColor}-500 text-sm"></i>
                 </div>
                 <span class="text-gray-700">${f}</span>
               </div>
-            `).join("")}
+            `,
+              )
+              .join("")}
           </div>
         </div>
       </div>
@@ -373,14 +671,18 @@ async function loadSchoolInfo() {
           <div>
             <p class="font-semibold text-${sekolah.accentColor}-600 mb-3">📋 Misi:</p>
             <ul class="space-y-3">
-              ${sekolah.misi.map((m, index) => `
+              ${sekolah.misi
+                .map(
+                  (m, index) => `
                 <li class="flex items-start gap-3 p-2 ${sekolah.lightBg} rounded-lg">
                   <span class="w-6 h-6 bg-${sekolah.accentColor}-500 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
                     ${index + 1}
                   </span>
                   <span class="text-gray-700">${m}</span>
                 </li>
-              `).join("")}
+              `,
+                )
+                .join("")}
             </ul>
           </div>
         </div>
@@ -441,12 +743,16 @@ async function loadAllUsers() {
 function filterPostsBySearch() {
   if (!allPosts || allPosts.length === 0) return [];
   return allPosts.filter((post) => {
-    const matchesSearch = searchQuery === "" ||
+    const matchesSearch =
+      searchQuery === "" ||
       post.judul.toLowerCase().includes(searchQuery.toLowerCase()) ||
       post.konten.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (post.user?.namaLengkap &&
-        post.user.namaLengkap.toLowerCase().includes(searchQuery.toLowerCase()));
-    const matchesUser = selectedUser === "" ||
+        post.user.namaLengkap
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase()));
+    const matchesUser =
+      selectedUser === "" ||
       (post.user && post.user.id === parseInt(selectedUser));
     return matchesSearch && matchesUser;
   });
@@ -476,12 +782,16 @@ function updateActiveFilters() {
 
   let filters = [];
   if (searchQuery) {
-    filters.push(`<span class="bg-emerald-100 text-emerald-800 px-2 py-1 rounded-full text-xs">Pencarian: "${searchQuery}"</span>`);
+    filters.push(
+      `<span class="bg-emerald-100 text-emerald-800 px-2 py-1 rounded-full text-xs">Pencarian: "${searchQuery}"</span>`,
+    );
   }
   if (selectedUser) {
     const user = allUsers.find((u) => u.id === parseInt(selectedUser));
     if (user) {
-      filters.push(`<span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">Penulis: ${user.namaLengkap}</span>`);
+      filters.push(
+        `<span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">Penulis: ${user.namaLengkap}</span>`,
+      );
     }
   }
   if (filters.length > 0) {
@@ -559,8 +869,16 @@ function renderFilteredPosts() {
   const endIndex = Math.min(startIndex + postsPerPage, totalPosts);
   const currentPosts = filteredPosts.slice(startIndex, endIndex);
 
-  const userIds = [...new Set(currentPosts.map((p) => p.user?.id).filter((id) => id))];
-  if (userIds.length > 0) loadOnlineStatus(userIds);
+  // Kumpulkan user IDs untuk cek status online (pastikan ID valid)
+  const userIds = currentPosts
+    .map((p) => p.user?.id)
+    .filter((id) => id && !isNaN(parseInt(id)));
+  
+  if (userIds.length > 0) {
+    // Hapus duplikasi
+    const uniqueUserIds = [...new Set(userIds)];
+    loadOnlineStatus(uniqueUserIds);
+  }
 
   const postsList = document.getElementById("postsList");
 
@@ -578,23 +896,25 @@ function renderFilteredPosts() {
     postsList.innerHTML = currentPosts.map((post) => {
       const isLiked = userLikes.has(post.id);
       const isSelected = selectedPostId === post.id;
+      const isOnline = onlineStatus[post.user?.id]?.online || false;
 
       return `
         <div class="bg-white rounded-xl shadow p-6 post-card ${isSelected ? "selected" : ""}" 
-             data-post-id="${post.id}" onclick="selectPost(${post.id})">
+             data-post-id="${post.id}">
           <div class="flex items-start justify-between">
             <div class="flex items-center space-x-3 relative">
-              <div class="relative" data-user-id="${post.user?.id}">
+              <div class="relative" data-user-id="${post.user?.id || ''}">
                 <img src="${post.user?.fotoProfil || "/images/default-avatar.png"}" 
                      class="w-10 h-10 rounded-full object-cover cursor-pointer hover:opacity-80 transition"
                      onclick="event.stopPropagation(); goToProfile(${post.user?.id})"
                      onerror="this.src='/images/default-avatar.png'">
-                <span class="online-status-dot w-2 h-2 bg-gray-400 rounded-full absolute bottom-0 right-0"></span>
+                <span class="online-status-dot w-2 h-2 ${isOnline ? 'bg-green-500' : 'bg-gray-400'} rounded-full absolute bottom-0 right-0"></span>
               </div>
               <div>
                 <h3 class="font-semibold text-gray-800 cursor-pointer hover:text-emerald-600 transition"
                     onclick="event.stopPropagation(); goToProfile(${post.user?.id})">
                   ${post.user?.namaLengkap || "Unknown"}
+                  ${isOnline ? '<span class="text-xs text-green-500 ml-1">● online</span>' : ''}
                 </h3>
                 <p class="text-xs text-gray-500">${post.user?.title || "Alumni"} • ${formatDate(post.createdAt)}</p>
               </div>
@@ -603,9 +923,9 @@ function renderFilteredPosts() {
               ${getSchoolName(post.user?.asalSekolah)}
             </span>
           </div>
-          <h4 class="font-bold text-xl mt-4">${post.judul}</h4>
-          <p class="text-gray-600 mt-2">${post.konten.substring(0, 150)}${post.konten.length > 150 ? "..." : ""}</p>
-          ${post.gambar ? `<img src="${post.gambar}" class="mt-4 rounded-lg max-h-64 object-cover">` : ""}
+          <h4 class="font-bold text-xl mt-4 cursor-pointer" onclick="selectPost(${post.id})">${post.judul}</h4>
+          <p class="text-gray-600 mt-2 cursor-pointer" onclick="selectPost(${post.id})">${post.konten.substring(0, 150)}${post.konten.length > 150 ? "..." : ""}</p>
+          ${post.gambar ? `<img src="${post.gambar}" class="mt-4 rounded-lg max-h-64 object-cover cursor-pointer" onclick="selectPost(${post.id})">` : ""}
           <div class="flex items-center justify-between mt-4 pt-4 border-t">
             <div class="flex items-center space-x-4">
               <button onclick="event.stopPropagation(); handleLike(${post.id})" 
@@ -653,7 +973,11 @@ function renderPagination() {
     `;
   }
 
-  for (let i = Math.max(1, currentPage - 2); i <= Math.min(totalPages, currentPage + 2); i++) {
+  for (
+    let i = Math.max(1, currentPage - 2);
+    i <= Math.min(totalPages, currentPage + 2);
+    i++
+  ) {
     paginationHTML += `
       <button onclick="changePage(${i})" 
               class="px-3 py-1 rounded-lg border pagination-item ${i === currentPage ? "active" : "hover:bg-gray-100"}">
@@ -687,7 +1011,10 @@ function changePage(newPage) {
   currentPage = newPage;
   renderFilteredPosts();
   renderPagination();
-  window.scrollTo({ top: document.getElementById("postsList").offsetTop - 100, behavior: "smooth" });
+  window.scrollTo({
+    top: document.getElementById("postsList").offsetTop - 100,
+    behavior: "smooth",
+  });
 }
 // ===================================================
 // BAGIAN 4: POST DETAIL, LIKE, COMMENTS, NOTIFIKASI
@@ -726,14 +1053,25 @@ async function selectPost(postId) {
 }
 
 // ========== LOAD COMMENTS ==========
+// ========== LOAD COMMENTS ==========
 async function loadComments(postId) {
   try {
+    console.log(`📝 Loading comments for post ${postId}`);
+    
     const response = await fetch(`${API_BASE}/posts/${postId}/comments`);
-    if (!response.ok) throw new Error("Failed to load comments");
-    return await response.json();
+    
+    if (!response.ok) {
+      console.error('Comments response:', response.status, response.statusText);
+      throw new Error(`Failed to load comments: ${response.status}`);
+    }
+
+    const comments = await response.json();
+    console.log(`💬 Loaded ${comments.length} comments`);
+    return comments;
+    
   } catch (error) {
     console.error("Error loading comments:", error);
-    return [];
+    return []; 
   }
 }
 
@@ -773,7 +1111,7 @@ function toggleComments(postId) {
   renderPostDetail(postId);
 }
 
-// ========== RENDER POST DETAIL ==========
+// ========== UPDATE RENDER POST DETAIL ==========
 async function renderPostDetail(postId) {
   const post = allPosts.find((p) => p.id === postId);
   if (!post) return;
@@ -782,11 +1120,9 @@ async function renderPostDetail(postId) {
   const showComments = commentsVisible[postId] || false;
   const comments = await loadComments(postId);
   const commentCount = comments.length;
-
-  if (post.user?.id) loadOnlineStatus([post.user.id]);
+  const isOnline = onlineStatus[post.user?.id]?.online || false;
 
   const detailContent = document.getElementById("postDetailContent");
-  const isOnline = onlineStatus[post.user?.id]?.online || false;
 
   detailContent.innerHTML = `
     <div class="space-y-4">
@@ -855,6 +1191,11 @@ async function renderPostDetail(postId) {
         </div>
       </div>
       
+      <!-- Typing Indicator -->
+      <div id="typingIndicator" class="hidden text-sm text-gray-500 italic">
+        <i class="fas fa-pencil-alt mr-1"></i> Seseorang sedang mengetik...
+      </div>
+      
       <!-- Comments Toggle -->
       <div class="flex justify-end">
         <button onclick="toggleComments(${post.id})" 
@@ -865,20 +1206,31 @@ async function renderPostDetail(postId) {
         </button>
       </div>
       
-      ${showComments ? `
+      ${
+        showComments
+          ? `
         <div class="space-y-4 mt-4">
           <div class="flex gap-2">
             <img src="${currentUser.fotoProfil || "/images/default-avatar.png"}" class="w-8 h-8 rounded-full object-cover">
             <div class="flex-1 flex gap-2">
-              <input type="text" id="newCommentInput" placeholder="Tulis komentar..." 
-                     class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500">
-              <button onclick="addComment(${post.id})" class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700">
+              <input type="text" id="newCommentInput" 
+                     placeholder="Tulis komentar..." 
+                     class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                     onkeyup="if(this.value.trim()) sendTypingStatus(${post.id}, true)"
+                     onblur="sendTypingStatus(${post.id}, false)">
+              <button onclick="addComment(${post.id})" 
+                      class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition">
                 <i class="fas fa-paper-plane"></i>
               </button>
             </div>
           </div>
           <div id="commentsList" class="space-y-3 max-h-60 overflow-y-auto pr-1">
-            ${commentCount === 0 ? '<p class="text-center text-gray-500 py-4">Belum ada komentar.</p>' : comments.map(comment => `
+            ${
+              commentCount === 0
+                ? '<p class="text-center text-gray-500 py-4">Belum ada komentar.</p>'
+                : comments
+                    .map(
+                      (comment) => `
               <div class="flex gap-2 comment-item p-2 rounded-lg">
                 <img src="${comment.user?.fotoProfil || "/images/default-avatar.png"}" 
                      class="w-6 h-6 rounded-full object-cover cursor-pointer hover:opacity-80"
@@ -892,10 +1244,15 @@ async function renderPostDetail(postId) {
                   <p class="text-sm text-gray-700">${comment.text}</p>
                 </div>
               </div>
-            `).join("")}
+            `,
+                    )
+                    .join("")
+            }
           </div>
         </div>
-      ` : ""}
+      `
+          : ""
+      }
     </div>
   `;
 }
@@ -1016,34 +1373,36 @@ function hideCreatePostModal() {
 }
 
 // ========== CREATE POST ==========
-document.getElementById("createPostForm")?.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const postData = {
-    judul: document.getElementById("postJudul").value,
-    konten: document.getElementById("postKonten").value,
-    userId: currentUser.id,
-  };
-  try {
-    const res = await fetch(`${API_BASE}/posts`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${localStorage.getItem("userToken")}`,
-      },
-      body: JSON.stringify(postData),
-    });
-    if (res.ok) {
-      hideCreatePostModal();
-      document.getElementById("createPostForm").reset();
-      await loadAllPosts();
-      await loadLeaderboard();
-    } else {
-      alert("Gagal membuat postingan");
+document
+  .getElementById("createPostForm")
+  ?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const postData = {
+      judul: document.getElementById("postJudul").value,
+      konten: document.getElementById("postKonten").value,
+      userId: currentUser.id,
+    };
+    try {
+      const res = await fetch(`${API_BASE}/posts`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("userToken")}`,
+        },
+        body: JSON.stringify(postData),
+      });
+      if (res.ok) {
+        hideCreatePostModal();
+        document.getElementById("createPostForm").reset();
+        await loadAllPosts();
+        await loadLeaderboard();
+      } else {
+        alert("Gagal membuat postingan");
+      }
+    } catch (error) {
+      alert("Error: " + error.message);
     }
-  } catch (error) {
-    alert("Error: " + error.message);
-  }
-});
+  });
 
 // ========== GO TO PROFILE ==========
 function goToProfile(userId) {
@@ -1097,7 +1456,9 @@ function setupSearchAndFilters() {
 // ========== NOTIFICATIONS ==========
 async function loadNotifications() {
   try {
-    const response = await fetch(`${API_BASE}/notifications?userId=${currentUser.id}&limit=20`);
+    const response = await fetch(
+      `${API_BASE}/notifications?userId=${currentUser.id}&limit=20`,
+    );
     if (!response.ok) throw new Error("Gagal memuat notifikasi");
     const data = await response.json();
     notifications = data.notifications;
@@ -1116,11 +1477,12 @@ function renderNotifications() {
     notificationList.innerHTML = `<div class="p-8 text-center text-gray-500"><i class="fas fa-bell-slash text-4xl mb-3 text-gray-300"></i><p class="text-sm">Belum ada notifikasi</p></div>`;
     return;
   }
-  notificationList.innerHTML = notifications.map((notif) => {
-    const isUnread = !notif.isRead;
-    const timeAgo = getTimeAgo(notif.createdAt);
-    let icon = getNotificationIcon(notif.type);
-    return `
+  notificationList.innerHTML = notifications
+    .map((notif) => {
+      const isUnread = !notif.isRead;
+      const timeAgo = getTimeAgo(notif.createdAt);
+      let icon = getNotificationIcon(notif.type);
+      return `
       <div class="p-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition ${isUnread ? "bg-emerald-50" : ""}"
            onclick="handleNotificationClick(${notif.id}, '${notif.type}', ${notif.postId || "null"})">
         <div class="flex gap-3">
@@ -1140,18 +1502,46 @@ function renderNotifications() {
         </div>
       </div>
     `;
-  }).join("");
+    })
+    .join("");
 }
 
 function getNotificationIcon(type) {
   switch (type) {
-    case "like": return { icon: "fa-heart", color: "text-red-500", bgColor: "red-100" };
-    case "comment": return { icon: "fa-comment", color: "text-blue-500", bgColor: "blue-100" };
-    case "rank_up": return { icon: "fa-arrow-up", color: "text-emerald-500", bgColor: "emerald-100" };
-    case "rank_down": return { icon: "fa-arrow-down", color: "text-yellow-500", bgColor: "yellow-100" };
-    case "event": return { icon: "fa-calendar-alt", color: "text-purple-500", bgColor: "purple-100" };
-    case "achievement": return { icon: "fa-trophy", color: "text-amber-500", bgColor: "amber-100" };
-    default: return { icon: "fa-bell", color: "text-gray-500", bgColor: "gray-100" };
+    case "like":
+      return { icon: "fa-heart", color: "text-red-500", bgColor: "red-100" };
+    case "comment":
+      return {
+        icon: "fa-comment",
+        color: "text-blue-500",
+        bgColor: "blue-100",
+      };
+    case "rank_up":
+      return {
+        icon: "fa-arrow-up",
+        color: "text-emerald-500",
+        bgColor: "emerald-100",
+      };
+    case "rank_down":
+      return {
+        icon: "fa-arrow-down",
+        color: "text-yellow-500",
+        bgColor: "yellow-100",
+      };
+    case "event":
+      return {
+        icon: "fa-calendar-alt",
+        color: "text-purple-500",
+        bgColor: "purple-100",
+      };
+    case "achievement":
+      return {
+        icon: "fa-trophy",
+        color: "text-amber-500",
+        bgColor: "amber-100",
+      };
+    default:
+      return { icon: "fa-bell", color: "text-gray-500", bgColor: "gray-100" };
   }
 }
 
@@ -1196,7 +1586,9 @@ async function handleNotificationClick(notificationId, type, postId) {
     if (post) {
       selectPost(postId);
       document.getElementById("notificationDropdown")?.classList.add("hidden");
-      document.getElementById(`post-${postId}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+      document
+        .getElementById(`post-${postId}`)
+        ?.scrollIntoView({ behavior: "smooth", block: "center" });
     }
   }
 }
@@ -1246,22 +1638,34 @@ async function loadLeaderboard() {
     if (!isAdmin) filter = currentUser.asalSekolah;
     else filter = document.getElementById("leaderboardFilter")?.value || "all";
 
-    const response = await fetch(`${API_BASE}/users/leaderboard?sekolah=${filter}`);
+    const response = await fetch(
+      `${API_BASE}/users/leaderboard?sekolah=${filter}`,
+    );
     if (!response.ok) throw new Error(`HTTP error ${response.status}`);
 
     const users = await response.json();
     const leaderboardList = document.getElementById("leaderboardList");
 
     if (!users || users.length === 0) {
-      leaderboardList.innerHTML = '<p class="text-gray-500 text-center py-4 col-span-5">Belum ada data</p>';
+      leaderboardList.innerHTML =
+        '<p class="text-gray-500 text-center py-4 col-span-5">Belum ada data</p>';
     } else {
-      leaderboardList.innerHTML = users.slice(0, 10).map((user, index) => {
-        let medalIcon = "", medalColor = "";
-        if (index === 0) { medalIcon = "🥇"; medalColor = "bg-yellow-100 border-yellow-500"; }
-        else if (index === 1) { medalIcon = "🥈"; medalColor = "bg-gray-100 border-gray-400"; }
-        else if (index === 2) { medalIcon = "🥉"; medalColor = "bg-amber-100 border-amber-600"; }
-        else medalColor = "bg-gray-50 border-gray-200";
-        return `
+      leaderboardList.innerHTML = users
+        .slice(0, 10)
+        .map((user, index) => {
+          let medalIcon = "",
+            medalColor = "";
+          if (index === 0) {
+            medalIcon = "🥇";
+            medalColor = "bg-yellow-100 border-yellow-500";
+          } else if (index === 1) {
+            medalIcon = "🥈";
+            medalColor = "bg-gray-100 border-gray-400";
+          } else if (index === 2) {
+            medalIcon = "🥉";
+            medalColor = "bg-amber-100 border-amber-600";
+          } else medalColor = "bg-gray-50 border-gray-200";
+          return `
           <div class="leaderboard-item flex flex-col items-center p-3 ${medalColor} rounded-lg border-2 text-center">
             <div class="text-2xl mb-1">${medalIcon || "#" + (index + 1)}</div>
             <img src="${user.fotoProfil || "/images/default-avatar.png"}" 
@@ -1274,17 +1678,33 @@ async function loadLeaderboard() {
             </p>
           </div>
         `;
-      }).join("");
+        })
+        .join("");
     }
   } catch (error) {
     console.error("Error loading leaderboard:", error);
-    document.getElementById("leaderboardList").innerHTML = '<p class="text-red-500 text-center py-4 col-span-5">Gagal memuat leaderboard</p>';
+    document.getElementById("leaderboardList").innerHTML =
+      '<p class="text-red-500 text-center py-4 col-span-5">Gagal memuat leaderboard</p>';
   }
 }
 
 // ========== ONLINE STATUS ==========
 async function loadOnlineStatus(userIds) {
   if (!userIds || userIds.length === 0) return;
+  
+  // Filter userIds yang valid (hapus undefined, null, NaN)
+  const validUserIds = userIds.filter(id => id && !isNaN(parseInt(id))).map(id => parseInt(id));
+  
+  if (validUserIds.length === 0) {
+    console.log('No valid user IDs to check online status');
+    return;
+  }
+  
+  // Hapus duplikasi
+  const uniqueUserIds = [...new Set(validUserIds)];
+  
+  console.log('Loading online status for users:', uniqueUserIds);
+  
   try {
     const response = await fetch(`${API_BASE}/users/online-status`, {
       method: "POST",
@@ -1292,25 +1712,47 @@ async function loadOnlineStatus(userIds) {
         "Content-Type": "application/json",
         Authorization: `Bearer ${localStorage.getItem("userToken")}`,
       },
-      body: JSON.stringify({ userIds }),
+      body: JSON.stringify({ userIds: uniqueUserIds }),
     });
-    if (response.ok) {
-      onlineStatus = await response.json();
-      updateOnlineStatusUI();
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Online status response error:', response.status, errorText);
+      throw new Error(`HTTP error ${response.status}`);
     }
+
+    const data = await response.json();
+    console.log('Online status data:', data);
+    
+    // Update onlineStatus object
+    onlineStatus = { ...onlineStatus, ...data };
+    
+    // Update UI
+    updateOnlineStatusUI();
+    
   } catch (error) {
     console.error("Error loading online status:", error);
   }
 }
 
+
+// Update status online di UI
 function updateOnlineStatusUI() {
+  // Update di post list
   document.querySelectorAll("[data-user-id]").forEach((el) => {
     const userId = parseInt(el.dataset.userId);
+    if (isNaN(userId)) return;
+    
     const status = onlineStatus[userId];
+    
     if (status) {
       const statusDot = el.querySelector(".online-status-dot");
       if (statusDot) {
-        statusDot.className = `online-status-dot w-2 h-2 ${status.online ? "bg-green-500" : "bg-gray-400"} rounded-full absolute bottom-0 right-0`;
+        if (status.online) {
+          statusDot.className = "online-status-dot w-2 h-2 bg-green-500 rounded-full absolute bottom-0 right-0";
+        } else {
+          statusDot.className = "online-status-dot w-2 h-2 bg-gray-400 rounded-full absolute bottom-0 right-0";
+        }
       }
     }
   });
@@ -1319,21 +1761,64 @@ function updateOnlineStatusUI() {
 // ========== HEARTBEAT ==========
 function startHeartbeat() {
   if (!currentUser) return;
+
   console.log("Starting heartbeat for user:", currentUser.id);
-  setInterval(async () => {
+
+  // Kirim heartbeat setiap 2 menit
+  heartbeatInterval = setInterval(async () => {
     try {
-      await fetch(`${API_BASE}/users/${currentUser.id}/heartbeat`, {
+      const response = await fetch(`${API_BASE}/users/${currentUser.id}/heartbeat`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${localStorage.getItem("userToken")}` },
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("userToken")}`,
+        },
       });
+
+      if (response.ok) {
+        console.log("💓 Heartbeat sent");
+      } else {
+        console.error("Heartbeat failed:", response.status);
+      }
     } catch (error) {
       console.error("Heartbeat error:", error);
     }
-  }, 120000);
+  }, 120000); // 2 menit
+
+  // Kirim heartbeat pertama
   fetch(`${API_BASE}/users/${currentUser.id}/heartbeat`, {
     method: "POST",
-    headers: { Authorization: `Bearer ${localStorage.getItem("userToken")}` },
-  }).catch((error) => console.error("Initial heartbeat error:", error));
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("userToken")}`,
+    },
+  })
+    .then((response) => {
+      if (response.ok) {
+        console.log("💓 Initial heartbeat sent");
+      }
+    })
+    .catch((error) => console.error("Initial heartbeat error:", error));
+}
+
+// Bersihkan interval saat logout
+function logout() {
+  if (heartbeatInterval) {
+    clearInterval(heartbeatInterval);
+    heartbeatInterval = null;
+  }
+  if (notificationInterval) {
+    clearInterval(notificationInterval);
+    notificationInterval = null;
+  }
+  if (ws) {
+    ws.close();
+  }
+  if (sseSource) {
+    sseSource.close();
+  }
+  localStorage.removeItem("currentUser");
+  localStorage.removeItem("userToken");
+  localStorage.removeItem(`userLikes_${currentUser?.id}`);
+  window.location.href = "/login.html";
 }
 
 // ========== SHARE FUNCTIONS ==========
@@ -1345,7 +1830,8 @@ window.shareToWhatsApp = function (post) {
     window.open(url, "_blank");
   } catch (error) {
     console.error("WhatsApp share error:", error);
-    if (typeof showToast === "function") showToast("Gagal membagikan ke WhatsApp", "error");
+    if (typeof showToast === "function")
+      showToast("Gagal membagikan ke WhatsApp", "error");
   }
 };
 
@@ -1356,7 +1842,8 @@ window.shareToFacebook = function (post) {
     window.open(url, "_blank");
   } catch (error) {
     console.error("Facebook share error:", error);
-    if (typeof showToast === "function") showToast("Gagal membagikan ke Facebook", "error");
+    if (typeof showToast === "function")
+      showToast("Gagal membagikan ke Facebook", "error");
   }
 };
 
@@ -1368,7 +1855,8 @@ window.shareToTwitter = function (post) {
     window.open(url, "_blank");
   } catch (error) {
     console.error("Twitter share error:", error);
-    if (typeof showToast === "function") showToast("Gagal membagikan ke Twitter", "error");
+    if (typeof showToast === "function")
+      showToast("Gagal membagikan ke Twitter", "error");
   }
 };
 
@@ -1376,38 +1864,110 @@ window.shareToInstagram = function (post) {
   try {
     const postData = typeof post === "string" ? JSON.parse(post) : post;
     const text = `${postData.judul}\n\n${window.location.origin}/?post=${postData.id}`;
-    navigator.clipboard.writeText(text)
-      .then(() => { if (typeof showToast === "function") showToast("Link berhasil disalin! Silakan paste di Instagram", "success"); })
-      .catch(() => { if (typeof showToast === "function") showToast("Gagal menyalin link", "error"); });
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        if (typeof showToast === "function")
+          showToast(
+            "Link berhasil disalin! Silakan paste di Instagram",
+            "success",
+          );
+      })
+      .catch(() => {
+        if (typeof showToast === "function")
+          showToast("Gagal menyalin link", "error");
+      });
   } catch (error) {
     console.error("Instagram share error:", error);
-    if (typeof showToast === "function") showToast("Gagal memproses link Instagram", "error");
+    if (typeof showToast === "function")
+      showToast("Gagal memproses link Instagram", "error");
   }
 };
 
 // ========== HELPER FUNCTIONS ==========
 function formatDate(date) {
   return new Date(date).toLocaleDateString("id-ID", {
-    day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit"
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 }
 
 function formatTime(date) {
   return new Date(date).toLocaleDateString("id-ID", {
-    hour: "2-digit", minute: "2-digit", day: "numeric", month: "short"
+    hour: "2-digit",
+    minute: "2-digit",
+    day: "numeric",
+    month: "short",
   });
 }
 
 function getSchoolColor(sekolah) {
-  const colors = { sdit_sahabat: "bg-blue-100 text-blue-800", pptq_almadinah: "bg-green-100 text-green-800", ppqit_almahir: "bg-purple-100 text-purple-800" };
+  const colors = {
+    sdit_sahabat: "bg-blue-100 text-blue-800",
+    pptq_almadinah: "bg-green-100 text-green-800",
+    ppqit_almahir: "bg-purple-100 text-purple-800",
+  };
   return colors[sekolah] || "bg-gray-100 text-gray-800";
 }
 
 function getSchoolName(sekolah) {
-  const names = { sdit_sahabat: "SDIT Sahabat", pptq_almadinah: "PPTQ Al-Madinah", ppqit_almahir: "PPQIT Al-Mahir" };
+  const names = {
+    sdit_sahabat: "SDIT Sahabat",
+    pptq_almadinah: "PPTQ Al-Madinah",
+    ppqit_almahir: "PPQIT Al-Mahir",
+  };
   return names[sekolah] || sekolah;
 }
 
 function scrollToTop() {
   window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+
+// ========== FUNGSI SHOWTOAST GLOBAL ==========
+function showToast(message, type = 'success') {
+    // Cek apakah elemen toast sudah ada
+    let toast = document.getElementById('toast');
+    
+    // Jika belum ada, buat elemen toast
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'toast';
+        toast.className = 'fixed bottom-4 right-4 bg-white border-l-4 shadow-lg rounded-lg p-4 max-w-sm z-50 hidden';
+        toast.innerHTML = `
+            <div class="flex items-center">
+                <div id="toastIcon" class="mr-3"></div>
+                <p id="toastMessage" class="text-sm"></p>
+            </div>
+        `;
+        document.body.appendChild(toast);
+    }
+    
+    const toastMessage = document.getElementById('toastMessage') || toast.querySelector('#toastMessage');
+    const toastIcon = document.getElementById('toastIcon') || toast.querySelector('#toastIcon');
+    
+    toastMessage.textContent = message;
+    
+    if (type === 'success') {
+        toast.classList.remove('border-red-500');
+        toast.classList.add('border-emerald-500');
+        toastIcon.innerHTML = '<i class="fas fa-check-circle text-emerald-500 text-xl"></i>';
+    } else if (type === 'info') {
+        toast.classList.remove('border-red-500', 'border-emerald-500');
+        toast.classList.add('border-blue-500');
+        toastIcon.innerHTML = '<i class="fas fa-info-circle text-blue-500 text-xl"></i>';
+    } else {
+        toast.classList.remove('border-emerald-500', 'border-blue-500');
+        toast.classList.add('border-red-500');
+        toastIcon.innerHTML = '<i class="fas fa-exclamation-circle text-red-500 text-xl"></i>';
+    }
+    
+    toast.classList.remove('hidden');
+    
+    setTimeout(() => {
+        toast.classList.add('hidden');
+    }, 3000);
 }

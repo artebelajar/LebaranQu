@@ -353,6 +353,8 @@ app.post("/:id/heartbeat", async (c) => {
       return c.json({ error: "ID tidak valid" }, 400);
     }
     
+    console.log(`💓 Heartbeat received from user ${id}`);
+    
     // Update last_active
     await db
       .update(users_26)
@@ -361,6 +363,18 @@ app.post("/:id/heartbeat", async (c) => {
         updatedAt: new Date() 
       })
       .where(eq(users_26.id, id));
+    
+    // Broadcast online status ke semua user
+    try {
+      broadcastToAll({
+        type: 'user_online',
+        userId: id,
+        online: true,
+        timestamp: new Date()
+      });
+    } catch (broadcastError) {
+      console.error('Broadcast error:', broadcastError);
+    }
     
     return c.json({ 
       success: true,
@@ -373,11 +387,13 @@ app.post("/:id/heartbeat", async (c) => {
   }
 });
 
-// ========== ONLINE STATUS ==========
+// ========== ONLINE STATUS - VERSI DRIZZLE ==========
 app.post("/online-status", async (c) => {
   try {
     const { userIds } = await c.req.json();
     
+    console.log('Online status request for users:', userIds);
+
     if (!userIds || !Array.isArray(userIds)) {
       return c.json({ error: "Invalid request" }, 400);
     }
@@ -386,13 +402,25 @@ app.post("/online-status", async (c) => {
       return c.json({});
     }
     
+    // Filter userIds yang valid
+    const validUserIds = userIds.filter(id => id && !isNaN(id));
+    
+    if (validUserIds.length === 0) {
+      return c.json({});
+    }
+    
+    console.log('Valid user IDs:', validUserIds);
+    
+    // METODE 2: Menggunakan Drizzle dengan IN clause yang benar
     const users = await db
       .select({
         id: users_26.id,
         lastActive: users_26.lastActive
       })
       .from(users_26)
-      .where(sql`${users_26.id} IN (${userIds.join(',')})`);
+      .where(sql`${users_26.id} IN (${sql.join(validUserIds, sql`, `)})`);
+    
+    console.log('Found users:', users.length);
     
     const onlineStatus = {};
     const now = new Date();
@@ -406,7 +434,9 @@ app.post("/online-status", async (c) => {
       };
     });
     
+    console.log('Online status:', onlineStatus);
     return c.json(onlineStatus);
+    
   } catch (error) {
     console.error("❌ Online status error:", error);
     return c.json({ error: error.message }, 500);
