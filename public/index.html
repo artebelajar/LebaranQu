@@ -761,93 +761,114 @@
       </div>
     </footer>
 
-    <script src="js/dashboard.js"></script>
+    <script src="js/config.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/online-status.js"></script>
+<script src="js/typing.js"></script>
+<script src="js/share.js"></script>
+<script src="js/realtime.js"></script>
+<script src="js/posts.js"></script>        
+<script src="js/comments.js"></script>    
+<script src="js/likes.js"></script>       
+<script src="js/notifications.js"></script>
+<script src="js/leaderboard.js"></script>
+<script src="js/school.js"></script>
+<script src="js/create-post.js"></script>
+<script src="js/websocket.js"></script>    
+<script src="js/dashboard.js"></script> 
     <script>
-        function goToProfile(userId) {
-          window.location.href = `/profile.html?id=${userId}`;
+      function goToProfile(userId) {
+        window.location.href = `/profile.html?id=${userId}`;
       }
 
-       function startHeartbeat() {
+      function startHeartbeat() {
         if (!currentUser) return;
-        
+
         // Kirim heartbeat setiap 2 menit
         setInterval(async () => {
-            try {
-                await fetch(`${API_BASE}/users/${currentUser.id}/heartbeat`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('userToken')}`
-                    }
-                });
-            } catch (error) {
-                console.error('Heartbeat error:', error);
-            }
+          try {
+            await fetch(`${API_BASE}/users/${currentUser.id}/heartbeat`, {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("userToken")}`,
+              },
+            });
+          } catch (error) {
+            console.error("Heartbeat error:", error);
+          }
         }, 120000); // 2 menit
-        
+
         // Kirim heartbeat pertama
         fetch(`${API_BASE}/users/${currentUser.id}/heartbeat`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('userToken')}`
-            }
-        }).catch(error => console.error('Initial heartbeat error:', error));
-    }
-    
-    // ========== FUNGSI SHARE GLOBAL ==========
-    window.shareToWhatsApp = function(post) {
-        try {
-            // Parse post jika berupa string JSON
-            const postData = typeof post === 'string' ? JSON.parse(post) : post;
-            
-            const text = `${postData.judul}\n\n${postData.konten.substring(0, 100)}...\n\nDibaca selengkapnya di LebaranQu`;
-            const url = `https://wa.me/?text=${encodeURIComponent(text)}%20${encodeURIComponent(window.location.origin + '/?post=' + postData.id)}`;
-            window.open(url, '_blank');
-        } catch (error) {
-            console.error('WhatsApp share error:', error);
-            showToast('Gagal membagikan ke WhatsApp', 'error');
-        }
-    };
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("userToken")}`,
+          },
+        }).catch((error) => console.error("Initial heartbeat error:", error));
+      }
 
-    window.shareToFacebook = function(post) {
+      // ========== FUNGSI SHARE GLOBAL ==========
+      window.shareToWhatsApp = function (post) {
         try {
-            const postData = typeof post === 'string' ? JSON.parse(post) : post;
-            
-            const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.origin + '/?post=' + postData.id)}&quote=${encodeURIComponent(postData.judul)}`;
-            window.open(url, '_blank');
-        } catch (error) {
-            console.error('Facebook share error:', error);
-            showToast('Gagal membagikan ke Facebook', 'error');
-        }
-    };
+          // Parse post jika berupa string JSON
+          const postData = typeof post === "string" ? JSON.parse(post) : post;
 
-    window.shareToTwitter = function(post) {
-        try {
-            const postData = typeof post === 'string' ? JSON.parse(post) : post;
-            
-            const text = `${postData.judul}`;
-            const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(window.location.origin + '/?post=' + postData.id)}`;
-            window.open(url, '_blank');
+          const text = `${postData.judul}\n\n${postData.konten.substring(0, 100)}...\n\nDibaca selengkapnya di LebaranQu`;
+          const url = `https://wa.me/?text=${encodeURIComponent(text)}%20${encodeURIComponent(window.location.origin + "/?post=" + postData.id)}`;
+          window.open(url, "_blank");
         } catch (error) {
-            console.error('Twitter share error:', error);
-            showToast('Gagal membagikan ke Twitter', 'error');
+          console.error("WhatsApp share error:", error);
+          showToast("Gagal membagikan ke WhatsApp", "error");
         }
-    };
+      };
 
-    window.shareToInstagram = function(post) {
+      window.shareToFacebook = function (post) {
         try {
-            const postData = typeof post === 'string' ? JSON.parse(post) : post;
-            
-            const text = `${postData.judul}\n\n${window.location.origin}/?post=${postData.id}`;
-            navigator.clipboard.writeText(text).then(() => {
-                showToast('Link berhasil disalin! Silakan paste di Instagram', 'success');
-            }).catch(() => {
-                showToast('Gagal menyalin link', 'error');
+          const postData = typeof post === "string" ? JSON.parse(post) : post;
+
+          const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.origin + "/?post=" + postData.id)}&quote=${encodeURIComponent(postData.judul)}`;
+          window.open(url, "_blank");
+        } catch (error) {
+          console.error("Facebook share error:", error);
+          showToast("Gagal membagikan ke Facebook", "error");
+        }
+      };
+
+      window.shareToTwitter = function (post) {
+        try {
+          const postData = typeof post === "string" ? JSON.parse(post) : post;
+
+          const text = `${postData.judul}`;
+          const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(window.location.origin + "/?post=" + postData.id)}`;
+          window.open(url, "_blank");
+        } catch (error) {
+          console.error("Twitter share error:", error);
+          showToast("Gagal membagikan ke Twitter", "error");
+        }
+      };
+
+      window.shareToInstagram = function (post) {
+        try {
+          const postData = typeof post === "string" ? JSON.parse(post) : post;
+
+          const text = `${postData.judul}\n\n${window.location.origin}/?post=${postData.id}`;
+          navigator.clipboard
+            .writeText(text)
+            .then(() => {
+              showToast(
+                "Link berhasil disalin! Silakan paste di Instagram",
+                "success",
+              );
+            })
+            .catch(() => {
+              showToast("Gagal menyalin link", "error");
             });
         } catch (error) {
-            console.error('Instagram share error:', error);
-            showToast('Gagal memproses link Instagram', 'error');
+          console.error("Instagram share error:", error);
+          showToast("Gagal memproses link Instagram", "error");
         }
-    };
+      };
     </script>
   </body>
 </html>

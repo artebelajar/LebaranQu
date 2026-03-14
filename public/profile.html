@@ -96,7 +96,7 @@
       .view-only-badge i {
         color: #10b981;
       }
-      
+
       .edit-field {
         cursor: pointer;
         transition: all 0.3s ease;
@@ -327,26 +327,43 @@
             <div class="lg:col-span-1 space-y-6">
               <!-- Informasi Dasar dengan Edit -->
               <div class="bg-gray-50 rounded-xl p-6">
-                <h3 class="font-semibold text-lg mb-4 flex items-center justify-between">
+                <h3
+                  class="font-semibold text-lg mb-4 flex items-center justify-between"
+                >
                   <span class="flex items-center">
                     <i class="fas fa-id-card text-emerald-600 mr-2"></i>
                     Informasi Dasar
                   </span>
-                  <span id="editInfoBtn" class="text-sm text-emerald-600 hover:text-emerald-800 cursor-pointer hidden" onclick="enableEditMode()">
+                  <span
+                    id="editInfoBtn"
+                    class="text-sm text-emerald-600 hover:text-emerald-800 cursor-pointer hidden"
+                    onclick="enableEditMode()"
+                  >
                     <i class="fas fa-edit mr-1"></i>Edit
                   </span>
-                  <span id="saveInfoBtn" class="text-sm text-emerald-600 hover:text-emerald-800 cursor-pointer hidden" onclick="saveInfo()">
+                  <span
+                    id="saveInfoBtn"
+                    class="text-sm text-emerald-600 hover:text-emerald-800 cursor-pointer hidden"
+                    onclick="saveInfo()"
+                  >
                     <i class="fas fa-save mr-1"></i>Simpan
                   </span>
-                  <span id="cancelInfoBtn" class="text-sm text-gray-500 hover:text-gray-700 cursor-pointer hidden ml-2" onclick="cancelEdit()">
+                  <span
+                    id="cancelInfoBtn"
+                    class="text-sm text-gray-500 hover:text-gray-700 cursor-pointer hidden ml-2"
+                    onclick="cancelEdit()"
+                  >
                     <i class="fas fa-times mr-1"></i>
                   </span>
                 </h3>
-                
+
                 <!-- View Mode -->
                 <div id="infoViewMode">
                   <div class="space-y-4">
-                    <div class="flex items-start edit-field" onclick="if(isOwnProfile) startEdit('sekolah')">
+                    <div
+                      class="flex items-start edit-field"
+                      onclick="if (isOwnProfile) startEdit('sekolah');"
+                    >
                       <i class="fas fa-school w-6 text-emerald-600 mt-1"></i>
                       <div class="flex-1">
                         <p class="text-xs text-gray-500">Asal Sekolah</p>
@@ -354,7 +371,10 @@
                       </div>
                       <i class="fas fa-pen text-emerald-400 text-xs mt-2"></i>
                     </div>
-                    <div class="flex items-start edit-field" onclick="if(isOwnProfile) startEdit('email')">
+                    <div
+                      class="flex items-start edit-field"
+                      onclick="if (isOwnProfile) startEdit('email');"
+                    >
                       <i class="fas fa-envelope w-6 text-emerald-600 mt-1"></i>
                       <div class="flex-1">
                         <p class="text-xs text-gray-500">Email</p>
@@ -362,7 +382,10 @@
                       </div>
                       <i class="fas fa-pen text-emerald-400 text-xs mt-2"></i>
                     </div>
-                    <div class="flex items-start edit-field" onclick="if(isOwnProfile) startEdit('telepon')">
+                    <div
+                      class="flex items-start edit-field"
+                      onclick="if (isOwnProfile) startEdit('telepon');"
+                    >
                       <i class="fas fa-phone w-6 text-emerald-600 mt-1"></i>
                       <div class="flex-1">
                         <p class="text-xs text-gray-500">Nomor Telepon</p>
@@ -370,7 +393,10 @@
                       </div>
                       <i class="fas fa-pen text-emerald-400 text-xs mt-2"></i>
                     </div>
-                    <div class="flex items-start edit-field" onclick="if(isOwnProfile) startEdit('title')">
+                    <div
+                      class="flex items-start edit-field"
+                      onclick="if (isOwnProfile) startEdit('title');"
+                    >
                       <i class="fas fa-briefcase w-6 text-emerald-600 mt-1"></i>
                       <div class="flex-1">
                         <p class="text-xs text-gray-500">Title/Pekerjaan</p>
@@ -397,24 +423,49 @@
                 <div id="infoEditMode" class="hidden">
                   <div class="space-y-4">
                     <div>
-                      <label class="block text-xs text-gray-500 mb-1">Asal Sekolah</label>
-                      <select id="editSekolah" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500">
+                      <label class="block text-xs text-gray-500 mb-1"
+                        >Asal Sekolah</label
+                      >
+                      <select
+                        id="editSekolah"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                      >
                         <option value="sdit_sahabat">SDIT Sahabat</option>
                         <option value="pptq_almadinah">PPTQ Al-Madinah</option>
                         <option value="ppqit_almahir">PPQIT Al-Mahir</option>
                       </select>
                     </div>
                     <div>
-                      <label class="block text-xs text-gray-500 mb-1">Email</label>
-                      <input type="email" id="editEmail" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500">
+                      <label class="block text-xs text-gray-500 mb-1"
+                        >Email</label
+                      >
+                      <input
+                        type="email"
+                        id="editEmail"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                      />
                     </div>
                     <div>
-                      <label class="block text-xs text-gray-500 mb-1">Nomor Telepon</label>
-                      <input type="tel" id="editTelepon" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500" placeholder="08123456789">
+                      <label class="block text-xs text-gray-500 mb-1"
+                        >Nomor Telepon</label
+                      >
+                      <input
+                        type="tel"
+                        id="editTelepon"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                        placeholder="08123456789"
+                      />
                     </div>
                     <div>
-                      <label class="block text-xs text-gray-500 mb-1">Title/Pekerjaan</label>
-                      <input type="text" id="editTitle" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500" placeholder="Developer, Guru, dll">
+                      <label class="block text-xs text-gray-500 mb-1"
+                        >Title/Pekerjaan</label
+                      >
+                      <input
+                        type="text"
+                        id="editTitle"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                        placeholder="Developer, Guru, dll"
+                      />
                     </div>
                   </div>
                 </div>
@@ -743,778 +794,15 @@
       </div>
     </footer>
 
-    <script>
-      const API_BASE = "/api";
-      let currentUser = null;
-      let profileUser = null;
-      let selectedFile = null;
-      let currentEditPost = null;
-      let isOwnProfile = false;
-      
-      // Untuk edit mode
-      let editMode = false;
-      let currentEditField = null;
-
-      // Cek session
-      try {
-        currentUser = JSON.parse(localStorage.getItem("currentUser"));
-      } catch (e) {
-        window.location.href = "/login.html";
-        throw e;
-      }
-
-      if (!currentUser) {
-        window.location.href = "/login.html";
-        throw new Error("No user");
-      }
-
-      // Ambil ID dari URL parameter
-      const urlParams = new URLSearchParams(window.location.search);
-      const profileId = urlParams.get("id");
-
-      // Tentukan apakah ini profile sendiri atau orang lain
-      if (profileId) {
-        isOwnProfile = parseInt(profileId) === currentUser.id;
-      } else {
-        isOwnProfile = true;
-      }
-
-      console.log("Profile access:", {
-        currentUserId: currentUser.id,
-        profileId: profileId || "own",
-        isOwnProfile,
-      });
-
-      // Toast notification
-      function showToast(message, type = "success") {
-        const toast = document.getElementById("toast");
-        const toastMessage = document.getElementById("toastMessage");
-        const toastIcon = document.getElementById("toastIcon");
-
-        toastMessage.textContent = message;
-
-        if (type === "success") {
-          toast.classList.remove("border-red-500");
-          toast.classList.add("border-emerald-500");
-          toastIcon.innerHTML =
-            '<i class="fas fa-check-circle text-emerald-500 text-xl"></i>';
-        } else {
-          toast.classList.remove("border-emerald-500");
-          toast.classList.add("border-red-500");
-          toastIcon.innerHTML =
-            '<i class="fas fa-exclamation-circle text-red-500 text-xl"></i>';
-        }
-
-        toast.classList.remove("hidden");
-
-        setTimeout(() => {
-          toast.classList.add("hidden");
-        }, 3000);
-      }
-
-      // Load profile data
-      async function loadProfile() {
-        try {
-          document.getElementById("loadingState").classList.remove("hidden");
-          document.getElementById("profileContent").classList.add("hidden");
-          document.getElementById("errorState").classList.add("hidden");
-
-          const userIdToLoad = profileId ? parseInt(profileId) : currentUser.id;
-
-          console.log("Loading profile for user ID:", userIdToLoad);
-
-          if (!userIdToLoad || isNaN(userIdToLoad)) {
-            throw new Error("ID user tidak valid");
-          }
-
-          const userRes = await fetch(`${API_BASE}/users/${userIdToLoad}`);
-          if (!userRes.ok) {
-            if (userRes.status === 404) {
-              throw new Error("User tidak ditemukan");
-            }
-            throw new Error(`HTTP error ${userRes.status}`);
-          }
-
-          profileUser = await userRes.json();
-          console.log("User data:", profileUser);
-
-          // Update UI dasar
-          document.getElementById("profileNama").textContent =
-            profileUser.namaLengkap || "-";
-          document.getElementById("profileTitleText").textContent =
-            profileUser.title || "Alumni";
-          document.getElementById("profileTitleDisplay").textContent =
-            profileUser.title || "Alumni";
-          document.getElementById("profileSekolah").textContent = getSchoolName(
-            profileUser.asalSekolah,
-          );
-          document.getElementById("profileEmail").textContent =
-            profileUser.email || "-";
-          document.getElementById("profileTelepon").textContent =
-            profileUser.nomorTelepon || "-";
-          document.getElementById("profileBio").textContent =
-            profileUser.bioSingkat || "Belum ada bio";
-
-          // Token hanya ditampilkan di profile sendiri
-          const tokenContainer = document.getElementById("tokenContainer");
-          if (isOwnProfile) {
-            document.getElementById("profileToken").textContent =
-              profileUser.tokenAkses
-                ? profileUser.tokenAkses.substring(0, 20) + "..."
-                : "-";
-            tokenContainer.classList.remove("hidden");
-          } else {
-            tokenContainer.classList.add("hidden");
-          }
-
-          if (profileUser.fotoProfil) {
-            document.getElementById("profileFoto").src = profileUser.fotoProfil;
-          }
-
-          const roleBadge = document.getElementById("profileRole");
-          if (profileUser.role === "admin") {
-            roleBadge.textContent = "Administrator";
-            roleBadge.className =
-              "px-4 py-2 bg-purple-100 text-purple-800 rounded-full text-sm font-semibold";
-          } else {
-            roleBadge.textContent = "Alumni";
-            roleBadge.className =
-              "px-4 py-2 bg-emerald-100 text-emerald-800 rounded-full text-sm font-semibold";
-          }
-
-          // Setup UI berdasarkan kepemilikan
-          setupProfileUI();
-
-          // Load user posts
-          await loadUserPosts(userIdToLoad);
-
-          document.getElementById("loadingState").classList.add("hidden");
-          document.getElementById("profileContent").classList.remove("hidden");
-        } catch (error) {
-          console.error("Error loading profile:", error);
-          document.getElementById("loadingState").classList.add("hidden");
-          document.getElementById("errorState").classList.remove("hidden");
-          document.getElementById("errorMessage").textContent = error.message;
-        }
-      }
-
-      // Setup UI berdasarkan kepemilikan
-      function setupProfileUI() {
-        // Tampilkan/sembunyikan badge view only
-        const viewOnlyBadge = document.getElementById("viewOnlyBadge");
-        if (!isOwnProfile) {
-          viewOnlyBadge.classList.remove("hidden");
-        } else {
-          viewOnlyBadge.classList.add("hidden");
-        }
-
-        // Tampilkan/sembunyikan overlay upload foto
-        const uploadOverlay = document.getElementById("uploadOverlay");
-        if (isOwnProfile) {
-          uploadOverlay.classList.remove("hidden");
-        } else {
-          uploadOverlay.classList.add("hidden");
-        }
-
-        // Tampilkan/sembunyikan tombol edit bio
-        const editBioBtn = document.getElementById("editBioBtn");
-        if (isOwnProfile) {
-          editBioBtn.classList.remove("hidden");
-        } else {
-          editBioBtn.classList.add("hidden");
-        }
-
-        // Tampilkan/sembunyikan tombol edit info
-        const editInfoBtn = document.getElementById("editInfoBtn");
-        if (isOwnProfile) {
-          editInfoBtn.classList.remove("hidden");
-        } else {
-          editInfoBtn.classList.add("hidden");
-        }
-      }
-
-      // Load user posts
-      async function loadUserPosts(userId) {
-        try {
-          const postsRes = await fetch(`${API_BASE}/posts/user/${userId}`);
-          if (!postsRes.ok) {
-            console.error("Posts response not OK:", postsRes.status);
-            throw new Error("Gagal memuat postingan");
-          }
-
-          const posts = await postsRes.json();
-          console.log("User posts:", posts);
-
-          // Hitung total likes
-          const totalLikes = posts.reduce(
-            (sum, post) => sum + (post.likeCount || 0),
-            0,
-          );
-
-          // Update total posts dan likes
-          document.getElementById("totalPosts").textContent = posts.length;
-          document.getElementById("totalLikes").textContent = totalLikes;
-
-          // Hitung peringkat
-          await calculateUserRank(profileUser.asalSekolah, userId, totalLikes);
-
-          // Tampilkan posts
-          const postsList = document.getElementById("userPosts");
-          if (posts.length === 0) {
-            postsList.innerHTML = `
-              <div class="bg-gray-50 rounded-xl p-8 text-center">
-                <i class="fas fa-newspaper text-4xl text-gray-400 mb-3"></i>
-                <p class="text-gray-500">Belum ada postingan</p>
-                ${
-                  isOwnProfile
-                    ? `
-                    <a href="/" class="inline-block mt-4 bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700 transition">
-                        Buat Postingan Pertama
-                    </a>
-                `
-                    : ""
-                }
-              </div>
-            `;
-          } else {
-            postsList.innerHTML = posts
-              .slice(0, 5)
-              .map(
-                (post) => `
-                <div class="bg-white rounded-xl shadow p-6 post-card">
-                  <div class="flex justify-between items-start mb-3">
-                    <h4 class="font-semibold text-lg">${escapeHtml(post.judul)}</h4>
-                    <span class="text-xs text-gray-500">${formatDate(post.createdAt)}</span>
-                  </div>
-                  <p class="text-gray-600 mb-4">${escapeHtml(post.konten.substring(0, 150))}${post.konten.length > 150 ? "..." : ""}</p>
-                  <div class="flex items-center justify-between">
-                    <div class="flex items-center text-sm text-gray-500">
-                      <i class="fas fa-heart text-red-500 mr-1"></i> ${post.likeCount || 0} likes
-                      <i class="fas fa-eye text-gray-500 ml-3 mr-1"></i> ${post.viewCount || 0}
-                    </div>
-                    ${
-                      isOwnProfile
-                        ? `
-                      <div class="flex space-x-2">
-                        <button onclick="showEditPostModal(${post.id})" class="text-blue-600 hover:text-blue-800 transition" title="Edit">
-                          <i class="fas fa-edit"></i>
-                        </button>
-                        <button onclick="showDeletePostModal(${post.id})" class="text-red-600 hover:text-red-800 transition" title="Hapus">
-                          <i class="fas fa-trash"></i>
-                        </button>
-                      </div>
-                    `
-                        : ""
-                    }
-                  </div>
-                </div>
-              `,
-              )
-              .join("");
-          }
-        } catch (error) {
-          console.error("Error loading posts:", error);
-          document.getElementById("userPosts").innerHTML = `
-            <div class="text-center py-8 text-red-500">
-              <i class="fas fa-exclamation-circle text-3xl mb-2"></i>
-              <p>Gagal memuat postingan</p>
-              <p class="text-sm mt-2">${error.message}</p>
-            </div>
-          `;
-        }
-      }
-
-      // Hitung peringkat user
-      async function calculateUserRank(sekolah, userId, userTotalLikes) {
-        try {
-          const response = await fetch(
-            `${API_BASE}/users/leaderboard?sekolah=${sekolah}`,
-          );
-          if (!response.ok) throw new Error("Gagal memuat data peringkat");
-
-          const leaderboard = await response.json();
-
-          const userIndex = leaderboard.findIndex(
-            (user) => user.id === parseInt(userId),
-          );
-
-          let rankText = "-";
-          let rankColor = "text-gray-800";
-
-          if (userIndex !== -1) {
-            const rank = userIndex + 1;
-            rankText = `#${rank}`;
-
-            if (rank === 1) {
-              rankColor = "text-yellow-500";
-            } else if (rank === 2) {
-              rankColor = "text-gray-400";
-            } else if (rank === 3) {
-              rankColor = "text-amber-600";
-            }
-
-            const totalUsers = leaderboard.length;
-            rankText += ` dari ${totalUsers} alumni`;
-          }
-
-          document.getElementById("userRank").textContent = rankText;
-          document.getElementById("userRank").className =
-            `text-2xl font-bold ${rankColor}`;
-        } catch (error) {
-          console.error("Error calculating rank:", error);
-          document.getElementById("userRank").textContent = "-";
-        }
-      }
-
-      // Refresh rank
-      async function refreshRank() {
-        if (!profileUser) return;
-
-        const postsRes = await fetch(
-          `${API_BASE}/posts/user/${profileUser.id}`,
-        );
-        const posts = await postsRes.json();
-        const totalLikes = posts.reduce(
-          (sum, post) => sum + (post.likeCount || 0),
-          0,
-        );
-
-        await calculateUserRank(
-          profileUser.asalSekolah,
-          profileUser.id,
-          totalLikes,
-        );
-      }
-
-      // Edit info functions
-      function enableEditMode() {
-        document.getElementById("infoViewMode").classList.add("hidden");
-        document.getElementById("infoEditMode").classList.remove("hidden");
-        document.getElementById("editInfoBtn").classList.add("hidden");
-        document.getElementById("saveInfoBtn").classList.remove("hidden");
-        document.getElementById("cancelInfoBtn").classList.remove("hidden");
-        
-        // Set nilai awal di form edit
-        document.getElementById("editSekolah").value = profileUser.asalSekolah;
-        document.getElementById("editEmail").value = profileUser.email;
-        document.getElementById("editTelepon").value = profileUser.nomorTelepon || "";
-        document.getElementById("editTitle").value = profileUser.title || "Alumni";
-      }
-
-      function cancelEdit() {
-        document.getElementById("infoViewMode").classList.remove("hidden");
-        document.getElementById("infoEditMode").classList.add("hidden");
-        document.getElementById("editInfoBtn").classList.remove("hidden");
-        document.getElementById("saveInfoBtn").classList.add("hidden");
-        document.getElementById("cancelInfoBtn").classList.add("hidden");
-      }
-
-      async function saveInfo() {
-        if (!isOwnProfile) {
-          showToast("Tidak dapat mengubah data orang lain", "error");
-          return;
-        }
-
-        const updatedData = {
-          asalSekolah: document.getElementById("editSekolah").value,
-          email: document.getElementById("editEmail").value,
-          nomorTelepon: document.getElementById("editTelepon").value,
-          title: document.getElementById("editTitle").value
-        };
-
-        // Validasi email
-        if (!updatedData.email || !updatedData.email.includes('@')) {
-          showToast("Email tidak valid", "error");
-          return;
-        }
-
-        const saveBtn = document.getElementById("saveInfoBtn");
-        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>...';
-
-        try {
-          const res = await fetch(`${API_BASE}/users/${profileUser.id}`, {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${localStorage.getItem("userToken")}`,
-            },
-            body: JSON.stringify(updatedData),
-          });
-
-          const data = await res.json();
-
-          if (res.ok) {
-            // Update data lokal
-            profileUser = { ...profileUser, ...updatedData };
-            
-            // Update UI
-            document.getElementById("profileSekolah").textContent = getSchoolName(updatedData.asalSekolah);
-            document.getElementById("profileEmail").textContent = updatedData.email;
-            document.getElementById("profileTelepon").textContent = updatedData.nomorTelepon || "-";
-            document.getElementById("profileTitleText").textContent = updatedData.title;
-            document.getElementById("profileTitleDisplay").textContent = updatedData.title;
-
-            if (profileUser.id === currentUser.id) {
-              currentUser = { ...currentUser, ...updatedData };
-              localStorage.setItem("currentUser", JSON.stringify(currentUser));
-              document.getElementById("userNameDisplay").textContent = currentUser.namaLengkap;
-            }
-
-            showToast("Data berhasil diperbarui!");
-            cancelEdit();
-          } else {
-            showToast(data.error || "Gagal update data", "error");
-          }
-        } catch (error) {
-          showToast("Error: " + error.message, "error");
-        } finally {
-          saveBtn.innerHTML = '<i class="fas fa-save mr-1"></i>Simpan';
-        }
-      }
-
-      // Modal Controls
-      function showUploadModal() {
-        if (!isOwnProfile) {
-          showToast("Tidak dapat mengubah foto profil orang lain", "error");
-          return;
-        }
-        document.getElementById("uploadModal").classList.remove("hidden");
-        document.getElementById("uploadModal").classList.add("flex");
-        document.getElementById("uploadPreview").classList.add("hidden");
-        document.getElementById("uploadPlaceholder").classList.remove("hidden");
-        selectedFile = null;
-      }
-
-      function hideUploadModal() {
-        document.getElementById("uploadModal").classList.add("hidden");
-        document.getElementById("uploadModal").classList.remove("flex");
-      }
-
-      function showEditBioModal() {
-        if (!isOwnProfile) {
-          showToast("Tidak dapat mengubah bio orang lain", "error");
-          return;
-        }
-        document.getElementById("editBioText").value =
-          profileUser.bioSingkat || "";
-        document.getElementById("editBioModal").classList.remove("hidden");
-        document.getElementById("editBioModal").classList.add("flex");
-      }
-
-      function hideEditBioModal() {
-        document.getElementById("editBioModal").classList.add("hidden");
-        document.getElementById("editBioModal").classList.remove("flex");
-      }
-
-      // Preview image
-      function previewImage(input) {
-        if (input.files && input.files[0]) {
-          selectedFile = input.files[0];
-
-          if (selectedFile.size > 2 * 1024 * 1024) {
-            showToast("File terlalu besar! Maksimal 2MB", "error");
-            return;
-          }
-
-          if (!selectedFile.type.match("image.*")) {
-            showToast("Hanya file gambar yang diperbolehkan", "error");
-            return;
-          }
-
-          const reader = new FileReader();
-          reader.onload = function (e) {
-            document.getElementById("uploadPreview").src = e.target.result;
-            document.getElementById("uploadPreview").classList.remove("hidden");
-            document
-              .getElementById("uploadPlaceholder")
-              .classList.add("hidden");
-          };
-          reader.readAsDataURL(selectedFile);
-        }
-      }
-
-      // Upload photo
-      async function uploadPhoto() {
-        if (!isOwnProfile) {
-          showToast("Tidak dapat mengubah foto profil orang lain", "error");
-          return;
-        }
-
-        if (!selectedFile) {
-          showToast("Pilih file terlebih dahulu", "error");
-          return;
-        }
-
-        const uploadBtn = document.getElementById("uploadBtn");
-        uploadBtn.disabled = true;
-        uploadBtn.innerHTML =
-          '<i class="fas fa-spinner fa-spin mr-2"></i>Uploading...';
-
-        const formData = new FormData();
-        formData.append("foto", selectedFile);
-
-        try {
-          const res = await fetch(
-            `${API_BASE}/users/${profileUser.id}/upload-photo`,
-            {
-              method: "POST",
-              headers: {
-                Authorization: `Bearer ${localStorage.getItem("userToken")}`,
-              },
-              body: formData,
-            },
-          );
-
-          const data = await res.json();
-
-          if (res.ok) {
-            document.getElementById("profileFoto").src =
-              data.user.fotoProfil + "?t=" + Date.now();
-
-            if (profileUser.id === currentUser.id) {
-              currentUser.fotoProfil = data.user.fotoProfil;
-              localStorage.setItem("currentUser", JSON.stringify(currentUser));
-            }
-
-            showToast("Foto profil berhasil diupload!");
-            hideUploadModal();
-          } else {
-            showToast(data.error || "Gagal upload foto", "error");
-          }
-        } catch (error) {
-          showToast("Error: " + error.message, "error");
-        } finally {
-          uploadBtn.disabled = false;
-          uploadBtn.innerHTML = '<i class="fas fa-upload mr-2"></i>Upload';
-        }
-      }
-
-      // Save bio
-      async function saveBio() {
-        if (!isOwnProfile) {
-          showToast("Tidak dapat mengubah bio orang lain", "error");
-          return;
-        }
-
-        const newBio = document.getElementById("editBioText").value.trim();
-
-        if (newBio === profileUser.bioSingkat) {
-          hideEditBioModal();
-          return;
-        }
-
-        const saveBtn = document.getElementById("saveBioBtn");
-        saveBtn.disabled = true;
-        saveBtn.innerHTML =
-          '<i class="fas fa-spinner fa-spin mr-2"></i>Menyimpan...';
-
-        try {
-          const res = await fetch(`${API_BASE}/users/${profileUser.id}`, {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${localStorage.getItem("userToken")}`,
-            },
-            body: JSON.stringify({ bioSingkat: newBio }),
-          });
-
-          const data = await res.json();
-
-          if (res.ok) {
-            profileUser.bioSingkat = newBio;
-            document.getElementById("profileBio").textContent =
-              newBio || "Belum ada bio";
-
-            if (profileUser.id === currentUser.id) {
-              currentUser.bioSingkat = newBio;
-              localStorage.setItem("currentUser", JSON.stringify(currentUser));
-            }
-
-            showToast("Bio berhasil diperbarui!");
-            hideEditBioModal();
-          } else {
-            showToast(data.error || "Gagal update bio", "error");
-          }
-        } catch (error) {
-          showToast("Error: " + error.message, "error");
-        } finally {
-          saveBtn.disabled = false;
-          saveBtn.innerHTML = '<i class="fas fa-save mr-2"></i>Simpan';
-        }
-      }
-
-      // Edit Post Modal
-      function showEditPostModal(postId) {
-        if (!isOwnProfile) {
-          showToast("Tidak dapat mengubah postingan orang lain", "error");
-          return;
-        }
-
-        fetch(`${API_BASE}/posts/${postId}`)
-          .then((res) => res.json())
-          .then((post) => {
-            document.getElementById("editPostId").value = post.id;
-            document.getElementById("editPostJudul").value = post.judul;
-            document.getElementById("editPostKonten").value = post.konten;
-            document.getElementById("editPostModal").classList.remove("hidden");
-            document.getElementById("editPostModal").classList.add("flex");
-          })
-          .catch((error) => {
-            console.error("Error loading post:", error);
-            showToast("Gagal memuat data postingan", "error");
-          });
-      }
-
-      function hideEditPostModal() {
-        document.getElementById("editPostModal").classList.add("hidden");
-        document.getElementById("editPostModal").classList.remove("flex");
-        document.getElementById("editPostForm").reset();
-      }
-
-      // Handle Edit Post
-      document
-        .getElementById("editPostForm")
-        .addEventListener("submit", async (e) => {
-          e.preventDefault();
-
-          if (!isOwnProfile) {
-            showToast("Tidak dapat mengubah postingan orang lain", "error");
-            hideEditPostModal();
-            return;
-          }
-
-          const postId = document.getElementById("editPostId").value;
-          const judul = document.getElementById("editPostJudul").value;
-          const konten = document.getElementById("editPostKonten").value;
-
-          const saveBtn = e.target.querySelector('button[type="submit"]');
-          saveBtn.disabled = true;
-          saveBtn.innerHTML =
-            '<i class="fas fa-spinner fa-spin mr-2"></i>Menyimpan...';
-
-          try {
-            const res = await fetch(`${API_BASE}/posts/${postId}`, {
-              method: "PUT",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${localStorage.getItem("userToken")}`,
-              },
-              body: JSON.stringify({ judul, konten }),
-            });
-
-            if (res.ok) {
-              showToast("Cerita berhasil diperbarui!");
-              hideEditPostModal();
-              await loadUserPosts(profileUser.id);
-              await refreshRank();
-            } else {
-              const data = await res.json();
-              showToast(data.error || "Gagal memperbarui cerita", "error");
-            }
-          } catch (error) {
-            showToast("Error: " + error.message, "error");
-          } finally {
-            saveBtn.disabled = false;
-            saveBtn.innerHTML =
-              '<i class="fas fa-save mr-2"></i>Simpan Perubahan';
-          }
-        });
-
-      // Delete Post Modal
-      function showDeletePostModal(postId) {
-        if (!isOwnProfile) {
-          showToast("Tidak dapat menghapus postingan orang lain", "error");
-          return;
-        }
-        document.getElementById("deletePostId").value = postId;
-        document.getElementById("deletePostModal").classList.remove("hidden");
-        document.getElementById("deletePostModal").classList.add("flex");
-      }
-
-      function hideDeletePostModal() {
-        document.getElementById("deletePostModal").classList.add("hidden");
-        document.getElementById("deletePostModal").classList.remove("flex");
-        document.getElementById("deletePostId").value = "";
-      }
-
-      // Confirm Delete Post
-      async function confirmDeletePost() {
-        if (!isOwnProfile) {
-          showToast("Tidak dapat menghapus postingan orang lain", "error");
-          hideDeletePostModal();
-          return;
-        }
-
-        const postId = document.getElementById("deletePostId").value;
-        const deleteBtn = document.querySelector(
-          "#deletePostModal button.bg-red-600",
-        );
-
-        deleteBtn.disabled = true;
-        deleteBtn.innerHTML =
-          '<i class="fas fa-spinner fa-spin mr-2"></i>Menghapus...';
-
-        try {
-          const res = await fetch(`${API_BASE}/posts/${postId}`, {
-            method: "DELETE",
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("userToken")}`,
-            },
-          });
-
-          if (res.ok) {
-            showToast("Cerita berhasil dihapus!");
-            hideDeletePostModal();
-            await loadUserPosts(profileUser.id);
-            await refreshRank();
-          } else {
-            const data = await res.json();
-            showToast(data.error || "Gagal menghapus cerita", "error");
-          }
-        } catch (error) {
-          showToast("Error: " + error.message, "error");
-        } finally {
-          deleteBtn.disabled = false;
-          deleteBtn.innerHTML = '<i class="fas fa-trash mr-2"></i>Hapus';
-        }
-      }
-
-      // Helper functions
-      function getSchoolName(sekolah) {
-        const names = {
-          sdit_sahabat: "SDIT Sahabat - Karanganyar",
-          pptq_almadinah: "PPTQ Al-Madinah - Solo",
-          ppqit_almahir: "PPQIT Al-Mahir - IT & Tahfidz",
-        };
-        return names[sekolah] || sekolah || "-";
-      }
-
-      function formatDate(date) {
-        return new Date(date).toLocaleDateString("id-ID", {
-          day: "numeric",
-          month: "long",
-          year: "numeric",
-        });
-      }
-
-      function escapeHtml(text) {
-        const div = document.createElement("div");
-        div.textContent = text;
-        return div.innerHTML;
-      }
-
-      function logout() {
-        localStorage.removeItem("currentUser");
-        localStorage.removeItem("userToken");
-        window.location.href = "/login.html";
-      }
-
-      function scrollToTop() {
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      }
-
-      // Load profile on page load
-      document.addEventListener("DOMContentLoaded", loadProfile);
-    </script>
+    <!-- Di bagian bawah body, ganti script dengan file terpisah -->
+    <script src="js/profile/config.js"></script>
+    <script src="js/profile/utils.js"></script>
+    <script src="js/profile/auth.js"></script>
+    <script src="js/profile/profile-core.js"></script>
+    <script src="js/profile/profile-posts.js"></script>
+    <script src="js/profile/profile-edit.js"></script>
+    <script src="js/profile/profile-upload.js"></script>
+    <script src="js/profile/profile-modals.js"></script>
+    <script src="js/profile/profile.js"></script>
   </body>
 </html>
