@@ -1,9 +1,11 @@
 import { Hono } from "hono";
 import { db } from "../db/index.js";
 import { users_26, posts } from "../db/schema.js";
+import { checkLikeAchievements } from "../utils/achievement-check.js";
 import { eq, and, desc, sql } from "drizzle-orm";
 import { v4 as uuidv4 } from "uuid";
 import bcrypt from "bcryptjs";
+import { broadcastToUser, broadcastToAll } from "../../index.js";
 
 const app = new Hono();
 
@@ -343,44 +345,35 @@ app.put("/:id", async (c) => {
   }
 });
 
-// ========== HEARTBEAT - UPDATE last_active ==========
+
+// ========== HEARTBEAT ==========
 app.post("/:id/heartbeat", async (c) => {
   try {
     const idParam = c.req.param("id");
     const id = parseInt(idParam);
     
-    if (isNaN(id)) {
-      return c.json({ error: "ID tidak valid" }, 400);
-    }
+    if (isNaN(id)) return c.json({ error: "ID tidak valid" }, 400);
     
-    console.log(`💓 Heartbeat received from user ${id}`);
-    
-    // Update last_active
     await db
       .update(users_26)
-      .set({ 
-        lastActive: new Date(),
-        updatedAt: new Date() 
-      })
+      .set({ lastActive: new Date(), updatedAt: new Date() })
       .where(eq(users_26.id, id));
     
     // Broadcast online status ke semua user
     try {
-      broadcastToAll({
-        type: 'user_online',
-        userId: id,
-        online: true,
-        timestamp: new Date()
-      });
+      if (typeof broadcastToAll === 'function') {
+        broadcastToAll({
+          type: 'user_online',
+          userId: id,
+          online: true,
+          timestamp: new Date()
+        });
+      }
     } catch (broadcastError) {
       console.error('Broadcast error:', broadcastError);
     }
     
-    return c.json({ 
-      success: true,
-      message: "Heartbeat received",
-      timestamp: new Date()
-    });
+    return c.json({ success: true, message: "Heartbeat received" });
   } catch (error) {
     console.error("❌ Heartbeat error:", error);
     return c.json({ error: error.message }, 500);

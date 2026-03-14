@@ -484,36 +484,44 @@
         </div>
 
         <!-- SECTION 3: Leaderboard -->
+        <!-- SECTION 3: Leaderboard Multi-Kategori -->
         <div class="bg-white rounded-2xl shadow-lg p-6">
-          <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-            <i class="fas fa-trophy text-yellow-500 mr-2"></i>
-            Top Alumni Leaderboard
-          </h2>
-
-          <div class="mb-4 flex flex-wrap gap-4 items-center">
-            <select
-              id="leaderboardFilter"
-              onchange="loadLeaderboard()"
-              class="px-3 py-2 border border-gray-300 rounded-lg"
-            >
-              <option value="all">Semua Sekolah</option>
-              <option value="sdit_sahabat">SDIT Sahabat</option>
-              <option value="pptq_almadinah">PPTQ Al-Madinah</option>
-              <option value="ppqit_almahir">PPQIT Al-Mahir</option>
-            </select>
-
-            <div class="flex gap-2 ml-auto">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-2xl font-bold text-gray-800 flex items-center">
+              <i class="fas fa-trophy text-yellow-500 mr-2"></i>
+              Leaderboard Alumni
+            </h2>
+            <div class="flex gap-2">
               <span class="text-sm text-gray-500"
                 >Total 27 pemenang • 9 per sekolah</span
               >
             </div>
           </div>
 
-          <div
-            id="leaderboardList"
-            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4"
-          ></div>
+          <!-- Filter Sekolah -->
+          <div class="mb-4">
+            <select
+              id="leaderboardFilter"
+              class="w-full md:w-auto px-3 py-2 border border-gray-300 rounded-lg"
+            >
+              <option value="all">Semua Sekolah</option>
+              <option value="sdit_sahabat">SDIT Sahabat</option>
+              <option value="pptq_almadinah">PPTQ Al-Madinah</option>
+              <option value="ppqit_almahir">PPQIT Al-Mahir</option>
+            </select>
+          </div>
 
+          <!-- Category Buttons -->
+          <div id="leaderboardCategories" class="flex flex-wrap gap-2 mb-6">
+            <!-- Akan diisi JavaScript -->
+          </div>
+
+          <!-- Leaderboard List -->
+          <div id="leaderboardList" class="space-y-2 min-h-[400px]">
+            <!-- Akan diisi JavaScript -->
+          </div>
+
+          <!-- Info Pemenang -->
           <div
             class="mt-6 p-4 bg-emerald-50 rounded-xl flex flex-wrap items-center justify-between"
           >
@@ -762,21 +770,22 @@
     </footer>
 
     <script src="js/config.js"></script>
-<script src="js/utils.js"></script>
-<script src="js/auth.js"></script>
-<script src="js/online-status.js"></script>
-<script src="js/typing.js"></script>
-<script src="js/share.js"></script>
-<script src="js/realtime.js"></script>
-<script src="js/posts.js"></script>        
-<script src="js/comments.js"></script>    
-<script src="js/likes.js"></script>       
-<script src="js/notifications.js"></script>
-<script src="js/leaderboard.js"></script>
-<script src="js/school.js"></script>
-<script src="js/create-post.js"></script>
-<script src="js/websocket.js"></script>    
-<script src="js/dashboard.js"></script> 
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/leaderboard.js"></script>
+    <script src="js/online-status.js"></script>
+    <script src="js/typing.js"></script>
+    <script src="js/share.js"></script>
+    <script src="js/realtime.js"></script>
+    <script src="js/posts.js"></script>
+    <script src="js/comments.js"></script>
+    <script src="js/likes.js"></script>
+    <script src="js/notifications.js"></script>
+    <script src="js/leaderboard.js"></script>
+    <script src="js/school.js"></script>
+    <script src="js/create-post.js"></script>
+    <script src="js/websocket.js"></script>
+    <script src="js/dashboard.js"></script>
     <script>
       function goToProfile(userId) {
         window.location.href = `/profile.html?id=${userId}`;

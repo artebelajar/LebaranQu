@@ -111,6 +111,41 @@
       .edit-field:hover i {
         opacity: 1;
       }
+
+      /* Achievement styles */
+      .achievement-item {
+        transition: all 0.3s ease;
+      }
+      .achievement-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.15);
+      }
+
+      .achievement-badge {
+        transition: all 0.3s ease;
+      }
+      .achievement-badge:hover {
+        transform: scale(1.1);
+      }
+
+      @keyframes slideIn {
+        from {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+
+      .animate-slide-in {
+        animation: slideIn 0.5s ease-out;
+      }
+
+      .badge-progress {
+        transition: width 0.3s ease;
+      }
     </style>
   </head>
   <body class="bg-gray-50">
@@ -270,7 +305,7 @@
           </div>
 
           <!-- Quick Stats -->
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <div class="bg-emerald-50 rounded-xl p-4 profile-stats">
               <div class="flex items-center justify-between">
                 <div>
@@ -316,6 +351,28 @@
                   class="w-10 h-10 bg-purple-200 rounded-lg flex items-center justify-center"
                 >
                   <i class="fas fa-trophy text-purple-700"></i>
+                </div>
+              </div>
+            </div>
+            <!-- Achievement Stats -->
+            <div
+              class="bg-amber-50 rounded-xl p-4 profile-stats cursor-pointer"
+              onclick="showAchievementsModal()"
+            >
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-sm text-amber-700">Badge</p>
+                  <p
+                    id="totalAchievements"
+                    class="text-2xl font-bold text-amber-800"
+                  >
+                    0
+                  </p>
+                </div>
+                <div
+                  class="w-10 h-10 bg-amber-200 rounded-lg flex items-center justify-center"
+                >
+                  <i class="fas fa-medal text-amber-700"></i>
                 </div>
               </div>
             </div>
@@ -472,7 +529,7 @@
               </div>
             </div>
 
-            <!-- Right Column - Bio & Posts -->
+            <!-- Right Column - Bio, Badges & Posts -->
             <div class="lg:col-span-2 space-y-6">
               <!-- Bio Section dengan Edit Button -->
               <div class="bg-white border border-gray-100 rounded-xl p-6">
@@ -490,6 +547,35 @@
                   </button>
                 </div>
                 <p id="profileBio" class="text-gray-700 leading-relaxed">-</p>
+              </div>
+
+              <!-- Badges Section -->
+              <div id="badgesSection" class="bg-white rounded-xl shadow-md p-6">
+                <div class="flex justify-between items-center mb-4">
+                  <h3
+                    class="text-xl font-bold text-gray-800 flex items-center gap-2"
+                  >
+                    <i class="fas fa-medal text-emerald-600"></i>
+                    Badge & Pencapaian
+                  </h3>
+                  <button
+                    onclick="showAchievementsModal()"
+                    class="text-sm text-emerald-600 hover:text-emerald-800"
+                  >
+                    Lihat Semua <i class="fas fa-arrow-right ml-1"></i>
+                  </button>
+                </div>
+
+                <!-- Recent Badges -->
+                <div
+                  id="recentBadges"
+                  class="grid grid-cols-2 md:grid-cols-4 gap-3"
+                >
+                  <!-- Akan diisi JavaScript -->
+                </div>
+
+                <!-- Achievement Stats Card -->
+                <div id="achievementStatsCard" class="mt-4"></div>
               </div>
 
               <!-- Posts Section -->
@@ -614,6 +700,94 @@
         >
           <i class="fas fa-times text-xl"></i>
         </button>
+      </div>
+    </div>
+
+    <!-- Modal Achievements -->
+    <div
+      id="achievementsModal"
+      class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50 modal"
+    >
+      <div
+        class="bg-white rounded-2xl p-6 max-w-3xl w-full mx-4 max-h-[80vh] overflow-y-auto"
+      >
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-2xl font-bold text-gray-800">🏆 Semua Badge</h3>
+          <button
+            onclick="hideAchievementsModal()"
+            class="text-gray-500 hover:text-gray-700"
+          >
+            <i class="fas fa-times text-xl"></i>
+          </button>
+        </div>
+
+        <!-- Stats Overview -->
+        <div class="grid grid-cols-3 gap-3 mb-6">
+          <div class="bg-emerald-50 rounded-xl p-4 text-center">
+            <p
+              class="text-2xl font-bold text-emerald-600"
+              id="modalTotalCompleted"
+            >
+              0
+            </p>
+            <p class="text-xs text-gray-600">Badge Diperoleh</p>
+          </div>
+          <div class="bg-blue-50 rounded-xl p-4 text-center">
+            <p
+              class="text-2xl font-bold text-blue-600"
+              id="modalTotalAvailable"
+            >
+              0
+            </p>
+            <p class="text-xs text-gray-600">Total Badge</p>
+          </div>
+          <div class="bg-purple-50 rounded-xl p-4 text-center">
+            <p
+              class="text-2xl font-bold text-purple-600"
+              id="modalCompletionRate"
+            >
+              0%
+            </p>
+            <p class="text-xs text-gray-600">Kelengkapan</p>
+          </div>
+        </div>
+
+        <!-- Filter Buttons -->
+        <div class="flex flex-wrap gap-2 mb-4">
+          <button
+            onclick="filterAchievements('all')"
+            class="filter-achievement-btn px-3 py-1 text-xs rounded-full bg-emerald-600 text-white"
+          >
+            Semua
+          </button>
+          <button
+            onclick="filterAchievements('post')"
+            class="filter-achievement-btn px-3 py-1 text-xs rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300"
+          >
+            Postingan
+          </button>
+          <button
+            onclick="filterAchievements('like')"
+            class="filter-achievement-btn px-3 py-1 text-xs rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300"
+          >
+            Like
+          </button>
+          <button
+            onclick="filterAchievements('comment')"
+            class="filter-achievement-btn px-3 py-1 text-xs rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300"
+          >
+            Komentar
+          </button>
+          <button
+            onclick="filterAchievements('special')"
+            class="filter-achievement-btn px-3 py-1 text-xs rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300"
+          >
+            Spesial
+          </button>
+        </div>
+
+        <!-- Achievement Grid -->
+        <div id="achievementGrid" class="space-y-4"></div>
       </div>
     </div>
 
@@ -794,15 +968,20 @@
       </div>
     </footer>
 
-    <!-- Di bagian bawah body, ganti script dengan file terpisah -->
-    <script src="js/profile/config.js"></script>
-    <script src="js/profile/utils.js"></script>
-    <script src="js/profile/auth.js"></script>
+    <!-- Scripts - Urutan penting -->
+    <!-- Scripts - Urutan penting: pakai dari root, bukan dari folder profile -->
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/achievements.js"></script>
+    <!-- Profile specific scripts (hanya yang spesifik profile) -->
+     <script src="js/profile/helpers.js"></script> 
     <script src="js/profile/profile-core.js"></script>
     <script src="js/profile/profile-posts.js"></script>
     <script src="js/profile/profile-edit.js"></script>
     <script src="js/profile/profile-upload.js"></script>
     <script src="js/profile/profile-modals.js"></script>
+    <script src="js/profile/profile-badges.js"></script>
     <script src="js/profile/profile.js"></script>
   </body>
 </html>

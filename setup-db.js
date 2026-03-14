@@ -13,6 +13,8 @@ async function setupDatabase() {
     // ============= 1. DROP TABLES (Urutan terbalik dari dependensi) =============
     console.log("📦 Menghapus tabel yang ada...");
     
+    await sql`DROP TABLE IF EXISTS user_achievements CASCADE;`;
+    await sql`DROP TABLE IF EXISTS achievements CASCADE;`;
     await sql`DROP TABLE IF EXISTS notifications CASCADE;`;
     await sql`DROP TABLE IF EXISTS post_views CASCADE;`;
     await sql`DROP TABLE IF EXISTS comments_26 CASCADE;`;
@@ -75,7 +77,7 @@ async function setupDatabase() {
         token_akses VARCHAR(100) UNIQUE,
         token_expired TIMESTAMP,
         is_active BOOLEAN DEFAULT true,
-        last_active TIMESTAMP DEFAULT NOW(),        -- PERBAIKAN: dari lastActive jadi last_active
+        last_active TIMESTAMP DEFAULT NOW(),
         last_notif_read TIMESTAMP DEFAULT NOW(),
         created_at TIMESTAMP DEFAULT NOW(),
         updated_at TIMESTAMP DEFAULT NOW()
@@ -152,7 +154,40 @@ async function setupDatabase() {
     `;
     console.log("✅ Tabel notifications created");
 
-    // ============= 4. CREATE INDEXES =============
+    // ============= 4. CREATE TABEL ACHIEVEMENTS =============
+    console.log("🏗️  Membuat tabel achievements...");
+    
+    await sql`
+      CREATE TABLE IF NOT EXISTS achievements (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(100) NOT NULL,
+        description TEXT NOT NULL,
+        icon VARCHAR(50) NOT NULL,
+        category VARCHAR(50) NOT NULL,
+        requirement INTEGER NOT NULL,
+        badge_color VARCHAR(50) DEFAULT 'emerald',
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+    `;
+    console.log("✅ Tabel achievements created");
+
+    console.log("🏗️  Membuat tabel user_achievements...");
+    await sql`
+      CREATE TABLE IF NOT EXISTS user_achievements (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users_26(id) ON DELETE CASCADE NOT NULL,
+        achievement_id INTEGER REFERENCES achievements(id) ON DELETE CASCADE NOT NULL,
+        progress INTEGER DEFAULT 0,
+        completed BOOLEAN DEFAULT false,
+        completed_at TIMESTAMP,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW(),
+        UNIQUE(user_id, achievement_id)
+      );
+    `;
+    console.log("✅ Tabel user_achievements created");
+
+    // ============= 5. CREATE INDEXES =============
     console.log("🔨 Membuat indexes...");
     
     // Index untuk posts
@@ -180,9 +215,51 @@ async function setupDatabase() {
     await sql`CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON notifications(created_at DESC);`;
     await sql`CREATE INDEX IF NOT EXISTS idx_notifications_unread ON notifications(user_id, is_read) WHERE is_read = false;`;
     
+    // Index untuk achievements
+    await sql`CREATE INDEX IF NOT EXISTS idx_user_achievements_user_id ON user_achievements(user_id);`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_user_achievements_completed ON user_achievements(completed);`;
+    
     console.log("✅ Indexes created");
 
-    // ============= 5. INSERT ADMIN =============
+    // ============= 6. INSERT DEFAULT ACHIEVEMENTS =============
+    console.log("🏆 Menambahkan data achievements...");
+    
+    const achievements = [
+      // Postingan achievements
+      { name: 'Penulis Pemula', description: 'Membuat 1 postingan pertama', icon: 'fa-pen', category: 'post', requirement: 1, badge_color: 'emerald' },
+      { name: 'Penulis Aktif', description: 'Membuat 10 postingan', icon: 'fa-pen-fancy', category: 'post', requirement: 10, badge_color: 'blue' },
+      { name: 'Penulis Produktif', description: 'Membuat 25 postingan', icon: 'fa-feather', category: 'post', requirement: 25, badge_color: 'purple' },
+      { name: 'Penulis Legenda', description: 'Membuat 50 postingan', icon: 'fa-crown', category: 'post', requirement: 50, badge_color: 'yellow' },
+      
+      // Like achievements
+      { name: 'Disukai Pemula', description: 'Mendapatkan 10 like', icon: 'fa-heart', category: 'like', requirement: 10, badge_color: 'red' },
+      { name: 'Disukai Aktif', description: 'Mendapatkan 50 like', icon: 'fa-heart', category: 'like', requirement: 50, badge_color: 'red' },
+      { name: 'Disukai Populer', description: 'Mendapatkan 100 like', icon: 'fa-heart', category: 'like', requirement: 100, badge_color: 'red' },
+      { name: 'Disukai Selebriti', description: 'Mendapatkan 250 like', icon: 'fa-star', category: 'like', requirement: 250, badge_color: 'yellow' },
+      
+      // Comment achievements
+      { name: 'Komentator Pemula', description: 'Menulis 5 komentar', icon: 'fa-comment', category: 'comment', requirement: 5, badge_color: 'blue' },
+      { name: 'Komentator Aktif', description: 'Menulis 25 komentar', icon: 'fa-comments', category: 'comment', requirement: 25, badge_color: 'green' },
+      { name: 'Komentator Berbakat', description: 'Menulis 50 komentar', icon: 'fa-message', category: 'comment', requirement: 50, badge_color: 'purple' },
+      
+      // Special achievements
+      { name: 'Anggota Baru', description: 'Bergabung dengan LebaranQu', icon: 'fa-user-plus', category: 'special', requirement: 1, badge_color: 'emerald' },
+      { name: 'Alumni Pertama', description: 'Menjadi alumni pertama di sekolah', icon: 'fa-graduation-cap', category: 'special', requirement: 1, badge_color: 'blue' },
+      { name: 'Top 10 Leaderboard', description: 'Masuk 10 besar leaderboard', icon: 'fa-trophy', category: 'special', requirement: 10, badge_color: 'yellow' },
+      { name: 'Top 3 Leaderboard', description: 'Masuk 3 besar leaderboard', icon: 'fa-crown', category: 'special', requirement: 3, badge_color: 'purple' },
+    ];
+
+    for (const ach of achievements) {
+      await sql`
+        INSERT INTO achievements (name, description, icon, category, requirement, badge_color)
+        VALUES (${ach.name}, ${ach.description}, ${ach.icon}, ${ach.category}, ${ach.requirement}, ${ach.badge_color})
+        ON CONFLICT DO NOTHING;
+      `;
+    }
+    
+    console.log("✅ Data achievements berhasil ditambahkan");
+
+    // ============= 7. INSERT ADMIN =============
     console.log("👤 Menambahkan admin...");
     
     const hashedPassword = await bcrypt.hash("123456", 10);
@@ -207,58 +284,170 @@ async function setupDatabase() {
 
     console.log("✅ Admin berhasil ditambahkan!");
 
-    // ============= 6. INSERT CONTOH DATA (Opsional) =============
-    console.log("📝 Menambahkan contoh data...");
+    // ============= 8. INSERT CONTOH USER UNTUK TEST BADGE =============
+    console.log("📝 Menambahkan contoh user dengan achievements...");
     
     // Ambil ID admin
     const [admin] = await sql`SELECT id FROM users_26 WHERE email = 'afan@almahir.com'`;
     
-    // Buat contoh post
-    const [samplePost] = await sql`
-      INSERT INTO posts (user_id, judul, konten, view_count)
+    // Buat contoh user
+    const [user1] = await sql`
+      INSERT INTO users_26 (nama_lengkap, asal_sekolah, email, password, title, bio_singkat, token_akses)
       VALUES (
-        ${admin.id},
-        'Selamat Datang di LebaranQu',
-        'Assalamualaikum warahmatullahi wabarakatuh! Selamat datang di platform silaturahmi alumni LebaranQu. Mari kita sambung tali silaturahmi dan berbagi cerita di bulan suci ini.',
-        42
+        'Budi Santoso',
+        'sdit_sahabat',
+        'budi@example.com',
+        ${hashedPassword},
+        'Guru SD',
+        'Alumni SDIT Sahabat angkatan 2015',
+        'user-token-budi-123'
       )
       RETURNING id;
     `;
-    
-    // Buat contoh komentar
-    await sql`
-      INSERT INTO comments_26 (post_id, user_id, text)
-      VALUES (
-        ${samplePost.id},
-        ${admin.id},
-        'Semoga platform ini bermanfaat untuk kita semua. Aamiin.'
-      );
-    `;
-    
-    console.log("✅ Contoh data berhasil ditambahkan");
 
-    // ============= 7. VERIFIKASI =============
+    const [user2] = await sql`
+      INSERT INTO users_26 (nama_lengkap, asal_sekolah, email, password, title, bio_singkat, token_akses)
+      VALUES (
+        'Siti Aminah',
+        'pptq_almadinah',
+        'siti@example.com',
+        ${hashedPassword},
+        'Hafidzah',
+        'Santri PPTQ Al-Madinah',
+        'user-token-siti-123'
+      )
+      RETURNING id;
+    `;
+
+    console.log("✅ Contoh user berhasil ditambahkan");
+
+    // ============= 9. INSERT CONTOH POSTS DAN LIKES =============
+    console.log("📝 Menambahkan contoh posts...");
+    
+    // Buat postingan untuk admin
+    const [post1] = await sql`
+      INSERT INTO posts (user_id, judul, konten, view_count, like_count)
+      VALUES (
+        ${admin.id},
+        'Tips Menjaga Silaturahmi di Bulan Ramadan',
+        'Bulan Ramadan adalah bulan yang penuh berkah. Selain berpuasa, kita juga dianjurkan untuk menjaga silaturahmi dengan keluarga, teman, dan kerabat. Berikut beberapa tips yang bisa dilakukan...',
+        150,
+        45
+      )
+      RETURNING id;
+    `;
+
+    const [post2] = await sql`
+      INSERT INTO posts (user_id, judul, konten, view_count, like_count)
+      VALUES (
+        ${user1.id},
+        'Pengalaman Puasa Pertamaku',
+        'Tahun ini adalah pertama kalinya aku berpuasa penuh. Banyak cerita dan pengalaman yang tak terlupakan...',
+        89,
+        23
+      )
+      RETURNING id;
+    `;
+
+    const [post3] = await sql`
+      INSERT INTO posts (user_id, judul, konten, view_count, like_count)
+      VALUES (
+        ${user2.id},
+        'Kajian Ramadan di Masjid',
+        'Setiap sore saya mengikuti kajian Ramadan di masjid dekat rumah. Banyak ilmu bermanfaat yang didapat...',
+        67,
+        12
+      )
+      RETURNING id;
+    `;
+
+    // Buat likes
+    await sql`
+      INSERT INTO likes (post_id, user_id) VALUES
+      (${post1.id}, ${user1.id}),
+      (${post1.id}, ${user2.id}),
+      (${post2.id}, ${admin.id}),
+      (${post2.id}, ${user2.id}),
+      (${post3.id}, ${admin.id})
+      ON CONFLICT DO NOTHING;
+    `;
+
+    // Buat komentar
+    await sql`
+      INSERT INTO comments_26 (post_id, user_id, text) VALUES
+      (${post1.id}, ${user1.id}, 'Terima kasih tipsnya, sangat bermanfaat!'),
+      (${post1.id}, ${user2.id}, 'Semoga kita semua bisa menjaga silaturahmi. Aamiin'),
+      (${post2.id}, ${admin.id}, 'Selamat ya, semoga lancar puasanya!'),
+      (${post3.id}, ${user1.id}, 'Kajiannya di masjid mana? Boleh join?')
+      ON CONFLICT DO NOTHING;
+    `;
+
+    console.log("✅ Contoh posts berhasil ditambahkan");
+
+    // ============= 10. BERIKAN ACHIEVEMENTS UNTUK CONTOH USER =============
+    console.log("🏆 Memberikan achievements untuk contoh user...");
+    
+    // Ambil semua achievements
+    const allAchievements = await sql`SELECT id, name, requirement FROM achievements`;
+    
+    // Berikan achievements untuk admin
+    for (const ach of allAchievements) {
+      if (ach.name === 'Penulis Pemula' || ach.name === 'Anggota Baru' || ach.name === 'Komentator Pemula') {
+        await sql`
+          INSERT INTO user_achievements (user_id, achievement_id, progress, completed, completed_at)
+          VALUES (${admin.id}, ${ach.id}, ${ach.requirement}, true, NOW())
+          ON CONFLICT DO NOTHING;
+        `;
+      }
+    }
+
+    // Berikan achievements untuk user1
+    for (const ach of allAchievements) {
+      if (ach.name === 'Penulis Pemula' || ach.name === 'Anggota Baru') {
+        await sql`
+          INSERT INTO user_achievements (user_id, achievement_id, progress, completed, completed_at)
+          VALUES (${user1.id}, ${ach.id}, ${ach.requirement}, true, NOW())
+          ON CONFLICT DO NOTHING;
+        `;
+      }
+    }
+
+    // Berikan achievements untuk user2
+    for (const ach of allAchievements) {
+      if (ach.name === 'Anggota Baru') {
+        await sql`
+          INSERT INTO user_achievements (user_id, achievement_id, progress, completed, completed_at)
+          VALUES (${user2.id}, ${ach.id}, ${ach.requirement}, true, NOW())
+          ON CONFLICT DO NOTHING;
+        `;
+      }
+    }
+
+    console.log("✅ Contoh achievements berhasil diberikan");
+
+    // ============= 11. VERIFIKASI =============
     const users = await sql`SELECT COUNT(*) FROM users_26`;
     const postsCount = await sql`SELECT COUNT(*) FROM posts`;
     const commentsCount = await sql`SELECT COUNT(*) FROM comments_26`;
+    const likesCount = await sql`SELECT COUNT(*) FROM likes`;
     const notificationsCount = await sql`SELECT COUNT(*) FROM notifications`;
+    const achievementsCount = await sql`SELECT COUNT(*) FROM achievements`;
+    const userAchCount = await sql`SELECT COUNT(*) FROM user_achievements`;
     
     console.log("\n📊 **STATISTIK DATABASE**");
     console.log(`👥 Total users: ${users[0].count}`);
     console.log(`📝 Total posts: ${postsCount[0].count}`);
     console.log(`💬 Total comments: ${commentsCount[0].count}`);
+    console.log(`❤️ Total likes: ${likesCount[0].count}`);
     console.log(`🔔 Total notifications: ${notificationsCount[0].count}`);
+    console.log(`🏆 Total achievements: ${achievementsCount[0].count}`);
+    console.log(`🎖️ User achievements: ${userAchCount[0].count}`);
     
-    // Tampilkan struktur tabel
-    console.log("\n📋 **STRUKTUR TABEL users_26**");
-    const columns = await sql`
-      SELECT column_name, data_type 
-      FROM information_schema.columns 
-      WHERE table_name = 'users_26'
-      ORDER BY ordinal_position;
-    `;
-    columns.forEach(col => {
-      console.log(`   - ${col.column_name}: ${col.data_type}`);
+    // Tampilkan daftar achievements
+    console.log("\n📋 **DAFTAR ACHIEVEMENTS**");
+    const achList = await sql`SELECT name, category, requirement FROM achievements ORDER BY category, requirement`;
+    achList.forEach(ach => {
+      console.log(`   - ${ach.name} (${ach.category}): ${ach.requirement}`);
     });
     
     console.log("\n✅ **SETUP DATABASE BERHASIL!**");

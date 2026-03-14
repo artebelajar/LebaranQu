@@ -131,3 +131,31 @@ export const notifications = pgTable("notifications", {
   isRead: boolean("is_read").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
+
+// ========== TABEL ACHIEVEMENTS ==========
+export const achievements = pgTable("achievements", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 100 }).notNull(),
+  description: text("description").notNull(),
+  icon: varchar("icon", { length: 50 }).notNull(), // Nama icon Font Awesome
+  category: varchar("category", { length: 50 }).notNull(), // 'post', 'like', 'comment', 'special'
+  requirement: integer("requirement").notNull(), // Jumlah yang diperlukan
+  badge_color: varchar("badge_color", { length: 50 }).default("emerald"), // Warna badge
+  created_at: timestamp("created_at").defaultNow(),
+});
+
+// ========== TABEL USER ACHIEVEMENTS ==========
+export const userAchievements = pgTable("user_achievements", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users_26.id).notNull(),
+  achievementId: integer("achievement_id").references(() => achievements.id).notNull(),
+  progress: integer("progress").default(0), // Progress saat ini
+  completed: boolean("completed").default(false),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => {
+  return {
+    uniqueUserAchievement: unique().on(table.userId, table.achievementId)
+  };
+});

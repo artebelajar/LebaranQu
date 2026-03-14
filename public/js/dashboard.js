@@ -29,15 +29,18 @@ function cleanup() {
 function initDashboard() {
   console.log("Initializing dashboard...");
 
-  // Cek apakah elemen ada sebelum mengakses
-  const userNameDisplay = document.getElementById("userNameDisplay");
-  const ucapanNama = document.getElementById("ucapanNama");
-  
-  if (userNameDisplay) userNameDisplay.textContent = currentUser.namaLengkap;
-  if (ucapanNama) ucapanNama.textContent = currentUser.namaLengkap;
+  document.getElementById("userNameDisplay").textContent = currentUser.namaLengkap;
+  document.getElementById("ucapanNama").textContent = currentUser.namaLengkap;
 
-  if (typeof setupSearchAndFilters === 'function') setupSearchAndFilters();
-  if (typeof setupFilterUI === 'function') setupFilterUI();
+  setupSearchAndFilters();
+  setupFilterUI();
+  
+  // Render category buttons - PASTIKAN FUNGSI INI ADA
+  if (typeof renderCategoryButtons === 'function') {
+    renderCategoryButtons();
+  } else {
+    console.warn("renderCategoryButtons function not found");
+  }
   
   // Try WebSocket first
   try {
@@ -50,7 +53,7 @@ function initDashboard() {
   Promise.all([
     typeof loadSchoolInfo === 'function' ? loadSchoolInfo() : Promise.resolve(),
     typeof loadAllPosts === 'function' ? loadAllPosts() : Promise.resolve(),
-    typeof loadLeaderboard === 'function' ? loadLeaderboard() : Promise.resolve(),
+    typeof loadLeaderboard === 'function' ? loadLeaderboard('badge') : Promise.resolve(),
     typeof loadNotifications === 'function' ? loadNotifications() : Promise.resolve(),
   ])
     .then(() => {
@@ -62,6 +65,11 @@ function initDashboard() {
       if (mainContent) mainContent.classList.remove("hidden");
       if (userInfo) userInfo.classList.remove("hidden");
       console.log("Dashboard ready");
+      
+      // Init leaderboard filters
+      if (typeof initLeaderboardFilters === 'function') {
+        initLeaderboardFilters();
+      }
     })
     .catch((error) => {
       console.error("Error loading dashboard:", error);
@@ -70,7 +78,11 @@ function initDashboard() {
 
   const leaderboardFilter = document.getElementById("leaderboardFilter");
   if (leaderboardFilter) {
-    leaderboardFilter.addEventListener("change", loadLeaderboard);
+    leaderboardFilter.addEventListener("change", () => {
+      if (typeof loadLeaderboard === 'function') {
+        loadLeaderboard(currentLeaderboardCategory);
+      }
+    });
   }
   
   // Start heartbeat

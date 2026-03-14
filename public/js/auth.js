@@ -1,10 +1,13 @@
 // ===================================================
-// FILE: auth.js - Session Management
+// FILE: auth.js - Session Management (GLOBAL)
 // ===================================================
 
-let currentUser = null;
-let isAdmin = false;
-let userLikes = new Set();
+// Deklarasi global dengan var agar bisa diakses lintas file
+if (typeof currentUser === 'undefined') {
+  var currentUser = null;
+  var isAdmin = false;
+  var userLikes = new Set();
+}
 
 // ========== CEK SESSION ==========
 function checkSession() {
@@ -72,3 +75,10 @@ function logout() {
   localStorage.removeItem(`userLikes_${currentUser?.id}`);
   window.location.href = "/login.html";
 }
+
+// Export ke window
+window.logout = logout;
+window.checkSession = checkSession;
+window.currentUser = currentUser;
+window.isAdmin = isAdmin;
+window.userLikes = userLikes;

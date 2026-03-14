@@ -193,6 +193,79 @@ async function refreshRank() {
   );
 }
 
+// ========== LOAD PROFILE DATA ==========
+async function loadProfile() {
+  try {
+    console.log("Loading profile...");
+    
+    document.getElementById("loadingState").classList.remove("hidden");
+    document.getElementById("profileContent").classList.add("hidden");
+    document.getElementById("errorState").classList.add("hidden");
+
+    // PASTIKAN getProfileId ADA
+    if (typeof getProfileId !== 'function') {
+      throw new Error("getProfileId function not found");
+    }
+    
+    const userIdToLoad = getProfileId();
+    console.log("Loading profile for user ID:", userIdToLoad);
+
+    if (!userIdToLoad || isNaN(userIdToLoad)) {
+      throw new Error("ID user tidak valid");
+    }
+
+    const userRes = await fetch(`${API_BASE}/users/${userIdToLoad}`);
+    if (!userRes.ok) {
+      if (userRes.status === 404) {
+        throw new Error("User tidak ditemukan");
+      }
+      throw new Error(`HTTP error ${userRes.status}`);
+    }
+
+    window.profileUser = await userRes.json();
+    console.log("User data:", profileUser);
+
+    // Update UI dasar
+    updateProfileUI();
+
+    // Setup UI berdasarkan kepemilikan
+    setupProfileUI();
+
+    // Load user posts
+    await loadUserPosts(userIdToLoad);
+    
+    // LOAD ACHIEVEMENTS
+    if (window.loadUserAchievements) {
+      try {
+        await loadUserAchievements(userIdToLoad);
+        
+        // Render recent badges
+        if (window.renderAchievementBadges) {
+          const completedAchs = userAchievements.filter(ach => ach.completed);
+          renderAchievementBadges('recentBadges', completedAchs, 4);
+        }
+        
+        // Load stats
+        if (window.loadAchievementStats) {
+          const stats = await loadAchievementStats(userIdToLoad);
+          document.getElementById('totalAchievements').textContent = stats.completed || 0;
+        }
+      } catch (achError) {
+        console.error("Error loading achievements:", achError);
+        // Tetap lanjutkan meskipun achievement error
+      }
+    }
+
+    document.getElementById("loadingState").classList.add("hidden");
+    document.getElementById("profileContent").classList.remove("hidden");
+  } catch (error) {
+    console.error("Error loading profile:", error);
+    document.getElementById("loadingState").classList.add("hidden");
+    document.getElementById("errorState").classList.remove("hidden");
+    document.getElementById("errorMessage").textContent = error.message;
+  }
+}
+
 // ========== SCROLL TO TOP ==========
 function scrollToTop() {
   window.scrollTo({ top: 0, behavior: "smooth" });

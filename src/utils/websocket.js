@@ -20,7 +20,7 @@ export function initWebSocket(server) {
         clients.set(userId, ws);
         console.log(`👤 User ${userId} connected to WebSocket`);
         
-        // Broadcast user online ke semua user
+        // Broadcast user online
         broadcastToAll({
           type: 'user_online',
           userId: userId,

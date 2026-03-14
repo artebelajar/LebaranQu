@@ -13,6 +13,8 @@ import fs from "fs";
 import usersApi from "./src/api/users.js";
 import postsApi from "./src/api/posts.js";
 import notificationsApi from "./src/api/notifications.js";
+import achievementsApi from "./src/api/achievements.js";
+import leaderboardApi from "./src/api/leaderboard.js";
 
 // Import WebSocket functions
 import { initWebSocket, broadcastToUser, broadcastToAll } from "./src/utils/websocket.js";
@@ -23,8 +25,6 @@ const app = new Hono();
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // ========== MIDDLEWARE ==========
-
-// 1. Logging dengan response time
 app.use("*", async (c, next) => {
   const start = Date.now();
   await next();
@@ -32,13 +32,9 @@ app.use("*", async (c, next) => {
   console.log(`${c.req.method} ${c.req.path} - ${ms}ms`);
 });
 
-// 2. CORS
 app.use("/*", cors());
-
-// 3. Compression
 app.use('*', compress({ threshold: 1024 }));
 
-// 4. Rate limiter
 const limiter = rateLimiter({
   windowMs: 60 * 1000,
   limit: 200,
@@ -57,55 +53,37 @@ app.use('/api/*', limiter);
 app.route("/api/users", usersApi);
 app.route("/api/posts", postsApi);
 app.route("/api/notifications", notificationsApi);
+app.route("/api/achievements", achievementsApi);
+app.route("/api/leaderboard", leaderboardApi);
 
-// ========== SSE ENDPOINT - PERBAIKI ==========
+// ========== SSE ENDPOINT ==========
 app.get("/events", async (c) => {
-  try {
-    const userId = c.req.query('userId');
-    
-    if (!userId) {
-      return c.json({ error: 'User ID required' }, 400);
-    }
-
-    console.log(`📡 SSE connected for user ${userId}`);
-
-    // Set headers untuk SSE
-    c.header('Content-Type', 'text/event-stream');
-    c.header('Cache-Control', 'no-cache');
-    c.header('Connection', 'keep-alive');
-    c.header('Access-Control-Allow-Origin', '*');
-
-    // Create a readable stream
-    const stream = new ReadableStream({
-      start(controller) {
-        // Send initial connection message
-        controller.enqueue(`data: ${JSON.stringify({ type: 'connected', userId })}\n\n`);
-
-        // Send ping every 30 seconds to keep connection alive
-        const pingInterval = setInterval(() => {
-          controller.enqueue(`: ping\n\n`);
-        }, 30000);
-
-        // Handle client disconnect
-        c.req.raw.signal.addEventListener('abort', () => {
-          clearInterval(pingInterval);
-          console.log(`📡 SSE disconnected for user ${userId}`);
-        });
-      }
-    });
-
-    return new Response(stream, {
-      headers: {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
-      }
-    });
-
-  } catch (error) {
-    console.error('❌ SSE error:', error);
-    return c.json({ error: error.message }, 500);
+  const userId = c.req.query('userId');
+  
+  if (!userId) {
+    return c.text('User ID required', 400);
   }
+  
+  c.header('Content-Type', 'text/event-stream');
+  c.header('Cache-Control', 'no-cache');
+  c.header('Connection', 'keep-alive');
+  
+  const stream = c.res.body.getWriter();
+  const encoder = new TextEncoder();
+  
+  stream.write(encoder.encode(`data: ${JSON.stringify({ type: 'connected', userId })}\n\n`));
+  
+  const pingInterval = setInterval(() => {
+    stream.write(encoder.encode(`: ping\n\n`));
+  }, 30000);
+  
+  c.req.raw.signal.addEventListener('abort', () => {
+    clearInterval(pingInterval);
+    stream.close();
+    console.log(`📡 SSE connection closed for user ${userId}`);
+  });
+  
+  return c.body(stream);
 });
 
 // ========== STATIC FILES ==========
@@ -115,19 +93,13 @@ app.use("/*", serveStatic({ root: join(__dirname, "public") }));
 app.get('/uploads/*', async (c) => {
   try {
     const filePath = join(__dirname, 'public', c.req.path);
-    if (!fs.existsSync(filePath)) {
-      return c.text('File not found', 404);
-    }
+    if (!fs.existsSync(filePath)) return c.text('File not found', 404);
     
     const file = fs.readFileSync(filePath);
     const ext = filePath.split('.').pop().toLowerCase();
-    
     const contentTypes = {
-      jpg: 'image/jpeg',
-      jpeg: 'image/jpeg',
-      png: 'image/png',
-      gif: 'image/gif',
-      webp: 'image/webp'
+      jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png',
+      gif: 'image/gif', webp: 'image/webp'
     };
     
     return c.body(file, 200, { 
@@ -144,7 +116,7 @@ app.notFound((c) => {
   return c.text("404 Not Found", 404);
 });
 
-// ========== START SERVER DENGAN `serve` DARI HONO ==========
+// ========== START SERVER ==========
 const port = process.env.PORT || 6006;
 
 // Pastikan folder uploads ada
@@ -153,7 +125,7 @@ if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// Start server menggunakan serve dari Hono
+// Start server
 const server = serve({
   fetch: app.fetch,
   port,
@@ -161,14 +133,10 @@ const server = serve({
   console.log(`🚀 Server running at http://localhost:${info.port}`);
   console.log(`📁 Upload directory: ${uploadDir}`);
   
-  // Inisialisasi WebSocket dengan server yang sama
-  try {
-    initWebSocket(server);
-    console.log(`🔌 WebSocket server running at ws://localhost:${info.port}/ws`);
-  } catch (error) {
-    console.error('❌ Failed to initialize WebSocket:', error);
-  }
+  // Inisialisasi WebSocket
+  initWebSocket(server);
+  console.log(`🔌 WebSocket server running at ws://localhost:${info.port}/ws`);
 });
 
-// Export functions untuk digunakan di routes
+// Export untuk digunakan di routes
 export { broadcastToUser, broadcastToAll };

@@ -2,21 +2,22 @@
 // FILE: config.js - Konfigurasi Global
 // ===================================================
 
-const API_BASE = "/api";
-const POSTS_PER_PAGE = 5;
-const MAX_RECONNECT_ATTEMPTS = 5;
-const HEARTBEAT_INTERVAL = 120000; // 2 menit
-const TYPING_TIMEOUT = 3000; // 3 detik
+// Gunakan var untuk variabel global
+var API_BASE = "/api";
+var POSTS_PER_PAGE = 5;
+var MAX_RECONNECT_ATTEMPTS = 5;
+var HEARTBEAT_INTERVAL = 120000; // 2 menit
+var TYPING_TIMEOUT = 3000; // 3 detik
 
 // Warna untuk badge sekolah
-const SCHOOL_COLORS = {
+var SCHOOL_COLORS = {
   sdit_sahabat: "bg-blue-100 text-blue-800",
   pptq_almadinah: "bg-green-100 text-green-800",
   ppqit_almahir: "bg-purple-100 text-purple-800"
 };
 
 // Nama sekolah
-const SCHOOL_NAMES = {
+var SCHOOL_NAMES = {
   sdit_sahabat: "SDIT Sahabat",
   pptq_almadinah: "PPTQ Al-Madinah",
   ppqit_almahir: "PPQIT Al-Mahir"
@@ -99,3 +100,9 @@ const SCHOOLS_DATA = {
     icon: "💻",
   },
 };
+
+// Export ke window
+window.API_BASE = API_BASE;
+window.POSTS_PER_PAGE = POSTS_PER_PAGE;
+window.SCHOOL_COLORS = SCHOOL_COLORS;
+window.SCHOOL_NAMES = SCHOOL_NAMES;
