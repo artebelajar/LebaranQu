@@ -29,17 +29,28 @@ function cleanup() {
 function initDashboard() {
   console.log("Initializing dashboard...");
 
+  // Cek elemen penting
+  const postDetailSidebar = document.getElementById("postDetailSidebar");
+  if (!postDetailSidebar) {
+    console.warn("postDetailSidebar element not found");
+  }
+
+  const postDetailContent = document.getElementById("postDetailContent");
+  if (!postDetailContent) {
+    console.warn("postDetailContent element not found");
+  }
+
   document.getElementById("userNameDisplay").textContent = currentUser.namaLengkap;
   document.getElementById("ucapanNama").textContent = currentUser.namaLengkap;
 
-  setupSearchAndFilters();
-  setupFilterUI();
+  if (typeof setupSearchAndFilters === 'function') setupSearchAndFilters();
+  if (typeof setupFilterUI === 'function') setupFilterUI();
   
-  // Render category buttons - PASTIKAN FUNGSI INI ADA
+  // Render category buttons
   if (typeof renderCategoryButtons === 'function') {
     renderCategoryButtons();
-  } else {
-    console.warn("renderCategoryButtons function not found");
+  } else if (window.LeaderboardModule) {
+    window.LeaderboardModule.renderButtons();
   }
   
   // Try WebSocket first
@@ -53,7 +64,8 @@ function initDashboard() {
   Promise.all([
     typeof loadSchoolInfo === 'function' ? loadSchoolInfo() : Promise.resolve(),
     typeof loadAllPosts === 'function' ? loadAllPosts() : Promise.resolve(),
-    typeof loadLeaderboard === 'function' ? loadLeaderboard('badge') : Promise.resolve(),
+    typeof loadLeaderboard === 'function' ? loadLeaderboard('badge') : 
+      (window.LeaderboardModule ? window.LeaderboardModule.load('badge') : Promise.resolve()),
     typeof loadNotifications === 'function' ? loadNotifications() : Promise.resolve(),
   ])
     .then(() => {
@@ -66,9 +78,10 @@ function initDashboard() {
       if (userInfo) userInfo.classList.remove("hidden");
       console.log("Dashboard ready");
       
-      // Init leaderboard filters
       if (typeof initLeaderboardFilters === 'function') {
         initLeaderboardFilters();
+      } else if (window.LeaderboardModule) {
+        window.LeaderboardModule.initFilters();
       }
     })
     .catch((error) => {
@@ -80,10 +93,14 @@ function initDashboard() {
   if (leaderboardFilter) {
     leaderboardFilter.addEventListener("change", () => {
       if (typeof loadLeaderboard === 'function') {
-        loadLeaderboard(currentLeaderboardCategory);
+        loadLeaderboard(currentLeaderboardCategory || 'badge');
+      } else if (window.LeaderboardModule) {
+        window.LeaderboardModule.load(window.LeaderboardModule.currentCategory || 'badge');
       }
     });
   }
+
+  loadNotifications();
   
   // Start heartbeat
   if (typeof startHeartbeat === 'function') startHeartbeat();

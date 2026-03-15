@@ -53,11 +53,19 @@ async function loadNotifications() {
       `${API_BASE}/notifications?userId=${currentUser.id}&limit=20`,
     );
     if (!response.ok) throw new Error("Gagal memuat notifikasi");
+    
     const data = await response.json();
     notifications = data.notifications;
     unreadCount = data.unreadCount;
+    
     renderNotifications();
     updateNotificationBadge();
+    
+    // Update juga untuk mobile
+    mobileNotifications = notifications;
+    mobileUnreadCount = unreadCount;
+    updateMobileNotificationBadge();
+    
   } catch (error) {
     console.error("Error loading notifications:", error);
   }
@@ -150,20 +158,30 @@ async function markNotificationRead(notificationIds = []) {
       },
       body: JSON.stringify({ userId: currentUser.id, notificationIds }),
     });
+    
     if (response.ok) {
       if (notificationIds.length === 0) {
         notifications.forEach((n) => (n.isRead = true));
         unreadCount = 0;
+        mobileUnreadCount = 0;
       } else {
         notifications.forEach((n) => {
           if (notificationIds.includes(n.id)) {
             n.isRead = true;
             unreadCount = Math.max(0, unreadCount - 1);
+            mobileUnreadCount = Math.max(0, mobileUnreadCount - 1);
           }
         });
       }
+      
       renderNotifications();
       updateNotificationBadge();
+      updateMobileNotificationBadge();
+      
+      // Update mobile list jika sheet terbuka
+      if (document.getElementById('notificationSheet').classList.contains('show')) {
+        loadMobileNotifications();
+      }
     }
   } catch (error) {
     console.error("Error marking notifications as read:", error);

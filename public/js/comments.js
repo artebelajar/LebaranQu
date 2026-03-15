@@ -29,6 +29,11 @@ async function loadComments(postId) {
 // ========== ADD COMMENT ==========
 async function addComment(postId) {
   const input = document.getElementById("newCommentInput");
+  if (!input) {
+    console.error("Comment input not found");
+    return;
+  }
+  
   const commentText = input.value.trim();
   if (!commentText) return;
 
@@ -64,16 +69,35 @@ function toggleComments(postId) {
 
 // ========== RENDER POST DETAIL ==========
 async function renderPostDetail(postId) {
+  // Hanya render jika bukan mobile
+  if (window.innerWidth < 768) {
+    console.log("Mobile detected, skipping sidebar render");
+    return;
+  }
+  // Cek apakah allPosts tersedia
+  if (typeof allPosts === 'undefined') {
+    console.error("allPosts is not defined");
+    return;
+  }
+  
   const post = allPosts.find((p) => p.id === postId);
-  if (!post) return;
+  if (!post) {
+    console.error(`Post with id ${postId} not found`);
+    return;
+  }
 
-  const isLiked = userLikes.has(post.id);
+  const isLiked = userLikes ? userLikes.has(post.id) : false;
   const showComments = commentsVisible[postId] || false;
   const comments = await loadComments(postId);
   const commentCount = comments.length;
-  const isOnline = onlineStatus[post.user?.id]?.online || false;
+  const isOnline = onlineStatus && onlineStatus[post.user?.id] ? onlineStatus[post.user.id].online : false;
 
+  // Cek apakah elemen detailContent ada
   const detailContent = document.getElementById("postDetailContent");
+  if (!detailContent) {
+    console.error("Element #postDetailContent not found in DOM");
+    return;
+  }
 
   // Escape post untuk JSON di atribut onclick
   const postJSON = JSON.stringify(post).replace(/"/g, '&quot;');
@@ -84,14 +108,14 @@ async function renderPostDetail(postId) {
       <div class="flex items-start gap-3 pb-4 border-b">
         <div class="relative">
           <img src="${post.user?.fotoProfil || "/images/default-avatar.png"}" 
-               class="w-12 h-12 rounded-full object-cover cursor-pointer hover:opacity-80 transition"
+               class="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover cursor-pointer hover:opacity-80 transition"
                onclick="goToProfile(${post.user?.id})"
                onerror="this.src='/images/default-avatar.png'">
-          <span class="w-3 h-3 ${isOnline ? "bg-green-500" : "bg-gray-400"} rounded-full absolute bottom-0 right-0 border-2 border-white"></span>
+          <span class="w-2 h-2 md:w-3 md:h-3 ${isOnline ? "bg-green-500" : "bg-gray-400"} rounded-full absolute bottom-0 right-0 border-2 border-white"></span>
         </div>
         <div class="flex-1">
-          <div class="flex items-center gap-2">
-            <h3 class="font-semibold text-gray-800 cursor-pointer hover:text-emerald-600 transition"
+          <div class="flex flex-col md:flex-row md:items-center gap-1 md:gap-2">
+            <h3 class="font-semibold text-gray-800 text-sm md:text-base cursor-pointer hover:text-emerald-600 transition"
                 onclick="goToProfile(${post.user?.id})">
               ${post.user?.namaLengkap || "Unknown"}
             </h3>
@@ -100,7 +124,7 @@ async function renderPostDetail(postId) {
             </span>
           </div>
           <p class="text-xs text-gray-500">${post.user?.title || "Alumni"}</p>
-          <div class="flex items-center gap-2 mt-1">
+          <div class="flex flex-wrap items-center gap-2 mt-1">
             <span class="px-2 py-0.5 text-xs rounded-full ${getSchoolColor(post.user?.asalSekolah)}">
               ${getSchoolName(post.user?.asalSekolah)}
             </span>
@@ -109,38 +133,40 @@ async function renderPostDetail(postId) {
         </div>
       </div>
       
-      <h2 class="text-xl font-bold text-gray-800">${post.judul}</h2>
-      <div class="text-gray-700 leading-relaxed whitespace-pre-line">${post.konten}</div>
+      <h2 class="text-lg md:text-xl font-bold text-gray-800">${post.judul}</h2>
+      <div class="text-sm md:text-base text-gray-700 leading-relaxed whitespace-pre-line">${post.konten}</div>
       ${post.gambar ? `<div class="mt-4"><img src="${post.gambar}" class="w-full rounded-lg max-h-96 object-cover"></div>` : ""}
       
       <!-- Stats bar -->
-      <div class="flex items-center justify-between py-3 border-y">
+      <div class="flex flex-col md:flex-row items-start md:items-center justify-between py-3 border-y gap-3">
         <div class="flex items-center space-x-4">
           <button onclick="handleLike(${post.id})" 
                   class="flex items-center space-x-2 transition like-button ${isLiked ? "text-red-500" : "text-gray-500 hover:text-red-500"}">
-            <i class="fas fa-heart text-xl ${isLiked ? "text-red-500" : ""}"></i>
+            <i class="fas fa-heart text-lg md:text-xl ${isLiked ? "text-red-500" : ""}"></i>
             <span class="font-semibold like-count">${post.likeCount || 0}</span>
           </button>
-          <span class="flex items-center text-gray-500"><i class="fas fa-eye mr-1"></i> ${post.viewCount || 0}</span>
+          <span class="flex items-center text-gray-500 text-sm md:text-base">
+            <i class="fas fa-eye mr-1"></i> ${post.viewCount || 0}
+          </span>
         </div>
         
-        <!-- Share Buttons - PASTIKAN MENGGUNAKAN FUNGSI GLOBAL -->
-        <div class="flex items-center space-x-2">
-          <button onclick="window.shareToWhatsApp('${postJSON}')" 
-                  class="text-green-600 hover:text-green-700 transition" title="Share ke WhatsApp">
-            <i class="fab fa-whatsapp text-xl"></i>
+        <!-- Share Buttons -->
+        <div class="flex items-center space-x-3">
+          <button onclick="shareToWhatsApp('${postJSON}')" 
+                  class="text-green-600 hover:text-green-700 transition text-lg md:text-xl" title="Share ke WhatsApp">
+            <i class="fab fa-whatsapp"></i>
           </button>
-          <button onclick="window.shareToFacebook('${postJSON}')" 
-                  class="text-blue-600 hover:text-blue-700 transition" title="Share ke Facebook">
-            <i class="fab fa-facebook text-xl"></i>
+          <button onclick="shareToFacebook('${postJSON}')" 
+                  class="text-blue-600 hover:text-blue-700 transition text-lg md:text-xl" title="Share ke Facebook">
+            <i class="fab fa-facebook"></i>
           </button>
-          <button onclick="window.shareToTwitter('${postJSON}')" 
-                  class="text-sky-500 hover:text-sky-600 transition" title="Share ke Twitter">
-            <i class="fab fa-twitter text-xl"></i>
+          <button onclick="shareToTwitter('${postJSON}')" 
+                  class="text-sky-500 hover:text-sky-600 transition text-lg md:text-xl" title="Share ke Twitter">
+            <i class="fab fa-twitter"></i>
           </button>
-          <button onclick="window.shareToInstagram('${postJSON}')" 
-                  class="text-pink-600 hover:text-pink-700 transition" title="Copy link">
-            <i class="fab fa-instagram text-xl"></i>
+          <button onclick="shareToInstagram('${postJSON}')" 
+                  class="text-pink-600 hover:text-pink-700 transition text-lg md:text-xl" title="Copy link">
+            <i class="fab fa-instagram"></i>
           </button>
         </div>
       </div>
@@ -153,60 +179,57 @@ async function renderPostDetail(postId) {
       <!-- Comments Toggle -->
       <div class="flex justify-end">
         <button onclick="toggleComments(${post.id})" 
-                class="flex items-center space-x-2 text-gray-500 hover:text-emerald-600 transition">
+                class="flex items-center space-x-2 text-gray-500 hover:text-emerald-600 transition text-sm">
           <i class="fas fa-comments mr-1"></i>
           <span>${commentCount} Komentar</span>
           <i class="fas ${showComments ? "fa-chevron-up" : "fa-chevron-down"} ml-1"></i>
         </button>
       </div>
       
-      ${
-        showComments
-          ? `
+      ${showComments ? `
         <div class="space-y-4 mt-4">
           <div class="flex gap-2">
-            <img src="${currentUser.fotoProfil || "/images/default-avatar.png"}" class="w-8 h-8 rounded-full object-cover">
+            <img src="${currentUser?.fotoProfil || "/images/default-avatar.png"}" 
+                 class="w-6 h-6 md:w-8 md:h-8 rounded-full object-cover flex-shrink-0">
             <div class="flex-1 flex gap-2">
               <input type="text" id="newCommentInput" 
                      placeholder="Tulis komentar..." 
-                     class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                     class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm"
                      onkeyup="if(this.value.trim()) sendTypingStatus(${post.id}, true)"
                      onblur="sendTypingStatus(${post.id}, false)">
               <button onclick="addComment(${post.id})" 
-                      class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition">
+                      class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition text-sm whitespace-nowrap">
                 <i class="fas fa-paper-plane"></i>
               </button>
             </div>
           </div>
           <div id="commentsList" class="space-y-3 max-h-60 overflow-y-auto pr-1">
-            ${
-              commentCount === 0
-                ? '<p class="text-center text-gray-500 py-4">Belum ada komentar.</p>'
-                : comments
-                    .map(
-                      (comment) => `
-              <div class="flex gap-2 comment-item p-2 rounded-lg">
-                <img src="${comment.user?.fotoProfil || "/images/default-avatar.png"}" 
-                     class="w-6 h-6 rounded-full object-cover cursor-pointer hover:opacity-80"
-                     onclick="goToProfile(${comment.user?.id})">
-                <div class="flex-1">
-                  <div class="flex items-center gap-2">
-                    <span class="font-medium text-sm cursor-pointer hover:text-emerald-600"
-                          onclick="goToProfile(${comment.user?.id})">${comment.user?.namaLengkap || "Unknown"}</span>
-                    <span class="text-xs text-gray-400">${formatTime(comment.createdAt)}</span>
+            ${commentCount === 0 
+              ? '<p class="text-center text-gray-500 py-4 text-sm">Belum ada komentar. Jadilah yang pertama!</p>'
+              : comments.map(comment => `
+                <div class="flex gap-2 comment-item p-2 rounded-lg">
+                  <img src="${comment.user?.fotoProfil || "/images/default-avatar.png"}" 
+                       class="w-5 h-5 md:w-6 md:h-6 rounded-full object-cover flex-shrink-0 cursor-pointer hover:opacity-80"
+                       onclick="goToProfile(${comment.user?.id})">
+                  <div class="flex-1">
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <span class="font-medium text-xs md:text-sm cursor-pointer hover:text-emerald-600"
+                            onclick="goToProfile(${comment.user?.id})">${comment.user?.namaLengkap || "Unknown"}</span>
+                      <span class="text-xs text-gray-400">${formatTime(comment.createdAt)}</span>
+                    </div>
+                    <p class="text-xs md:text-sm text-gray-700">${comment.text}</p>
                   </div>
-                  <p class="text-sm text-gray-700">${comment.text}</p>
                 </div>
-              </div>
-            `,
-                    )
-                    .join("")
+              `).join('')
             }
           </div>
         </div>
-      `
-          : ""
-      }
+      ` : ''}
     </div>
   `;
 }
+
+// Export fungsi ke window
+window.renderPostDetail = renderPostDetail;
+window.toggleComments = toggleComments;
+window.addComment = addComment;

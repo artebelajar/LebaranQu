@@ -358,9 +358,27 @@ async function loadAllPosts() {
 
 // ========== SELECT POST ==========
 async function selectPost(postId) {
+  console.log(`Selecting post ${postId}`);
+  
+  // Deteksi apakah mobile (lebar layar < 768px)
+  const isMobile = window.innerWidth < 768;
+  
+  if (isMobile) {
+    // Di mobile: redirect ke halaman detail
+    window.location.href = `/post-detail.html?id=${postId}`;
+    return;
+  }
+  
+  // Di desktop: tampilkan di sidebar
   selectedPostId = postId;
-  renderFilteredPosts();
+  
+  if (typeof renderFilteredPosts === 'function') {
+    renderFilteredPosts();
+  } else if (typeof renderPosts === 'function') {
+    renderPosts();
+  }
 
+  // Track view
   try {
     const viewResponse = await fetch(`${API_BASE}/posts/${postId}/view`, {
       method: "POST",
@@ -377,16 +395,33 @@ async function selectPost(postId) {
       if (postIndex !== -1) {
         allPosts[postIndex].viewCount = viewData.viewCount;
       }
-      renderFilteredPosts();
+      
+      if (typeof renderFilteredPosts === 'function') {
+        renderFilteredPosts();
+      } else if (typeof renderPosts === 'function') {
+        renderPosts();
+      }
     }
   } catch (error) {
     console.error("Error tracking view:", error);
   }
 
-  if (window.renderPostDetail) {
-    await window.renderPostDetail(postId);
+  // Render post detail di sidebar (untuk desktop)
+  if (typeof renderPostDetail === 'function') {
+    await renderPostDetail(postId);
   }
 }
+
+// Tambahkan event listener untuk resize window
+window.addEventListener('resize', function() {
+  // Jika resize dari mobile ke desktop, reload posts
+  if (window.innerWidth >= 768 && selectedPostId) {
+    // Refresh post list untuk menampilkan sidebar
+    if (typeof renderFilteredPosts === 'function') {
+      renderFilteredPosts();
+    }
+  }
+});
 
 // ========== SETUP SEARCH AND FILTERS ==========
 function setupSearchAndFilters() {
