@@ -32,7 +32,10 @@ app.use("*", async (c, next) => {
   console.log(`${c.req.method} ${c.req.path} - ${ms}ms`);
 });
 
-app.use("/*", cors());
+app.use("/*", cors({
+  origin: ['https://lebaranqu.vercel.app', 'https://lebaranqu.artera.my.id', 'http://localhost:6006'],
+  credentials: true
+}));
 app.use('*', compress({ threshold: 1024 }));
 
 const limiter = rateLimiter({

@@ -5,6 +5,8 @@
 let notifications = [];
 let unreadCount = 0;
 let notificationInterval = null;
+let desktopNotifications = [];
+let desktopUnreadCount = 0;
 
 // ========== NOTIFICATION ICONS ==========
 function getNotificationIcon(type) {
@@ -196,4 +198,208 @@ function markAllNotificationsRead() {
 // ========== VIEW ALL NOTIFICATIONS ==========
 function viewAllNotifications() {
   window.location.href = "/notifications.html";
+}
+
+// Toggle dropdown notifikasi (desktop)
+function toggleNotificationDropdown() {
+  const dropdown = document.getElementById('notificationDropdown');
+  if (!dropdown) return;
+  
+  dropdown.classList.toggle('hidden');
+  
+  if (!dropdown.classList.contains('hidden')) {
+    loadDesktopNotifications();
+  }
+}
+
+// Load notifikasi untuk desktop
+async function loadDesktopNotifications() {
+  if (!currentUser) return;
+
+  const listEl = document.getElementById('notificationListDesktop');
+  if (!listEl) {
+    console.error("Element #notificationListDesktop not found!");
+    return;
+  }
+
+  // Tampilkan loading
+  listEl.innerHTML = `
+    <div class="p-8 text-center text-gray-500">
+      <div class="animate-spin rounded-full h-8 w-8 border-4 border-emerald-600 border-t-transparent mx-auto mb-3"></div>
+      <p class="text-sm">Memuat notifikasi...</p>
+    </div>
+  `;
+
+  try {
+    console.log("Loading desktop notifications for user:", currentUser.id);
+    
+    const response = await fetch(
+      `${API_BASE}/notifications?userId=${currentUser.id}&limit=10`,
+      {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem("userToken")}`
+        }
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log("Desktop notifications loaded:", data);
+    
+    desktopNotifications = data.notifications || [];
+    desktopUnreadCount = data.unreadCount || 0;
+
+    if (desktopNotifications.length === 0) {
+      listEl.innerHTML = `
+        <div class="p-8 text-center text-gray-500">
+          <i class="fas fa-bell-slash text-4xl text-gray-300 mb-3"></i>
+          <p class="text-sm">Belum ada notifikasi</p>
+        </div>
+      `;
+    } else {
+      renderDesktopNotifications();
+    }
+
+    // Update badge
+    updateNotificationBadges();
+
+  } catch (error) {
+    console.error("Error loading desktop notifications:", error);
+    listEl.innerHTML = `
+      <div class="p-8 text-center text-red-500">
+        <i class="fas fa-exclamation-circle text-3xl mb-2"></i>
+        <p class="text-sm">Gagal memuat notifikasi</p>
+        <button onclick="loadDesktopNotifications()" class="mt-2 text-xs text-emerald-600">
+          Coba lagi
+        </button>
+      </div>
+    `;
+  }
+}
+
+// Render notifikasi desktop
+function renderDesktopNotifications() {
+  const listEl = document.getElementById('notificationListDesktop');
+  if (!listEl) return;
+
+  listEl.innerHTML = desktopNotifications.slice(0, 5).map(notif => {
+    const isUnread = !notif.isRead;
+    const timeAgo = getTimeAgo(notif.createdAt);
+    const icon = getNotificationIcon(notif.type);
+    const fotoProfil = notif.fromUser?.fotoProfil || "/images/default-avatar.png";
+
+    return `
+      <div class="p-3 hover:bg-gray-50 border-b border-gray-100 cursor-pointer ${isUnread ? 'bg-emerald-50' : ''}"
+           onclick="handleDesktopNotificationClick(${notif.id}, '${notif.type}', ${notif.postId || "null"})">
+        <div class="flex gap-3">
+          <div class="flex-shrink-0 w-8 h-8 rounded-full bg-${icon.bgColor} flex items-center justify-center">
+            <i class="fas ${icon.icon} text-${icon.color} text-sm"></i>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm text-gray-800 truncate">${notif.message}</p>
+            <div class="flex items-center gap-2 mt-1">
+              ${
+                notif.fromUser
+                  ? `
+                <img src="${fotoProfil}" class="w-4 h-4 rounded-full object-cover flex-shrink-0">
+                <span class="text-xs text-gray-500 truncate">${notif.fromUser.namaLengkap}</span>
+                <span class="text-xs text-gray-400">•</span>
+              `
+                  : ""
+              }
+              <span class="text-xs text-gray-400 flex-shrink-0">${timeAgo}</span>
+            </div>
+          </div>
+          ${isUnread ? '<span class="w-2 h-2 bg-emerald-500 rounded-full flex-shrink-0"></span>' : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// Handle klik notifikasi desktop
+function handleDesktopNotificationClick(notificationId, type, postId) {
+  // Mark as read
+  markNotificationRead([notificationId]);
+  
+  // Update lokal
+  desktopNotifications = desktopNotifications.map(n => 
+    n.id === notificationId ? {...n, isRead: true} : n
+  );
+  desktopUnreadCount = desktopNotifications.filter(n => !n.isRead).length;
+  
+  renderDesktopNotifications();
+  updateNotificationBadges();
+  
+  // Tutup dropdown
+  document.getElementById('notificationDropdown')?.classList.add('hidden');
+  
+  // Redirect ke post jika ada
+  if (postId) {
+    window.location.href = `/post-detail.html?id=${postId}`;
+  }
+}
+
+// Update badge notifikasi (desktop & mobile)
+function updateNotificationBadges() {
+  const desktopBadge = document.getElementById('notificationBadge');
+  const mobileBadge = document.getElementById('mobileNotifBadge');
+  
+  // Gabungkan unread count dari kedua sumber
+  const totalUnread = desktopUnreadCount + (window.mobileUnreadCount || 0);
+  
+  if (totalUnread > 0) {
+    const badgeText = totalUnread > 99 ? "99+" : totalUnread;
+    
+    if (desktopBadge) {
+      desktopBadge.textContent = badgeText;
+      desktopBadge.classList.remove("hidden");
+    }
+    if (mobileBadge) {
+      mobileBadge.textContent = badgeText;
+      mobileBadge.classList.remove("hidden");
+    }
+  } else {
+    if (desktopBadge) desktopBadge.classList.add("hidden");
+    if (mobileBadge) mobileBadge.classList.add("hidden");
+  }
+}
+
+// Override fungsi markAllNotificationsRead untuk handle desktop
+async function markAllNotificationsRead() {
+  if (!currentUser) return;
+  
+  try {
+    await fetch(`${API_BASE}/notifications/mark-read`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('userToken')}`
+      },
+      body: JSON.stringify({ userId: currentUser.id, notificationIds: [] })
+    });
+    
+    // Update semua notifikasi
+    desktopNotifications = desktopNotifications.map(n => ({...n, isRead: true}));
+    if (window.mobileNotifications) {
+      window.mobileNotifications = window.mobileNotifications.map(n => ({...n, isRead: true}));
+    }
+    
+    desktopUnreadCount = 0;
+    if (typeof window.mobileUnreadCount !== 'undefined') {
+      window.mobileUnreadCount = 0;
+    }
+    
+    renderDesktopNotifications();
+    updateNotificationBadges();
+    
+    // Tutup dropdown jika terbuka
+    document.getElementById('notificationDropdown')?.classList.add('hidden');
+    
+  } catch (error) {
+    console.error('Error marking all as read:', error);
+  }
 }

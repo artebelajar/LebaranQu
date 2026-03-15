@@ -111,18 +111,27 @@ function updateActiveFilters() {
 function applyFiltersAndRender() {
   const filtered = filterPostsBySearch();
   filteredPosts = sortPosts(filtered);
-  totalPosts = filteredPosts.length;
-  currentPage = 1;
+  totalPosts = filteredPosts.length; // PASTIKAN INI TERUPDATE
+  
+  console.log('Total posts after filter:', totalPosts); // Debug
+  
+  currentPage = 1; // Reset ke halaman 1
   renderFilteredPosts();
-  renderPagination();
+  renderPagination(); // PANGGIL PAGINATION!
   updateActiveFilters();
 }
 
 // ========== RENDER FILTERED POSTS ==========
 function renderFilteredPosts() {
+  const postsList = document.getElementById("postsList");
+  if (!postsList) return;
+  
+  // Hitung index untuk current page
   const startIndex = (currentPage - 1) * POSTS_PER_PAGE;
   const endIndex = Math.min(startIndex + POSTS_PER_PAGE, totalPosts);
   const currentPosts = filteredPosts.slice(startIndex, endIndex);
+  
+  console.log(`Rendering posts: page ${currentPage}, showing ${startIndex}-${endIndex} of ${totalPosts}`);
 
   // Kumpulkan user IDs untuk cek status online
   const userIds = currentPosts
@@ -133,8 +142,6 @@ function renderFilteredPosts() {
     const uniqueUserIds = [...new Set(userIds)];
     if (window.loadOnlineStatus) window.loadOnlineStatus(uniqueUserIds);
   }
-
-  const postsList = document.getElementById("postsList");
 
   if (currentPosts.length === 0) {
     postsList.innerHTML = `
@@ -155,6 +162,7 @@ function renderFilteredPosts() {
       return `
         <div class="bg-white rounded-xl shadow p-6 post-card ${isSelected ? "selected" : ""}" 
              data-post-id="${post.id}">
+          <!-- Konten post (sama seperti sebelumnya) -->
           <div class="flex items-start justify-between">
             <div class="flex items-center space-x-3 relative">
               <div class="relative" data-user-id="${post.user?.id || ''}">
@@ -204,10 +212,23 @@ function renderFilteredPosts() {
 
 // ========== RENDER PAGINATION ==========
 function renderPagination() {
-  const totalPages = Math.ceil(totalPosts / POSTS_PER_PAGE);
   const paginationContainer = document.getElementById("paginationContainer");
-
-  if (totalPages <= 1) {
+  console.log('Total posts:', totalPosts);
+console.log('Posts per page:', POSTS_PER_PAGE);
+console.log('Total pages:', Math.ceil(totalPosts / POSTS_PER_PAGE));
+console.log('Pagination container:', document.getElementById('paginationContainer'));
+  
+  // Jika container tidak ada, exit
+  if (!paginationContainer) {
+    console.warn("Pagination container not found");
+    return;
+  }
+  
+  const totalPages = Math.ceil(totalPosts / POSTS_PER_PAGE);
+  console.log(`Rendering pagination: totalPosts=${totalPosts}, POSTS_PER_PAGE=${POSTS_PER_PAGE}, totalPages=${totalPages}`);
+  
+  // Jika hanya 1 halaman atau tidak ada posts, sembunyikan pagination
+  if (totalPages <= 1 || totalPosts === 0) {
     paginationContainer.innerHTML = "";
     return;
   }
@@ -220,26 +241,29 @@ function renderPagination() {
     </button>
   `;
 
+  // Tampilkan halaman pertama jika currentPage > 3
   if (currentPage > 3) {
     paginationHTML += `
-      <button onclick="window.changePage(1)" class="px-3 py-1 rounded-lg border hover:bg-gray-100 pagination-item">1</button>
+      <button onclick="window.changePage(1)" class="px-3 py-1 rounded-lg border hover:bg-gray-100">1</button>
       <span class="px-2">...</span>
     `;
   }
 
+  // Tampilkan halaman di sekitar currentPage
   for (let i = Math.max(1, currentPage - 2); i <= Math.min(totalPages, currentPage + 2); i++) {
     paginationHTML += `
       <button onclick="window.changePage(${i})" 
-              class="px-3 py-1 rounded-lg border pagination-item ${i === currentPage ? "active" : "hover:bg-gray-100"}">
+              class="px-3 py-1 rounded-lg border ${i === currentPage ? "bg-emerald-600 text-white" : "hover:bg-gray-100"}">
         ${i}
       </button>
     `;
   }
 
+  // Tampilkan halaman terakhir jika currentPage < totalPages - 2
   if (currentPage < totalPages - 2) {
     paginationHTML += `
       <span class="px-2">...</span>
-      <button onclick="window.changePage(${totalPages})" class="px-3 py-1 rounded-lg border hover:bg-gray-100 pagination-item">${totalPages}</button>
+      <button onclick="window.changePage(${totalPages})" class="px-3 py-1 rounded-lg border hover:bg-gray-100">${totalPages}</button>
     `;
   }
 
@@ -257,14 +281,28 @@ function renderPagination() {
 // ========== CHANGE PAGE ==========
 function changePage(newPage) {
   const totalPages = Math.ceil(totalPosts / POSTS_PER_PAGE);
-  if (newPage < 1 || newPage > totalPages || newPage === currentPage) return;
+  
+  console.log(`Changing page from ${currentPage} to ${newPage}, totalPages: ${totalPages}`);
+  
+  // Validasi
+  if (newPage < 1 || newPage > totalPages || newPage === currentPage) {
+    console.log("Page change cancelled - invalid or same page");
+    return;
+  }
+  
   currentPage = newPage;
+  
+  // Render posts untuk halaman baru
   renderFilteredPosts();
+  
+  // Update pagination
   renderPagination();
-  window.scrollTo({
-    top: document.getElementById("postsList").offsetTop - 100,
-    behavior: "smooth",
-  });
+  
+  // Scroll ke atas posts list
+  const postsList = document.getElementById("postsList");
+  if (postsList) {
+    postsList.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 }
 
 // ========== CLEAR ALL FILTERS ==========
@@ -314,45 +352,53 @@ function filterPosts(sekolah) {
   loadAllPosts();
 }
 
-// ========== LOAD ALL POSTS ==========
+// ========== LOAD ALL POSTS DENGAN MULTIPLE REQUESTS ==========
 async function loadAllPosts() {
   try {
-    let url = `${API_BASE}/posts`;
+    let allPostsData = [];
+    let page = 1;
+    let hasMore = true;
     
-    // Tambahkan filter sekolah jika ada
-    if (typeof currentFilter !== 'undefined' && currentFilter !== 'all') {
-      url += `?sekolah=${currentFilter}`;
+    while (hasMore) {
+      const url = `${API_BASE}/posts?page=${page}&limit=100`;
+      console.log(`Loading page ${page}...`);
+      
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`HTTP error ${response.status}`);
+      
+      const result = await response.json();
+      
+      // Handle response
+      let postsBatch = [];
+      if (result.data && Array.isArray(result.data)) {
+        postsBatch = result.data;
+        hasMore = result.data.length === 100; // Jika limit tercapai, mungkin masih ada
+      } else if (Array.isArray(result)) {
+        postsBatch = result;
+        hasMore = result.length === 100;
+      } else {
+        hasMore = false;
+      }
+      
+      allPostsData = [...allPostsData, ...postsBatch];
+      page++;
+      
+      // Hentikan jika batch kosong
+      if (postsBatch.length === 0) {
+        hasMore = false;
+      }
     }
     
-    console.log("Loading posts from:", url);
-
-    const response = await fetch(url);
-    if (!response.ok) throw new Error(`HTTP error ${response.status}`);
-
-    const result = await response.json();
-    if (result.data && Array.isArray(result.data)) {
-      allPosts = result.data;
-    } else if (Array.isArray(result)) {
-      allPosts = result;
-    } else {
-      allPosts = [];
-    }
-
-    console.log("Posts loaded:", allPosts.length);
+    allPosts = allPostsData;
+    totalPosts = allPosts.length;
+    
+    console.log("Total posts loaded:", totalPosts);
+    
     await loadAllUsers();
     applyFiltersAndRender();
+    
   } catch (error) {
     console.error("Error loading posts:", error);
-    const postsList = document.getElementById("postsList");
-    if (postsList) {
-      postsList.innerHTML = `
-        <div class="text-center py-8 text-red-500">
-          <i class="fas fa-exclamation-triangle text-3xl mb-2"></i>
-          <p>Gagal memuat postingan</p>
-          <p class="text-sm">${error.message}</p>
-        </div>
-      `;
-    }
   }
 }
 

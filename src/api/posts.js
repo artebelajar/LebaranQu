@@ -12,17 +12,11 @@ import {
 
 const app = new Hono();
 
-// ========== GET ALL POSTS ==========
+// ========== GET ALL POSTS (TANPA PAGINATION) ==========
 app.get("/", async (c) => {
-  const startTime = Date.now();
-
   try {
-    const page = parseInt(c.req.query("page") || "1");
-    const limit = parseInt(c.req.query("limit") || "5");
-    const offset = (page - 1) * limit;
     const sekolah = c.req.query("sekolah");
-
-    // Query posts dengan lastActive dari user
+    
     let query = db
       .select({
         id: posts.id,
@@ -38,27 +32,21 @@ app.get("/", async (c) => {
           asalSekolah: users_26.asalSekolah,
           title: users_26.title,
           fotoProfil: users_26.fotoProfil,
-          lastActive: users_26.lastActive, // <-- TAMBAHKAN untuk online status
+          lastActive: users_26.lastActive,
         },
       })
       .from(posts)
       .leftJoin(users_26, eq(posts.userId, users_26.id))
-      .orderBy(desc(posts.createdAt))
-      .limit(limit)
-      .offset(offset);
+      .orderBy(desc(posts.createdAt));
+      // HAPUS .limit() dan .offset()
 
     if (sekolah && sekolah !== "all") {
       query = query.where(eq(users_26.asalSekolah, sekolah));
     }
 
     const postsData = await query;
-
-    const responseTime = Date.now() - startTime;
-    console.log(
-      `📊 Posts loaded in ${responseTime}ms - ${postsData.length} posts`,
-    );
-
     return c.json(postsData);
+    
   } catch (error) {
     console.error("❌ Get posts error:", error);
     return c.json({ error: "Gagal memuat postingan" }, 500);
