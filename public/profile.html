@@ -2,7 +2,10 @@
 <html lang="id">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
     <title>Profile - LebaranQu</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link
@@ -11,29 +14,223 @@
     />
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap");
+      @import url("https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap");
+
       * {
         font-family: "Poppins", sans-serif;
+        -webkit-tap-highlight-color: transparent;
       }
 
+      :root {
+        --bottom-nav-height: 70px;
+        --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+      }
+
+      body {
+        background-color: #f3f4f6;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        overscroll-behavior-y: contain;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .content-wrapper {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* Bottom Navigation */
+      .bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: calc(var(--bottom-nav-height) + var(--safe-area-bottom));
+        background: white;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        padding-bottom: var(--safe-area-bottom);
+        z-index: 100;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        background: rgba(255, 255, 255, 0.95);
+        border-top: 1px solid rgba(0, 0, 0, 0.05);
+      }
+
+      .nav-item {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        color: #9ca3af;
+        transition: all 0.2s ease;
+        padding: 8px 0;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+        position: relative;
+      }
+
+      .nav-item.active {
+        color: #10b981;
+      }
+
+      .nav-item i {
+        font-size: 1.5rem;
+        transition: transform 0.2s ease;
+      }
+
+      .nav-item:active i {
+        transform: scale(0.9);
+      }
+
+      .nav-item span {
+        font-size: 0.7rem;
+        font-weight: 500;
+      }
+
+      /* Notification badge */
+      .nav-item .notification-badge {
+        position: absolute;
+        top: -2px;
+        right: 50%;
+        transform: translateX(150%);
+        background-color: #ef4444;
+        color: white;
+        font-size: 0.6rem;
+        width: 16px;
+        height: 16px;
+        border-radius: 9999px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* Bottom sheet for mobile notifications */
+      .bottom-sheet {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: white;
+        border-radius: 20px 20px 0 0;
+        transform: translateY(100%);
+        transition: transform 0.3s ease-out;
+        z-index: 1000;
+        max-height: 80vh;
+        overflow-y: auto;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .bottom-sheet.show {
+        transform: translateY(0);
+      }
+
+      .sheet-handle {
+        width: 40px;
+        height: 4px;
+        background: #d1d5db;
+        border-radius: 2px;
+        margin: 12px auto;
+        cursor: grab;
+      }
+
+      .sheet-handle:active {
+        cursor: grabbing;
+        background: #9ca3af;
+      }
+
+      /* Mobile styles */
+      @media (max-width: 767px) {
+        body {
+          padding-bottom: calc(var(--bottom-nav-height) + var(--safe-area-bottom));
+        }
+
+        .desktop-nav {
+          display: none;
+        }
+
+        .bottom-nav {
+          display: flex;
+        }
+
+        .container {
+          padding-left: 1rem;
+          padding-right: 1rem;
+        }
+        
+        /* Profile styles for mobile */
+        .profile-stats-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 0.75rem;
+        }
+        
+        .profile-header {
+          flex-direction: column;
+          text-align: center;
+        }
+        
+        .profile-avatar {
+          margin-bottom: 1rem;
+        }
+      }
+
+      /* Tablet and Desktop styles */
+      @media (min-width: 768px) {
+        body {
+          padding-bottom: 0;
+        }
+
+        .desktop-nav {
+          display: block;
+        }
+
+        .bottom-nav {
+          display: none;
+        }
+
+        .profile-stats-grid {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 1rem;
+        }
+      }
+
+      /* Safe area for notched phones */
+      @supports (padding: max(0px)) {
+        .bottom-nav {
+          padding-bottom: max(env(safe-area-inset-bottom), 0px);
+        }
+      }
+
+      /* Profile specific styles */
       .profile-stats {
         transition: all 0.3s ease;
       }
-      .profile-stats:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+      .profile-stats:active {
+        transform: scale(0.98);
       }
 
       .post-card {
         transition: all 0.3s ease;
       }
-      .post-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 15px 30px -10px rgba(0, 0, 0, 0.15);
+      .post-card:active {
+        transform: scale(0.98);
+        background-color: #f9fafb;
       }
 
       .fade-in {
         animation: fadeIn 0.5s ease-in;
       }
+      
       @keyframes fadeIn {
         from {
           opacity: 0;
@@ -128,29 +325,52 @@
         transform: scale(1.1);
       }
 
-      @keyframes slideIn {
-        from {
-          transform: translateX(100%);
-          opacity: 0;
-        }
-        to {
-          transform: translateX(0);
-          opacity: 1;
-        }
+      /* Logout button at bottom */
+      .logout-button-container {
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+        padding: 0 1rem;
+      }
+      
+      .logout-button {
+        width: 100%;
+        background: linear-gradient(to right, #ef4444, #dc2626);
+        color: white;
+        padding: 1rem;
+        border-radius: 1rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.3);
+        transition: all 0.3s ease;
+      }
+      
+      .logout-button:active {
+        transform: scale(0.98);
+        box-shadow: 0 2px 4px -1px rgba(239, 68, 68, 0.3);
       }
 
-      .animate-slide-in {
-        animation: slideIn 0.5s ease-out;
+      /* Hide scrollbar but keep functionality */
+      .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
       }
 
-      .badge-progress {
-        transition: width 0.3s ease;
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+
+      /* Arabic font */
+      .arabic {
+        font-family: "Amiri", serif;
       }
     </style>
   </head>
   <body class="bg-gray-50">
-    <!-- Navbar dengan Logout Saja -->
-    <nav class="bg-white shadow-lg sticky top-0 z-50">
+    <!-- Navbar untuk Desktop - HIDDEN di mobile -->
+    <nav class="desktop-nav bg-white shadow-lg sticky top-0 z-50">
       <div class="container mx-auto px-4">
         <div class="flex justify-between items-center h-16">
           <div
@@ -175,8 +395,57 @@
             >
           </div>
 
-          <!-- Navbar dengan User Info dan Logout -->
+          <!-- Navbar dengan User Info dan Logout - Desktop only -->
           <div class="flex items-center space-x-4">
+            <!-- Notifikasi Bell untuk Desktop -->
+            <div class="relative" id="notificationContainer">
+              <button
+                onclick="toggleNotificationDropdown()"
+                class="relative p-2 text-gray-600 hover:text-emerald-600 transition"
+              >
+                <i class="fas fa-bell text-xl"></i>
+                <span
+                  id="notificationBadge"
+                  class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center hidden"
+                  >0</span
+                >
+              </button>
+
+              <!-- Dropdown Notifikasi untuk Desktop -->
+              <div
+                id="notificationDropdown"
+                class="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 hidden z-50"
+              >
+                <div
+                  class="p-3 border-b border-gray-200 flex justify-between items-center"
+                >
+                  <h3 class="font-semibold text-gray-800">Notifikasi</h3>
+                  <button
+                    onclick="markAllNotificationsRead()"
+                    class="text-xs text-emerald-600 hover:text-emerald-800"
+                  >
+                    Tandai semua dibaca
+                  </button>
+                </div>
+
+                <div id="notificationList" class="max-h-96 overflow-y-auto">
+                  <div class="p-4 text-center text-gray-500">
+                    <i class="fas fa-spinner fa-spin mb-2"></i>
+                    <p class="text-sm">Memuat notifikasi...</p>
+                  </div>
+                </div>
+
+                <div class="p-2 border-t border-gray-200 text-center">
+                  <button
+                    onclick="viewAllNotifications()"
+                    class="text-sm text-emerald-600 hover:text-emerald-800 w-full py-1"
+                  >
+                    Lihat Semua
+                  </button>
+                </div>
+              </div>
+            </div>
+
             <div id="userInfo" class="flex items-center space-x-3">
               <span class="text-sm text-gray-600" id="userNameDisplay"></span>
             </div>
@@ -215,7 +484,7 @@
           Terjadi kesalahan saat memuat profile
         </p>
         <button
-          onclick="loadProfile()"
+          onclick="window.location.reload()"
           class="bg-red-600 text-white px-6 py-3 rounded-xl hover:bg-red-700 transition"
         >
           <i class="fas fa-sync-alt mr-2"></i>Coba Lagi
@@ -232,16 +501,16 @@
     <!-- Profile Content -->
     <div
       id="profileContent"
-      class="hidden container mx-auto px-4 py-8 max-w-6xl fade-in"
+      class="hidden container mx-auto px-4 py-4 md:py-8 max-w-6xl fade-in"
     >
       <!-- Profile Header -->
-      <div class="bg-white rounded-2xl shadow-xl overflow-hidden mb-6 relative">
+      <div class="bg-white rounded-2xl shadow-xl overflow-hidden mb-4 relative">
         <!-- Cover Photo -->
         <div
-          class="h-48 bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 relative"
+          class="h-32 md:h-48 bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 relative"
         >
           <div class="absolute inset-0 bg-black opacity-10"></div>
-          <!-- View Only Badge - akan ditampilkan oleh JavaScript -->
+          <!-- View Only Badge -->
           <div id="viewOnlyBadge" class="hidden view-only-badge">
             <i class="fas fa-eye"></i>
             <span>Mode Lihat Saja</span>
@@ -249,12 +518,12 @@
         </div>
 
         <!-- Profile Info -->
-        <div class="px-8 pb-8 relative">
+        <div class="px-4 md:px-8 pb-6 md:pb-8 relative">
           <!-- Avatar dengan Upload Button -->
-          <div class="flex flex-col md:flex-row md:items-end -mt-16 mb-6">
-            <div class="avatar-container relative group">
+          <div class="profile-header flex flex-col md:flex-row md:items-end -mt-12 md:-mt-16 mb-4 md:mb-6">
+            <div class="avatar-container relative group flex justify-center md:justify-start">
               <div
-                class="w-32 h-32 bg-white rounded-full p-1 shadow-xl relative"
+                class="w-24 h-24 md:w-32 md:h-32 bg-white rounded-full p-1 shadow-xl relative"
               >
                 <img
                   id="profileFoto"
@@ -272,30 +541,30 @@
                   class="avatar-overlay absolute inset-0 bg-black/50 rounded-full flex items-center justify-center cursor-pointer hidden"
                   onclick="showUploadModal()"
                 >
-                  <i class="fas fa-camera text-white text-2xl"></i>
+                  <i class="fas fa-camera text-white text-xl md:text-2xl"></i>
                 </div>
               </div>
             </div>
-            <div class="md:ml-6 mt-4 md:mt-0 flex-1">
+            <div class="md:ml-6 mt-2 md:mt-0 flex-1 text-center md:text-left">
               <div
                 class="flex flex-col md:flex-row md:items-center justify-between"
               >
                 <div>
-                  <h2 id="profileNama" class="text-3xl font-bold text-gray-800">
+                  <h2 id="profileNama" class="text-2xl md:text-3xl font-bold text-gray-800">
                     -
                   </h2>
                   <p
                     id="profileTitle"
-                    class="text-gray-600 flex items-center mt-1"
+                    class="text-sm md:text-base text-gray-600 flex items-center justify-center md:justify-start mt-1"
                   >
                     <i class="fas fa-briefcase text-emerald-600 mr-2"></i>
                     <span id="profileTitleText">-</span>
                   </p>
                 </div>
-                <div class="mt-4 md:mt-0">
+                <div class="mt-2 md:mt-0">
                   <span
                     id="profileRole"
-                    class="px-4 py-2 bg-emerald-100 text-emerald-800 rounded-full text-sm font-semibold"
+                    class="px-3 py-1 md:px-4 md:py-2 bg-emerald-100 text-emerald-800 rounded-full text-xs md:text-sm font-semibold inline-block"
                   >
                     Alumni
                   </span>
@@ -304,88 +573,87 @@
             </div>
           </div>
 
-          <!-- Quick Stats -->
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div class="bg-emerald-50 rounded-xl p-4 profile-stats">
+          <!-- Quick Stats - Grid 2 kolom di mobile, 4 kolom di desktop -->
+          <div class="profile-stats-grid mb-6">
+            <div class="bg-emerald-50 rounded-xl p-3 md:p-4 profile-stats">
               <div class="flex items-center justify-between">
                 <div>
-                  <p class="text-sm text-emerald-700">Total Postingan</p>
+                  <p class="text-xs md:text-sm text-emerald-700">Postingan</p>
                   <p
                     id="totalPosts"
-                    class="text-2xl font-bold text-emerald-800"
+                    class="text-xl md:text-2xl font-bold text-emerald-800"
                   >
                     0
                   </p>
                 </div>
                 <div
-                  class="w-10 h-10 bg-emerald-200 rounded-lg flex items-center justify-center"
+                  class="w-8 h-8 md:w-10 md:h-10 bg-emerald-200 rounded-lg flex items-center justify-center"
                 >
-                  <i class="fas fa-newspaper text-emerald-700"></i>
+                  <i class="fas fa-newspaper text-emerald-700 text-sm md:text-base"></i>
                 </div>
               </div>
             </div>
-            <div class="bg-blue-50 rounded-xl p-4 profile-stats">
+            <div class="bg-blue-50 rounded-xl p-3 md:p-4 profile-stats">
               <div class="flex items-center justify-between">
                 <div>
-                  <p class="text-sm text-blue-700">Total Like</p>
-                  <p id="totalLikes" class="text-2xl font-bold text-blue-800">
+                  <p class="text-xs md:text-sm text-blue-700">Like</p>
+                  <p id="totalLikes" class="text-xl md:text-2xl font-bold text-blue-800">
                     0
                   </p>
                 </div>
                 <div
-                  class="w-10 h-10 bg-blue-200 rounded-lg flex items-center justify-center"
+                  class="w-8 h-8 md:w-10 md:h-10 bg-blue-200 rounded-lg flex items-center justify-center"
                 >
-                  <i class="fas fa-heart text-blue-700"></i>
+                  <i class="fas fa-heart text-blue-700 text-sm md:text-base"></i>
                 </div>
               </div>
             </div>
-            <div class="bg-purple-50 rounded-xl p-4 profile-stats">
+            <div class="bg-purple-50 rounded-xl p-3 md:p-4 profile-stats">
               <div class="flex items-center justify-between">
                 <div>
-                  <p class="text-sm text-purple-700">Peringkat</p>
-                  <p id="userRank" class="text-2xl font-bold text-purple-800">
+                  <p class="text-xs md:text-sm text-purple-700">Peringkat</p>
+                  <p id="userRank" class="text-xl md:text-2xl font-bold text-purple-800">
                     -
                   </p>
                 </div>
                 <div
-                  class="w-10 h-10 bg-purple-200 rounded-lg flex items-center justify-center"
+                  class="w-8 h-8 md:w-10 md:h-10 bg-purple-200 rounded-lg flex items-center justify-center"
                 >
-                  <i class="fas fa-trophy text-purple-700"></i>
+                  <i class="fas fa-trophy text-purple-700 text-sm md:text-base"></i>
                 </div>
               </div>
             </div>
-            <!-- Achievement Stats -->
             <div
-              class="bg-amber-50 rounded-xl p-4 profile-stats cursor-pointer"
+              class="bg-amber-50 rounded-xl p-3 md:p-4 profile-stats cursor-pointer"
               onclick="showAchievementsModal()"
             >
               <div class="flex items-center justify-between">
                 <div>
-                  <p class="text-sm text-amber-700">Badge</p>
+                  <p class="text-xs md:text-sm text-amber-700">Badge</p>
                   <p
                     id="totalAchievements"
-                    class="text-2xl font-bold text-amber-800"
+                    class="text-xl md:text-2xl font-bold text-amber-800"
                   >
                     0
                   </p>
                 </div>
                 <div
-                  class="w-10 h-10 bg-amber-200 rounded-lg flex items-center justify-center"
+                  class="w-8 h-8 md:w-10 md:h-10 bg-amber-200 rounded-lg flex items-center justify-center"
                 >
-                  <i class="fas fa-medal text-amber-700"></i>
+                  <i class="fas fa-medal text-amber-700 text-sm md:text-base"></i>
                 </div>
               </div>
             </div>
           </div>
 
           <!-- Main Content Grid -->
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
             <!-- Left Column - Informasi Detail -->
-            <div class="lg:col-span-1 space-y-6">
+            <div class="lg:col-span-1 space-y-4 md:space-y-6">
               <!-- Informasi Dasar dengan Edit -->
-              <div class="bg-gray-50 rounded-xl p-6">
+              <div class="bg-gray-50 rounded-xl p-4 md:p-6">
                 <h3
-                  class="font-semibold text-lg mb-4 flex items-center justify-between"
+                  class="font-semibold text-base md:text-lg mb-3 md:mb-4 flex items-center justify-between"
                 >
                   <span class="flex items-center">
                     <i class="fas fa-id-card text-emerald-600 mr-2"></i>
@@ -393,21 +661,21 @@
                   </span>
                   <span
                     id="editInfoBtn"
-                    class="text-sm text-emerald-600 hover:text-emerald-800 cursor-pointer hidden"
+                    class="text-xs md:text-sm text-emerald-600 hover:text-emerald-800 cursor-pointer hidden"
                     onclick="enableEditMode()"
                   >
                     <i class="fas fa-edit mr-1"></i>Edit
                   </span>
                   <span
                     id="saveInfoBtn"
-                    class="text-sm text-emerald-600 hover:text-emerald-800 cursor-pointer hidden"
+                    class="text-xs md:text-sm text-emerald-600 hover:text-emerald-800 cursor-pointer hidden"
                     onclick="saveInfo()"
                   >
                     <i class="fas fa-save mr-1"></i>Simpan
                   </span>
                   <span
                     id="cancelInfoBtn"
-                    class="text-sm text-gray-500 hover:text-gray-700 cursor-pointer hidden ml-2"
+                    class="text-xs md:text-sm text-gray-500 hover:text-gray-700 cursor-pointer hidden ml-2"
                     onclick="cancelEdit()"
                   >
                     <i class="fas fa-times mr-1"></i>
@@ -415,152 +683,140 @@
                 </h3>
 
                 <!-- View Mode -->
-                <div id="infoViewMode">
-                  <div class="space-y-4">
-                    <div
-                      class="flex items-start edit-field"
-                      onclick="if (isOwnProfile) startEdit('sekolah');"
-                    >
-                      <i class="fas fa-school w-6 text-emerald-600 mt-1"></i>
-                      <div class="flex-1">
-                        <p class="text-xs text-gray-500">Asal Sekolah</p>
-                        <p id="profileSekolah" class="font-medium">-</p>
-                      </div>
-                      <i class="fas fa-pen text-emerald-400 text-xs mt-2"></i>
+                <div id="infoViewMode" class="space-y-3 md:space-y-4">
+                  <div
+                    class="flex items-start edit-field text-sm md:text-base"
+                    onclick="if (isOwnProfile) startEdit('sekolah');"
+                  >
+                    <i class="fas fa-school w-5 md:w-6 text-emerald-600 mt-1 text-sm md:text-base"></i>
+                    <div class="flex-1">
+                      <p class="text-xs text-gray-500">Asal Sekolah</p>
+                      <p id="profileSekolah" class="font-medium text-sm md:text-base">-</p>
                     </div>
-                    <div
-                      class="flex items-start edit-field"
-                      onclick="if (isOwnProfile) startEdit('email');"
-                    >
-                      <i class="fas fa-envelope w-6 text-emerald-600 mt-1"></i>
-                      <div class="flex-1">
-                        <p class="text-xs text-gray-500">Email</p>
-                        <p id="profileEmail" class="font-medium break-all">-</p>
-                      </div>
-                      <i class="fas fa-pen text-emerald-400 text-xs mt-2"></i>
+                    <i class="fas fa-pen text-emerald-400 text-xs mt-2"></i>
+                  </div>
+                  <div
+                    class="flex items-start edit-field text-sm md:text-base"
+                    onclick="if (isOwnProfile) startEdit('email');"
+                  >
+                    <i class="fas fa-envelope w-5 md:w-6 text-emerald-600 mt-1 text-sm md:text-base"></i>
+                    <div class="flex-1">
+                      <p class="text-xs text-gray-500">Email</p>
+                      <p id="profileEmail" class="font-medium break-all text-sm md:text-base">-</p>
                     </div>
-                    <div
-                      class="flex items-start edit-field"
-                      onclick="if (isOwnProfile) startEdit('telepon');"
-                    >
-                      <i class="fas fa-phone w-6 text-emerald-600 mt-1"></i>
-                      <div class="flex-1">
-                        <p class="text-xs text-gray-500">Nomor Telepon</p>
-                        <p id="profileTelepon" class="font-medium">-</p>
-                      </div>
-                      <i class="fas fa-pen text-emerald-400 text-xs mt-2"></i>
+                    <i class="fas fa-pen text-emerald-400 text-xs mt-2"></i>
+                  </div>
+                  <div
+                    class="flex items-start edit-field text-sm md:text-base"
+                    onclick="if (isOwnProfile) startEdit('telepon');"
+                  >
+                    <i class="fas fa-phone w-5 md:w-6 text-emerald-600 mt-1 text-sm md:text-base"></i>
+                    <div class="flex-1">
+                      <p class="text-xs text-gray-500">Nomor Telepon</p>
+                      <p id="profileTelepon" class="font-medium text-sm md:text-base">-</p>
                     </div>
-                    <div
-                      class="flex items-start edit-field"
-                      onclick="if (isOwnProfile) startEdit('title');"
-                    >
-                      <i class="fas fa-briefcase w-6 text-emerald-600 mt-1"></i>
-                      <div class="flex-1">
-                        <p class="text-xs text-gray-500">Title/Pekerjaan</p>
-                        <p id="profileTitleDisplay" class="font-medium">-</p>
-                      </div>
-                      <i class="fas fa-pen text-emerald-400 text-xs mt-2"></i>
+                    <i class="fas fa-pen text-emerald-400 text-xs mt-2"></i>
+                  </div>
+                  <div
+                    class="flex items-start edit-field text-sm md:text-base"
+                    onclick="if (isOwnProfile) startEdit('title');"
+                  >
+                    <i class="fas fa-briefcase w-5 md:w-6 text-emerald-600 mt-1 text-sm md:text-base"></i>
+                    <div class="flex-1">
+                      <p class="text-xs text-gray-500">Title/Pekerjaan</p>
+                      <p id="profileTitleDisplay" class="font-medium text-sm md:text-base">-</p>
                     </div>
-                    <div id="tokenContainer" class="flex items-start">
-                      <i class="fas fa-key w-6 text-emerald-600 mt-1"></i>
-                      <div>
-                        <p class="text-xs text-gray-500">Token Akses</p>
-                        <p
-                          id="profileToken"
-                          class="font-mono text-sm bg-gray-100 p-2 rounded break-all"
-                        >
-                          -
-                        </p>
-                      </div>
+                    <i class="fas fa-pen text-emerald-400 text-xs mt-2"></i>
+                  </div>
+                  <div id="tokenContainer" class="flex items-start text-sm md:text-base">
+                    <i class="fas fa-key w-5 md:w-6 text-emerald-600 mt-1 text-sm md:text-base"></i>
+                    <div>
+                      <p class="text-xs text-gray-500">Token Akses</p>
+                      <p
+                        id="profileToken"
+                        class="font-mono text-xs md:text-sm bg-gray-100 p-2 rounded break-all"
+                      >
+                        -
+                      </p>
                     </div>
                   </div>
                 </div>
 
                 <!-- Edit Mode -->
-                <div id="infoEditMode" class="hidden">
-                  <div class="space-y-4">
-                    <div>
-                      <label class="block text-xs text-gray-500 mb-1"
-                        >Asal Sekolah</label
-                      >
-                      <select
-                        id="editSekolah"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
-                      >
-                        <option value="sdit_sahabat">SDIT Sahabat</option>
-                        <option value="pptq_almadinah">PPTQ Al-Madinah</option>
-                        <option value="ppqit_almahir">PPQIT Al-Mahir</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label class="block text-xs text-gray-500 mb-1"
-                        >Email</label
-                      >
-                      <input
-                        type="email"
-                        id="editEmail"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
-                      />
-                    </div>
-                    <div>
-                      <label class="block text-xs text-gray-500 mb-1"
-                        >Nomor Telepon</label
-                      >
-                      <input
-                        type="tel"
-                        id="editTelepon"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
-                        placeholder="08123456789"
-                      />
-                    </div>
-                    <div>
-                      <label class="block text-xs text-gray-500 mb-1"
-                        >Title/Pekerjaan</label
-                      >
-                      <input
-                        type="text"
-                        id="editTitle"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
-                        placeholder="Developer, Guru, dll"
-                      />
-                    </div>
+                <div id="infoEditMode" class="hidden space-y-3 md:space-y-4">
+                  <div>
+                    <label class="block text-xs text-gray-500 mb-1">Asal Sekolah</label>
+                    <select
+                      id="editSekolah"
+                      class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                    >
+                      <option value="sdit_sahabat">SDIT Sahabat</option>
+                      <option value="pptq_almadinah">PPTQ Al-Madinah</option>
+                      <option value="ppqit_almahir">PPQIT Al-Mahir</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-xs text-gray-500 mb-1">Email</label>
+                    <input
+                      type="email"
+                      id="editEmail"
+                      class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                    />
+                  </div>
+                  <div>
+                    <label class="block text-xs text-gray-500 mb-1">Nomor Telepon</label>
+                    <input
+                      type="tel"
+                      id="editTelepon"
+                      class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                      placeholder="08123456789"
+                    />
+                  </div>
+                  <div>
+                    <label class="block text-xs text-gray-500 mb-1">Title/Pekerjaan</label>
+                    <input
+                      type="text"
+                      id="editTitle"
+                      class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                      placeholder="Developer, Guru, dll"
+                    />
                   </div>
                 </div>
               </div>
             </div>
 
             <!-- Right Column - Bio, Badges & Posts -->
-            <div class="lg:col-span-2 space-y-6">
-              <!-- Bio Section dengan Edit Button -->
-              <div class="bg-white border border-gray-100 rounded-xl p-6">
-                <div class="flex justify-between items-center mb-4">
-                  <h3 class="font-semibold text-lg flex items-center">
+            <div class="lg:col-span-2 space-y-4 md:space-y-6">
+              <!-- Bio Section -->
+              <div class="bg-white border border-gray-100 rounded-xl p-4 md:p-6">
+                <div class="flex justify-between items-center mb-3 md:mb-4">
+                  <h3 class="font-semibold text-base md:text-lg flex items-center">
                     <i class="fas fa-pencil-alt text-emerald-600 mr-2"></i>
                     Bio Singkat
                   </h3>
                   <button
                     id="editBioBtn"
                     onclick="showEditBioModal()"
-                    class="text-emerald-600 hover:text-emerald-800 hidden"
+                    class="text-emerald-600 hover:text-emerald-800 text-sm hidden"
                   >
                     <i class="fas fa-edit mr-1"></i>Edit
                   </button>
                 </div>
-                <p id="profileBio" class="text-gray-700 leading-relaxed">-</p>
+                <p id="profileBio" class="text-sm md:text-base text-gray-700 leading-relaxed">-</p>
               </div>
 
               <!-- Badges Section -->
-              <div id="badgesSection" class="bg-white rounded-xl shadow-md p-6">
-                <div class="flex justify-between items-center mb-4">
+              <div id="badgesSection" class="bg-white rounded-xl shadow-md p-4 md:p-6">
+                <div class="flex justify-between items-center mb-3 md:mb-4">
                   <h3
-                    class="text-xl font-bold text-gray-800 flex items-center gap-2"
+                    class="text-lg md:text-xl font-bold text-gray-800 flex items-center gap-2"
                   >
                     <i class="fas fa-medal text-emerald-600"></i>
-                    Badge & Pencapaian
+                    Badge
                   </h3>
                   <button
                     onclick="showAchievementsModal()"
-                    class="text-sm text-emerald-600 hover:text-emerald-800"
+                    class="text-xs md:text-sm text-emerald-600 hover:text-emerald-800"
                   >
                     Lihat Semua <i class="fas fa-arrow-right ml-1"></i>
                   </button>
@@ -569,28 +825,119 @@
                 <!-- Recent Badges -->
                 <div
                   id="recentBadges"
-                  class="grid grid-cols-2 md:grid-cols-4 gap-3"
+                  class="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3"
                 >
                   <!-- Akan diisi JavaScript -->
                 </div>
-
-                <!-- Achievement Stats Card -->
-                <div id="achievementStatsCard" class="mt-4"></div>
               </div>
 
               <!-- Posts Section -->
               <div>
-                <h3 class="text-xl font-bold text-gray-800 mb-4">
+                <h3 class="text-lg md:text-xl font-bold text-gray-800 mb-3 md:mb-4">
                   <i class="fas fa-newspaper text-emerald-600 mr-2"></i>
-                  Postingan Saya
+                  Postingan
                 </h3>
-                <div id="userPosts" class="space-y-4">
+                <div id="userPosts" class="space-y-3 md:space-y-4">
                   <!-- Akan diisi JavaScript -->
                 </div>
+              </div>
+              
+              <!-- Logout Button - Hanya untuk profile sendiri, di bagian paling bawah -->
+              <div id="logoutButtonContainer" class="logout-button-container hidden">
+                <button onclick="logout()" class="logout-button">
+                  <i class="fas fa-sign-out-alt"></i>
+                  <span>Keluar dari Akun</span>
+                </button>
               </div>
             </div>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- Bottom Navigation untuk Mobile - Sama persis dengan index dan syarat -->
+    <div class="bottom-nav md:hidden">
+      <div
+        class="nav-item"
+        data-page="home"
+        onclick="window.location.href = '/'"
+      >
+        <i class="fas fa-home"></i>
+        <span>Beranda</span>
+      </div>
+      <div
+        class="nav-item"
+        data-page="syarat"
+        onclick="window.location.href = '/syarat.html'"
+      >
+        <i class="fas fa-file-alt"></i>
+        <span>Syarat</span>
+      </div>
+      <div class="nav-item" data-page="create" onclick="window.location.href = '/'">
+        <i class="fas fa-plus-circle text-emerald-600 text-2xl"></i>
+        <span>Buat</span>
+      </div>
+      <div
+        class="nav-item"
+        data-page="notifications"
+        onclick="toggleNotificationSheet()"
+        style="position: relative"
+      >
+        <i class="fas fa-bell"></i>
+        <span>Notif</span>
+        <span
+          id="mobileNotifBadge"
+          class="notification-badge hidden"
+          >0</span
+        >
+      </div>
+      <div
+        class="nav-item active"
+        data-page="profile"
+        onclick="window.location.href = '/profile.html'"
+      >
+        <i class="fas fa-user"></i>
+        <span>Profile</span>
+      </div>
+    </div>
+
+    <!-- Bottom Sheet untuk Notifikasi Mobile - Sama persis dengan index -->
+    <div id="notificationSheet" class="bottom-sheet">
+      <div class="sheet-handle"></div>
+      <div class="p-4">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-xl font-bold">Notifikasi</h3>
+          <button
+            onclick="markAllNotificationsRead()"
+            class="text-xs text-emerald-600"
+          >
+            Tandai semua dibaca
+          </button>
+        </div>
+
+        <div id="mobileNotificationLoading" class="text-center py-8">
+          <div
+            class="animate-spin rounded-full h-8 w-8 border-4 border-emerald-600 border-t-transparent mx-auto mb-3"
+          ></div>
+          <p class="text-sm text-gray-500">Memuat notifikasi...</p>
+        </div>
+
+        <div id="mobileNotificationEmpty" class="hidden text-center py-8">
+          <i class="fas fa-bell-slash text-4xl text-gray-300 mb-3"></i>
+          <p class="text-sm text-gray-500">Belum ada notifikasi</p>
+        </div>
+
+        <div
+          id="mobileNotificationList"
+          class="space-y-3 max-h-[60vh] overflow-y-auto hidden"
+        ></div>
+
+        <button
+          onclick="hideNotificationSheet()"
+          class="mt-4 w-full bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300 transition active:scale-95"
+        >
+          Tutup
+        </button>
       </div>
     </div>
 
@@ -599,30 +946,30 @@
       id="uploadModal"
       class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50 modal"
     >
-      <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
-        <h3 class="text-2xl font-bold mb-4">Upload Foto Profil</h3>
+      <div class="bg-white rounded-2xl p-6 md:p-8 max-w-md w-full mx-4">
+        <h3 class="text-xl md:text-2xl font-bold mb-4">Upload Foto Profil</h3>
 
         <div class="mb-6 text-center">
           <img
             id="uploadPreview"
             src=""
-            class="w-32 h-32 rounded-full mx-auto mb-4 hidden object-cover border-4 border-emerald-200"
+            class="w-24 h-24 md:w-32 md:h-32 rounded-full mx-auto mb-4 hidden object-cover border-4 border-emerald-200"
           />
           <div
             id="uploadPlaceholder"
-            class="w-32 h-32 rounded-full mx-auto mb-4 bg-gray-100 flex items-center justify-center border-4 border-dashed border-gray-300"
+            class="w-24 h-24 md:w-32 md:h-32 rounded-full mx-auto mb-4 bg-gray-100 flex items-center justify-center border-4 border-dashed border-gray-300"
           >
-            <i class="fas fa-cloud-upload-alt text-4xl text-gray-400"></i>
+            <i class="fas fa-cloud-upload-alt text-3xl md:text-4xl text-gray-400"></i>
           </div>
         </div>
 
         <form id="uploadForm" class="space-y-4">
           <div
-            class="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-emerald-500 transition cursor-pointer"
+            class="border-2 border-dashed border-gray-300 rounded-xl p-4 md:p-6 text-center hover:border-emerald-500 transition cursor-pointer"
             onclick="document.getElementById('photoInput').click()"
           >
-            <i class="fas fa-image text-3xl text-gray-400 mb-2"></i>
-            <p class="text-gray-600 mb-1">Klik untuk memilih foto</p>
+            <i class="fas fa-image text-2xl md:text-3xl text-gray-400 mb-2"></i>
+            <p class="text-sm md:text-base text-gray-600 mb-1">Klik untuk memilih foto</p>
             <p class="text-xs text-gray-500">
               Format: JPG, PNG, GIF (Maks 2MB)
             </p>
@@ -639,7 +986,7 @@
             <button
               type="button"
               onclick="uploadPhoto()"
-              class="flex-1 bg-emerald-600 text-white py-3 rounded-lg hover:bg-emerald-700 transition font-semibold"
+              class="flex-1 bg-emerald-600 text-white py-2 md:py-3 rounded-lg hover:bg-emerald-700 transition font-semibold text-sm md:text-base"
               id="uploadBtn"
             >
               <i class="fas fa-upload mr-2"></i>Upload
@@ -647,7 +994,7 @@
             <button
               type="button"
               onclick="hideUploadModal()"
-              class="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300 transition font-semibold"
+              class="flex-1 bg-gray-200 text-gray-700 py-2 md:py-3 rounded-lg hover:bg-gray-300 transition font-semibold text-sm md:text-base"
             >
               Batal
             </button>
@@ -668,27 +1015,27 @@
       id="editBioModal"
       class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50 modal"
     >
-      <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
-        <h3 class="text-2xl font-bold mb-4">Edit Bio</h3>
+      <div class="bg-white rounded-2xl p-6 md:p-8 max-w-md w-full mx-4">
+        <h3 class="text-xl md:text-2xl font-bold mb-4">Edit Bio</h3>
 
         <textarea
           id="editBioText"
           rows="4"
-          class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 mb-4"
+          class="w-full px-3 md:px-4 py-2 md:py-3 text-sm md:text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 mb-4"
           placeholder="Tulis bio singkat tentang diri Anda..."
         ></textarea>
 
         <div class="flex space-x-3">
           <button
             onclick="saveBio()"
-            class="flex-1 bg-emerald-600 text-white py-3 rounded-lg hover:bg-emerald-700 transition font-semibold"
+            class="flex-1 bg-emerald-600 text-white py-2 md:py-3 rounded-lg hover:bg-emerald-700 transition font-semibold text-sm md:text-base"
             id="saveBioBtn"
           >
             <i class="fas fa-save mr-2"></i>Simpan
           </button>
           <button
             onclick="hideEditBioModal()"
-            class="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300 transition font-semibold"
+            class="flex-1 bg-gray-200 text-gray-700 py-2 md:py-3 rounded-lg hover:bg-gray-300 transition font-semibold text-sm md:text-base"
           >
             Batal
           </button>
@@ -709,10 +1056,10 @@
       class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50 modal"
     >
       <div
-        class="bg-white rounded-2xl p-6 max-w-3xl w-full mx-4 max-h-[80vh] overflow-y-auto"
+        class="bg-white rounded-2xl p-4 md:p-6 max-w-3xl w-full mx-4 max-h-[80vh] overflow-y-auto"
       >
         <div class="flex justify-between items-center mb-4">
-          <h3 class="text-2xl font-bold text-gray-800">🏆 Semua Badge</h3>
+          <h3 class="text-xl md:text-2xl font-bold text-gray-800">🏆 Semua Badge</h3>
           <button
             onclick="hideAchievementsModal()"
             class="text-gray-500 hover:text-gray-700"
@@ -722,28 +1069,28 @@
         </div>
 
         <!-- Stats Overview -->
-        <div class="grid grid-cols-3 gap-3 mb-6">
-          <div class="bg-emerald-50 rounded-xl p-4 text-center">
+        <div class="grid grid-cols-3 gap-2 md:gap-3 mb-4 md:mb-6">
+          <div class="bg-emerald-50 rounded-xl p-2 md:p-4 text-center">
             <p
-              class="text-2xl font-bold text-emerald-600"
+              class="text-lg md:text-2xl font-bold text-emerald-600"
               id="modalTotalCompleted"
             >
               0
             </p>
-            <p class="text-xs text-gray-600">Badge Diperoleh</p>
+            <p class="text-xs text-gray-600">Diperoleh</p>
           </div>
-          <div class="bg-blue-50 rounded-xl p-4 text-center">
+          <div class="bg-blue-50 rounded-xl p-2 md:p-4 text-center">
             <p
-              class="text-2xl font-bold text-blue-600"
+              class="text-lg md:text-2xl font-bold text-blue-600"
               id="modalTotalAvailable"
             >
               0
             </p>
-            <p class="text-xs text-gray-600">Total Badge</p>
+            <p class="text-xs text-gray-600">Total</p>
           </div>
-          <div class="bg-purple-50 rounded-xl p-4 text-center">
+          <div class="bg-purple-50 rounded-xl p-2 md:p-4 text-center">
             <p
-              class="text-2xl font-bold text-purple-600"
+              class="text-lg md:text-2xl font-bold text-purple-600"
               id="modalCompletionRate"
             >
               0%
@@ -753,41 +1100,41 @@
         </div>
 
         <!-- Filter Buttons -->
-        <div class="flex flex-wrap gap-2 mb-4">
+        <div class="flex flex-wrap gap-1 md:gap-2 mb-4">
           <button
             onclick="filterAchievements('all')"
-            class="filter-achievement-btn px-3 py-1 text-xs rounded-full bg-emerald-600 text-white"
+            class="filter-achievement-btn px-2 md:px-3 py-1 text-xs rounded-full bg-emerald-600 text-white"
           >
             Semua
           </button>
           <button
             onclick="filterAchievements('post')"
-            class="filter-achievement-btn px-3 py-1 text-xs rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300"
+            class="filter-achievement-btn px-2 md:px-3 py-1 text-xs rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300"
           >
             Postingan
           </button>
           <button
             onclick="filterAchievements('like')"
-            class="filter-achievement-btn px-3 py-1 text-xs rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300"
+            class="filter-achievement-btn px-2 md:px-3 py-1 text-xs rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300"
           >
             Like
           </button>
           <button
             onclick="filterAchievements('comment')"
-            class="filter-achievement-btn px-3 py-1 text-xs rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300"
+            class="filter-achievement-btn px-2 md:px-3 py-1 text-xs rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300"
           >
             Komentar
           </button>
           <button
             onclick="filterAchievements('special')"
-            class="filter-achievement-btn px-3 py-1 text-xs rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300"
+            class="filter-achievement-btn px-2 md:px-3 py-1 text-xs rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300"
           >
             Spesial
           </button>
         </div>
 
         <!-- Achievement Grid -->
-        <div id="achievementGrid" class="space-y-4"></div>
+        <div id="achievementGrid" class="space-y-3 md:space-y-4"></div>
       </div>
     </div>
 
@@ -796,35 +1143,35 @@
       id="editPostModal"
       class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50 modal"
     >
-      <div class="bg-white rounded-2xl p-8 max-w-lg w-full mx-4">
-        <h3 class="text-2xl font-bold mb-4">Edit Cerita</h3>
-        <form id="editPostForm" class="space-y-4">
+      <div class="bg-white rounded-2xl p-6 md:p-8 max-w-lg w-full mx-4">
+        <h3 class="text-xl md:text-2xl font-bold mb-4">Edit Cerita</h3>
+        <form id="editPostForm" class="space-y-3 md:space-y-4">
           <input type="hidden" id="editPostId" />
           <input
             type="text"
             id="editPostJudul"
             placeholder="Judul Cerita"
             required
-            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+            class="w-full px-3 md:px-4 py-2 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
           />
           <textarea
             id="editPostKonten"
             rows="4"
             placeholder="Tulis cerita Anda..."
             required
-            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+            class="w-full px-3 md:px-4 py-2 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
           ></textarea>
           <div class="flex space-x-3">
             <button
               type="submit"
-              class="flex-1 bg-emerald-600 text-white py-3 rounded-lg hover:bg-emerald-700 transition font-semibold"
+              class="flex-1 bg-emerald-600 text-white py-2 md:py-3 rounded-lg hover:bg-emerald-700 transition font-semibold text-sm md:text-base"
             >
-              <i class="fas fa-save mr-2"></i>Simpan Perubahan
+              <i class="fas fa-save mr-2"></i>Simpan
             </button>
             <button
               type="button"
               onclick="hideEditPostModal()"
-              class="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300 transition font-semibold"
+              class="flex-1 bg-gray-200 text-gray-700 py-2 md:py-3 rounded-lg hover:bg-gray-300 transition font-semibold text-sm md:text-base"
             >
               Batal
             </button>
@@ -844,11 +1191,11 @@
       id="deletePostModal"
       class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50 modal"
     >
-      <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
+      <div class="bg-white rounded-2xl p-6 md:p-8 max-w-md w-full mx-4">
         <div class="text-center">
-          <i class="fas fa-exclamation-triangle text-5xl text-red-500 mb-4"></i>
-          <h3 class="text-2xl font-bold mb-2">Hapus Cerita</h3>
-          <p class="text-gray-600 mb-6">
+          <i class="fas fa-exclamation-triangle text-4xl md:text-5xl text-red-500 mb-4"></i>
+          <h3 class="text-xl md:text-2xl font-bold mb-2">Hapus Cerita</h3>
+          <p class="text-sm md:text-base text-gray-600 mb-6">
             Apakah Anda yakin ingin menghapus cerita ini? Tindakan ini tidak
             dapat dibatalkan.
           </p>
@@ -856,13 +1203,13 @@
           <div class="flex space-x-3">
             <button
               onclick="confirmDeletePost()"
-              class="flex-1 bg-red-600 text-white py-3 rounded-lg hover:bg-red-700 transition font-semibold"
+              class="flex-1 bg-red-600 text-white py-2 md:py-3 rounded-lg hover:bg-red-700 transition font-semibold text-sm md:text-base"
             >
               <i class="fas fa-trash mr-2"></i>Hapus
             </button>
             <button
               onclick="hideDeletePostModal()"
-              class="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300 transition font-semibold"
+              class="flex-1 bg-gray-200 text-gray-700 py-2 md:py-3 rounded-lg hover:bg-gray-300 transition font-semibold text-sm md:text-base"
             >
               Batal
             </button>
@@ -874,7 +1221,7 @@
     <!-- Toast Notification -->
     <div
       id="toast"
-      class="fixed bottom-4 right-4 bg-white border-l-4 shadow-lg rounded-lg p-4 max-w-sm hidden z-50"
+      class="fixed bottom-20 md:bottom-4 right-4 bg-white border-l-4 shadow-lg rounded-lg p-4 max-w-sm hidden z-50"
     >
       <div class="flex items-center">
         <div id="toastIcon" class="mr-3"></div>
@@ -882,7 +1229,7 @@
       </div>
     </div>
 
-    <footer class="bg-gray-900 text-white mt-16">
+    <footer class="desktop-nav bg-gray-900 text-white mt-16">
       <div class="container mx-auto px-4 py-12">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
           <!-- Profil Pembuat -->
@@ -928,15 +1275,6 @@
                   ><i class="fas fa-chevron-right text-xs mr-2"></i>Profile</a
                 >
               </li>
-              <li>
-                <a
-                  href="#"
-                  onclick="scrollToTop()"
-                  class="text-gray-400 hover:text-white transition"
-                  ><i class="fas fa-chevron-right text-xs mr-2"></i>Kembali ke
-                  Atas</a
-                >
-              </li>
             </ul>
           </div>
 
@@ -968,14 +1306,16 @@
       </div>
     </footer>
 
-    <!-- Scripts - Urutan penting -->
-    <!-- Scripts - Urutan penting: pakai dari root, bukan dari folder profile -->
+    <!-- Scripts - Urutan penting: pakai dari root -->
     <script src="js/config.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/notifications.js"></script>
     <script src="js/achievements.js"></script>
-    <!-- Profile specific scripts (hanya yang spesifik profile) -->
-     <script src="js/profile/helpers.js"></script> 
+    <script src="js/online-status.js"></script>
+    
+    <!-- Profile specific scripts -->
+    <script src="js/profile/helpers.js"></script> 
     <script src="js/profile/profile-core.js"></script>
     <script src="js/profile/profile-posts.js"></script>
     <script src="js/profile/profile-edit.js"></script>
@@ -983,5 +1323,414 @@
     <script src="js/profile/profile-modals.js"></script>
     <script src="js/profile/profile-badges.js"></script>
     <script src="js/profile/profile.js"></script>
+
+    <script>
+      // ===================================================
+      // FUNGSI-FUNGSI TAMBAHAN UNTUK PROFILE
+      // ===================================================
+      
+      // Variabel untuk notifikasi mobile
+      let mobileNotifications = [];
+      let mobileUnreadCount = 0;
+
+      // Override fungsi logout
+      function logout() {
+        if (typeof cleanup === 'function') cleanup();
+        localStorage.removeItem("currentUser");
+        localStorage.removeItem("userToken");
+        window.location.href = "/login.html";
+      }
+
+      // ========== FUNGSI NOTIFIKASI MOBILE ==========
+
+      // Toggle notification sheet (mobile)
+      function toggleNotificationSheet() {
+        const sheet = document.getElementById("notificationSheet");
+        if (!sheet) return;
+        
+        sheet.classList.toggle("show");
+
+        if (sheet.classList.contains("show")) {
+          loadMobileNotifications();
+          document.body.style.overflow = "hidden";
+        } else {
+          document.body.style.overflow = "";
+        }
+      }
+
+      // Hide notification sheet
+      function hideNotificationSheet() {
+        const sheet = document.getElementById("notificationSheet");
+        if (sheet) sheet.classList.remove("show");
+        document.body.style.overflow = "";
+      }
+
+      // Load notifikasi untuk mobile
+      async function loadMobileNotifications() {
+        if (!currentUser) return;
+
+        const loadingEl = document.getElementById("mobileNotificationLoading");
+        const emptyEl = document.getElementById("mobileNotificationEmpty");
+        const listEl = document.getElementById("mobileNotificationList");
+
+        if (!loadingEl || !emptyEl || !listEl) return;
+
+        loadingEl.classList.remove("hidden");
+        emptyEl.classList.add("hidden");
+        listEl.classList.add("hidden");
+
+        try {
+          const response = await fetch(
+            `${API_BASE}/notifications?userId=${currentUser.id}&limit=20`,
+            {
+              headers: {
+                'Authorization': `Bearer ${localStorage.getItem("userToken")}`
+              }
+            }
+          );
+
+          if (!response.ok) throw new Error("Gagal memuat notifikasi");
+
+          const data = await response.json();
+          mobileNotifications = data.notifications || [];
+          mobileUnreadCount = data.unreadCount || 0;
+
+          loadingEl.classList.add("hidden");
+
+          if (mobileNotifications.length === 0) {
+            emptyEl.classList.remove("hidden");
+          } else {
+            renderMobileNotifications();
+            listEl.classList.remove("hidden");
+          }
+
+          updateNotificationBadges();
+        } catch (error) {
+          console.error("Error loading mobile notifications:", error);
+          loadingEl.classList.add("hidden");
+          emptyEl.classList.remove("hidden");
+        }
+      }
+
+      // Render notifikasi mobile
+      function renderMobileNotifications() {
+        const listEl = document.getElementById("mobileNotificationList");
+        if (!listEl) return;
+
+        listEl.innerHTML = mobileNotifications
+          .map((notif) => {
+            const isUnread = !notif.isRead;
+            const timeAgo = getTimeAgo(notif.createdAt);
+            const icon = getNotificationIcon(notif.type);
+            const fotoProfil = notif.fromUser?.fotoProfil || "/images/default-avatar.png";
+
+            return `
+              <div class="p-3 bg-gray-50 rounded-lg ${isUnread ? "border-l-4 border-emerald-500" : ""} cursor-pointer"
+                   onclick="handleNotificationClick(${notif.id}, '${notif.type}', ${notif.postId || "null"})">
+                <div class="flex gap-3">
+                  <div class="flex-shrink-0 w-8 h-8 rounded-full bg-${icon.bgColor} flex items-center justify-center">
+                    <i class="fas ${icon.icon} text-${icon.color}"></i>
+                  </div>
+                  <div class="flex-1">
+                    <div class="flex justify-between items-start">
+                      <p class="text-sm text-gray-800">${notif.message}</p>
+                      ${isUnread ? '<span class="w-2 h-2 bg-emerald-500 rounded-full"></span>' : ""}
+                    </div>
+                    <div class="flex items-center gap-2 mt-2">
+                      ${
+                        notif.fromUser
+                          ? `
+                        <img src="${fotoProfil}" class="w-5 h-5 rounded-full object-cover border border-gray-200">
+                        <span class="text-xs font-medium text-gray-700">${notif.fromUser.namaLengkap}</span>
+                        <span class="text-xs text-gray-400">•</span>
+                      `
+                          : ""
+                      }
+                      <span class="text-xs text-gray-400">${timeAgo}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            `;
+          })
+          .join("");
+      }
+
+      // Handle klik notifikasi
+      function handleNotificationClick(notificationId, type, postId) {
+        mobileNotifications = mobileNotifications.map(n => 
+          n.id === notificationId ? {...n, isRead: true} : n
+        );
+        mobileUnreadCount = mobileNotifications.filter(n => !n.isRead).length;
+        renderMobileNotifications();
+        updateNotificationBadges();
+        
+        if (postId) {
+          window.location.href = `/post-detail.html?id=${postId}`;
+        }
+      }
+
+      // Update badge notifikasi
+      function updateNotificationBadges() {
+        const mobileBadge = document.getElementById('mobileNotifBadge');
+        const desktopBadge = document.getElementById('notificationBadge');
+        
+        if (mobileUnreadCount > 0) {
+          const badgeText = mobileUnreadCount > 99 ? "99+" : mobileUnreadCount;
+          if (mobileBadge) {
+            mobileBadge.textContent = badgeText;
+            mobileBadge.classList.remove("hidden");
+          }
+          if (desktopBadge) {
+            desktopBadge.textContent = badgeText;
+            desktopBadge.classList.remove("hidden");
+          }
+        } else {
+          if (mobileBadge) mobileBadge.classList.add("hidden");
+          if (desktopBadge) desktopBadge.classList.add("hidden");
+        }
+      }
+
+      // Toggle dropdown notifikasi (desktop)
+      function toggleNotificationDropdown() {
+        const dropdown = document.getElementById('notificationDropdown');
+        if (!dropdown) return;
+        dropdown.classList.toggle('hidden');
+      }
+
+      // Mark all as read
+      function markAllNotificationsRead() {
+        mobileNotifications = mobileNotifications.map(n => ({...n, isRead: true}));
+        mobileUnreadCount = 0;
+        renderMobileNotifications();
+        updateNotificationBadges();
+      }
+
+      // View all notifications
+      function viewAllNotifications() {
+        window.location.href = '/notifications.html';
+      }
+
+      // Setup sheet drag
+      function setupSheetDrag() {
+        const sheet = document.getElementById("notificationSheet");
+        const handle = document.querySelector(".sheet-handle");
+        if (!sheet || !handle) return;
+
+        let sheetStartY = 0;
+        let sheetCurrentY = 0;
+
+        handle.addEventListener("touchstart", (e) => {
+          sheetStartY = e.touches[0].clientY;
+        }, { passive: true });
+
+        handle.addEventListener("touchmove", (e) => {
+          sheetCurrentY = e.touches[0].clientY;
+          const diff = sheetCurrentY - sheetStartY;
+          if (diff > 0) {
+            sheet.style.transform = `translateY(${diff}px)`;
+          }
+        }, { passive: true });
+
+        handle.addEventListener("touchend", () => {
+          const diff = sheetCurrentY - sheetStartY;
+          if (diff > 100) {
+            hideNotificationSheet();
+          }
+          sheet.style.transform = "";
+          sheetStartY = 0;
+          sheetCurrentY = 0;
+        });
+      }
+
+      // ========== FIX UNTUK GET PROFILE ID ==========
+      // Override fungsi getProfileId dari helpers.js
+      window.getProfileId = function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const id = urlParams.get("id");
+        console.log("Raw profile ID from URL:", id);
+        
+        // Jika tidak ada parameter id, tampilkan profile sendiri
+        if (!id) {
+          console.log("No profile ID in URL, showing own profile");
+          return currentUser?.id;
+        }
+        
+        // Konversi ke number
+        const parsedId = parseInt(id);
+        console.log("Parsed profile ID:", parsedId);
+        
+        // Validasi
+        if (isNaN(parsedId)) {
+          console.error("Invalid profile ID in URL:", id);
+          return null;
+        }
+        
+        return parsedId;
+      };
+
+      // Override checkOwnership untuk handle error lebih baik
+      window.checkOwnership = function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const profileId = urlParams.get("id");
+        
+        console.log("Checking ownership:", {
+          hasCurrentUser: !!currentUser,
+          currentUserId: currentUser?.id,
+          profileId: profileId
+        });
+
+        if (!currentUser) {
+          console.error("currentUser not found");
+          window.isOwnProfile = false;
+          return false;
+        }
+
+        if (profileId) {
+          window.isOwnProfile = parseInt(profileId) === currentUser.id;
+        } else {
+          window.isOwnProfile = true;
+        }
+
+        console.log("Is own profile:", window.isOwnProfile);
+        return window.isOwnProfile;
+      };
+
+      // Override setupUI setelah profile dimuat
+      const originalSetupProfileUI = window.setupProfileUI;
+      window.setupProfileUI = function() {
+        if (originalSetupProfileUI) originalSetupProfileUI();
+        
+        // Tampilkan tombol logout hanya untuk profile sendiri
+        const logoutContainer = document.getElementById('logoutButtonContainer');
+        if (logoutContainer) {
+          if (window.isOwnProfile) {
+            logoutContainer.classList.remove('hidden');
+          } else {
+            logoutContainer.classList.add('hidden');
+          }
+        }
+      };
+
+      // Override loadProfile untuk handle error lebih baik
+      const originalLoadProfile = window.loadProfile;
+      window.loadProfile = async function() {
+        try {
+          console.log("Loading profile with fixed getProfileId...");
+          
+          document.getElementById("loadingState").classList.remove("hidden");
+          document.getElementById("profileContent").classList.add("hidden");
+          document.getElementById("errorState").classList.add("hidden");
+
+          // Dapatkan ID dengan fungsi yang sudah di-override
+          const userIdToLoad = window.getProfileId();
+          console.log("Loading profile for user ID:", userIdToLoad);
+
+          if (!userIdToLoad || isNaN(userIdToLoad)) {
+            // Coba redirect ke profile sendiri
+            console.log("Invalid ID, redirecting to own profile");
+            if (currentUser) {
+              window.location.href = `/profile.html?id=${currentUser.id}`;
+              return;
+            } else {
+              throw new Error("ID user tidak valid dan tidak ada user login");
+            }
+          }
+
+          const userRes = await fetch(`${API_BASE}/users/${userIdToLoad}`);
+          if (!userRes.ok) {
+            if (userRes.status === 404) {
+              throw new Error("User tidak ditemukan");
+            }
+            throw new Error(`HTTP error ${userRes.status}`);
+          }
+
+          window.profileUser = await userRes.json();
+          console.log("User data loaded:", profileUser);
+
+          // Update UI dasar
+          window.updateProfileUI();
+
+          // Setup UI berdasarkan kepemilikan
+          window.setupProfileUI();
+
+          // Load user posts
+          if (typeof window.loadUserPosts === 'function') {
+            await window.loadUserPosts(userIdToLoad);
+          }
+          
+          // LOAD ACHIEVEMENTS
+          if (window.loadUserAchievements) {
+            try {
+              await window.loadUserAchievements(userIdToLoad);
+              
+              if (window.renderAchievementBadges) {
+                const completedAchs = (window.userAchievements || []).filter(ach => ach.completed);
+                window.renderAchievementBadges('recentBadges', completedAchs, 4);
+              }
+              
+              if (window.loadAchievementStats) {
+                const stats = await window.loadAchievementStats(userIdToLoad);
+                document.getElementById('totalAchievements').textContent = stats.completed || 0;
+              }
+            } catch (achError) {
+              console.error("Error loading achievements:", achError);
+            }
+          }
+
+          document.getElementById("loadingState").classList.add("hidden");
+          document.getElementById("profileContent").classList.remove("hidden");
+        } catch (error) {
+          console.error("Error loading profile:", error);
+          document.getElementById("loadingState").classList.add("hidden");
+          document.getElementById("errorState").classList.remove("hidden");
+          document.getElementById("errorMessage").textContent = error.message;
+        }
+      };
+
+      // Inisialisasi
+      function initProfileWithFix() {
+        console.log("Initializing profile page with fixes...");
+        
+        // Cek session
+        if (typeof checkSession === 'function') {
+          checkSession();
+        }
+        
+        // Cek ownership dengan fungsi baru
+        if (typeof window.checkOwnership === 'function') {
+          window.checkOwnership();
+        }
+        
+        // Load profile dengan fungsi baru
+        if (typeof window.loadProfile === 'function') {
+          window.loadProfile();
+        }
+        
+        // Setup sheet drag
+        setupSheetDrag();
+        
+        // Load notifications
+        if (currentUser) {
+          loadMobileNotifications();
+        }
+      }
+
+      // Export ke window
+      window.toggleNotificationSheet = toggleNotificationSheet;
+      window.hideNotificationSheet = hideNotificationSheet;
+      window.handleNotificationClick = handleNotificationClick;
+      window.markAllNotificationsRead = markAllNotificationsRead;
+      window.viewAllNotifications = viewAllNotifications;
+      window.logout = logout;
+      window.initProfileWithFix = initProfileWithFix;
+
+      // Mulai dengan fungsi baru
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initProfileWithFix);
+      } else {
+        initProfileWithFix();
+      }
+    </script>
   </body>
 </html>
