@@ -14,16 +14,13 @@ if (!supabaseUrl || !supabaseKey) {
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const BUCKET_NAME = process.env.SUPABASE_BUCKET || 'lebaranqu-profiles';
+const BUCKET_NAME = process.env.SUPABASE_BUCKET || 'lebaran_26';
 const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
 
 export class StorageService {
   /**
    * Upload foto profil ke Supabase Storage
-   * @param {File} file - File gambar
-   * @param {number} userId - ID user
-   * @returns {Promise<{url: string, path: string}>}
    */
   static async uploadProfilePhoto(file, userId) {
     try {
@@ -50,6 +47,20 @@ export class StorageService {
       const filePath = `profile-pictures/${fileName}`;
 
       console.log(`Uploading to Supabase: ${filePath}`);
+      console.log(`Bucket: ${BUCKET_NAME}`);
+
+      // Cek apakah bucket ada
+      const { data: buckets, error: listError } = await supabase.storage.listBuckets();
+      if (listError) {
+        console.error('Error listing buckets:', listError);
+        throw new Error(`Gagal mengakses storage: ${listError.message}`);
+      }
+
+      const bucketExists = buckets?.some(b => b.name === BUCKET_NAME);
+      if (!bucketExists) {
+        console.error(`Bucket "${BUCKET_NAME}" tidak ditemukan. Buckets available:`, buckets?.map(b => b.name));
+        throw new Error(`Bucket "${BUCKET_NAME}" tidak ditemukan. Silakan buat bucket terlebih dahulu di Supabase.`);
+      }
 
       // Upload ke Supabase
       const { data, error } = await supabase.storage
@@ -57,12 +68,12 @@ export class StorageService {
         .upload(filePath, buffer, {
           contentType: file.type,
           cacheControl: '3600',
-          upsert: true // Overwrite jika ada file dengan nama sama
+          upsert: true
         });
 
       if (error) {
         console.error('Supabase upload error:', error);
-        throw error;
+        throw new Error(`Gagal upload: ${error.message}`);
       }
 
       // Dapatkan public URL
@@ -84,7 +95,6 @@ export class StorageService {
 
   /**
    * Hapus file dari Supabase Storage
-   * @param {string} filePath - Path file di storage
    */
   static async deleteFile(filePath) {
     try {
@@ -110,67 +120,20 @@ export class StorageService {
   }
 
   /**
-   * Hapus semua file lama milik user
-   * @param {number} userId - ID user
+   * Test koneksi ke Supabase Storage
    */
-  static async deleteAllUserFiles(userId) {
+  static async testConnection() {
     try {
-      console.log(`Deleting all files for user ${userId}`);
-
-      // List semua file user
-      const { data: files, error: listError } = await supabase.storage
-        .from(BUCKET_NAME)
-        .list(`profile-pictures/${userId}`);
-
-      if (listError) {
-        console.error('Error listing files:', listError);
-        return;
+      const { data, error } = await supabase.storage.listBuckets();
+      if (error) {
+        console.error('Storage connection test failed:', error);
+        return { success: false, error: error.message };
       }
-
-      if (files && files.length > 0) {
-        // Hapus semua file
-        const filePaths = files.map(file => `profile-pictures/${userId}/${file.name}`);
-        
-        const { error: deleteError } = await supabase.storage
-          .from(BUCKET_NAME)
-          .remove(filePaths);
-
-        if (deleteError) {
-          console.error('Error deleting files:', deleteError);
-        } else {
-          console.log(`Deleted ${files.length} old files`);
-        }
-      }
+      console.log('Storage connection successful. Buckets:', data?.map(b => b.name));
+      return { success: true, buckets: data };
     } catch (error) {
-      console.error('StorageService.deleteAllUserFiles error:', error);
+      console.error('Storage connection test failed:', error);
+      return { success: false, error: error.message };
     }
-  }
-
-  /**
-   * Mendapatkan default avatar URL
-   * @returns {string}
-   */
-  static getDefaultAvatar() {
-    // Anda bisa upload default avatar ke Supabase
-    const { data: { publicUrl } } = supabase.storage
-      .from(BUCKET_NAME)
-      .getPublicUrl('defaults/avatar.png');
-    
-    return publicUrl || 'https://media.istockphoto.com/id/1495088043/id/vektor/ikon-profil-pengguna-avatar-atau-ikon-orang-gambar-profil-simbol-potret-gambar-potret.jpg?s=2048x2048&w=is&k=20&c=G7qTBxWs68Pm03TIb6rsOCo_m2JptQ8SVTrFfXq0kfU=';
-  }
-
-  /**
-   * Mendapatkan URL file dari path
-   * @param {string} filePath 
-   * @returns {string}
-   */
-  static getPublicUrl(filePath) {
-    if (!filePath) return this.getDefaultAvatar();
-    
-    const { data: { publicUrl } } = supabase.storage
-      .from(BUCKET_NAME)
-      .getPublicUrl(filePath);
-    
-    return publicUrl;
   }
 }

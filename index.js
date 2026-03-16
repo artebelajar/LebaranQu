@@ -202,26 +202,26 @@ app.get("/events", async (c) => {
 app.use("/*", serveStatic({ root: join(__dirname, "public") }));
 
 // Fallback untuk file upload
-app.get('/uploads/*', async (c) => {
-  try {
-    const filePath = join(__dirname, 'public', c.req.path);
-    if (!fs.existsSync(filePath)) return c.text('File not found', 404);
+// app.get('/uploads/*', async (c) => {
+//   try {
+//     const filePath = join(__dirname, 'public', c.req.path);
+//     if (!fs.existsSync(filePath)) return c.text('File not found', 404);
     
-    const file = fs.readFileSync(filePath);
-    const ext = filePath.split('.').pop().toLowerCase();
-    const contentTypes = {
-      jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png',
-      gif: 'image/gif', webp: 'image/webp'
-    };
+//     const file = fs.readFileSync(filePath);
+//     const ext = filePath.split('.').pop().toLowerCase();
+//     const contentTypes = {
+//       jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png',
+//       gif: 'image/gif', webp: 'image/webp'
+//     };
     
-    return c.body(file, 200, { 
-      'Content-Type': contentTypes[ext] || 'application/octet-stream',
-      'Cache-Control': 'public, max-age=31536000'
-    });
-  } catch (error) {
-    return c.text('File not found', 404);
-  }
-});
+//     return c.body(file, 200, { 
+//       'Content-Type': contentTypes[ext] || 'application/octet-stream',
+//       'Cache-Control': 'public, max-age=31536000'
+//     });
+//   } catch (error) {
+//     return c.text('File not found', 404);
+//   }
+// });
 
 // 404 handler
 app.notFound((c) => {
@@ -245,10 +245,10 @@ app.onError((err, c) => {
 const port = process.env.PORT || 6006;
 
 // Pastikan folder uploads ada
-const uploadDir = join(__dirname, 'public/uploads');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
+// const uploadDir = join(__dirname, 'public/uploads');
+// if (!fs.existsSync(uploadDir)) {
+//   fs.mkdirSync(uploadDir, { recursive: true });
+// }
 
 // Start server
 const server = serve({
