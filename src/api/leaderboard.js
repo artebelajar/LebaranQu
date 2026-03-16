@@ -1,18 +1,22 @@
-// ===================================================
-// FILE: leaderboard.js - API untuk Multi-Kategori Leaderboard
-// ===================================================
-
 import { Hono } from "hono";
 import { db } from "../db/index.js";
 import { users_26, posts, likes, comments, userAchievements, achievements } from "../db/schema.js";
 import { eq, and, desc, sql } from "drizzle-orm";
+import { leaderboardQuerySchema } from "../validators/schemas.js";
+import { validateQuery } from "../utils/validate.js";
 
 const app = new Hono();
 
-// ========== LEADERBOARD BADGE - PERBAIKI ORDER BY ==========
+// ========== LEADERBOARD BADGE ==========
 app.get("/badge", async (c) => {
   try {
-    const sekolah = c.req.query("sekolah") || "all";
+    // VALIDASI QUERY DENGAN ZOD
+    const validation = validateQuery(c, leaderboardQuerySchema);
+    if (!validation.success) {
+      return c.json({ error: validation.error.message, details: validation.error.details }, 400);
+    }
+    
+    const { sekolah } = validation.data;
     
     let query = db
       .select({
@@ -57,7 +61,13 @@ app.get("/badge", async (c) => {
 // ========== LEADERBOARD VIEW ==========
 app.get("/view", async (c) => {
   try {
-    const sekolah = c.req.query("sekolah") || "all";
+    // VALIDASI QUERY DENGAN ZOD
+    const validation = validateQuery(c, leaderboardQuerySchema);
+    if (!validation.success) {
+      return c.json({ error: validation.error.message, details: validation.error.details }, 400);
+    }
+    
+    const { sekolah } = validation.data;
     
     let query = db
       .select({
@@ -89,7 +99,13 @@ app.get("/view", async (c) => {
 // ========== LEADERBOARD POST ==========
 app.get("/post", async (c) => {
   try {
-    const sekolah = c.req.query("sekolah") || "all";
+    // VALIDASI QUERY DENGAN ZOD
+    const validation = validateQuery(c, leaderboardQuerySchema);
+    if (!validation.success) {
+      return c.json({ error: validation.error.message, details: validation.error.details }, 400);
+    }
+    
+    const { sekolah } = validation.data;
     
     let query = db
       .select({
@@ -121,7 +137,13 @@ app.get("/post", async (c) => {
 // ========== LEADERBOARD LIKE ==========
 app.get("/like", async (c) => {
   try {
-    const sekolah = c.req.query("sekolah") || "all";
+    // VALIDASI QUERY DENGAN ZOD
+    const validation = validateQuery(c, leaderboardQuerySchema);
+    if (!validation.success) {
+      return c.json({ error: validation.error.message, details: validation.error.details }, 400);
+    }
+    
+    const { sekolah } = validation.data;
     
     let query = db
       .select({
@@ -153,7 +175,13 @@ app.get("/like", async (c) => {
 // ========== LEADERBOARD COMMENT ==========
 app.get("/comment", async (c) => {
   try {
-    const sekolah = c.req.query("sekolah") || "all";
+    // VALIDASI QUERY DENGAN ZOD
+    const validation = validateQuery(c, leaderboardQuerySchema);
+    if (!validation.success) {
+      return c.json({ error: validation.error.message, details: validation.error.details }, 400);
+    }
+    
+    const { sekolah } = validation.data;
     
     let query = db
       .select({
@@ -185,7 +213,13 @@ app.get("/comment", async (c) => {
 // ========== LEADERBOARD OVERALL ==========
 app.get("/overall", async (c) => {
   try {
-    const sekolah = c.req.query("sekolah") || "all";
+    // VALIDASI QUERY DENGAN ZOD
+    const validation = validateQuery(c, leaderboardQuerySchema);
+    if (!validation.success) {
+      return c.json({ error: validation.error.message, details: validation.error.details }, 400);
+    }
+    
+    const { sekolah } = validation.data;
     
     let query = db
       .select({

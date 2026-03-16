@@ -3,6 +3,7 @@ import { serveStatic } from "@hono/node-server/serve-static";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { compress } from 'hono/compress';
+import { secureHeaders } from 'hono/secure-headers';
 import { rateLimiter } from 'hono-rate-limiter';
 import dotenv from "dotenv";
 import { fileURLToPath } from "url";
@@ -16,13 +17,43 @@ import notificationsApi from "./src/api/notifications.js";
 import achievementsApi from "./src/api/achievements.js";
 import leaderboardApi from "./src/api/leaderboard.js";
 
-// Import WebSocket functions
-import { initWebSocket, broadcastToUser, broadcastToAll } from "./src/utils/websocket.js";
-
 dotenv.config();
 
 const app = new Hono();
 const __dirname = dirname(fileURLToPath(import.meta.url));
+
+// ========== SECURITY HEADERS ==========
+app.use('*', secureHeaders({
+  contentSecurityPolicy: {
+    defaultSrc: ["'self'"],
+    scriptSrc: [
+      "'self'", 
+      "'unsafe-inline'", 
+      "https://cdn.tailwindcss.com", 
+      "https://cdnjs.cloudflare.com",
+      "https://www.google.com",
+      "https://www.gstatic.com"
+    ],
+    styleSrc: [
+      "'self'", 
+      "'unsafe-inline'", 
+      "https://fonts.googleapis.com",
+      "https://cdnjs.cloudflare.com"  // <-- TAMBAHKAN INI
+    ],
+    fontSrc: [
+      "'self'", 
+      "https://fonts.gstatic.com",
+      "https://cdnjs.cloudflare.com"  // <-- TAMBAHKAN INI
+    ],
+    imgSrc: [
+      "'self'", 
+      "data:", 
+      "https://media.istockphoto.com",
+      "https://cdnjs.cloudflare.com"  // <-- TAMBAHKAN INI
+    ],
+    connectSrc: ["'self'", "ws:", "wss:"],
+  },
+}));
 
 // ========== MIDDLEWARE ==========
 app.use("*", async (c, next) => {
@@ -32,24 +63,32 @@ app.use("*", async (c, next) => {
   console.log(`${c.req.method} ${c.req.path} - ${ms}ms`);
 });
 
-app.use("/*", cors({
-  origin: ['https://lebaranqu.vercel.app', 'https://lebaranqu.artera.my.id', 'http://localhost:6006'],
-  credentials: true
-}));
+app.use("/*", cors());
 app.use('*', compress({ threshold: 1024 }));
 
+// ========== RATE LIMITER - VERSI YANG BENAR ==========
 const limiter = rateLimiter({
-  windowMs: 60 * 1000,
-  limit: 200,
-  standardHeaders: 'draft-6',
+  windowMs: 60 * 1000, // 1 menit
+  limit: 200, // Maksimal 200 request
+  standardHeaders: 'draft-7',
   keyGenerator: (c) => {
     const userId = c.req.query('userId') || c.req.header('x-user-id');
-    const ip = c.req.header('x-forwarded-for') || 'unknown';
+    const ip = c.req.header('x-forwarded-for') || c.req.header('x-real-ip') || 'unknown';
     return userId || ip;
   },
-  skip: (c) => c.req.path.includes('/api/users/login') || 
-           c.req.path.includes('/api/users/register')
+  skip: (c) => {
+    const path = c.req.path;
+    return path.includes('/api/users/login') || path.includes('/api/users/register');
+  },
+  handler: (c) => {
+    return c.json({ 
+      error: 'Terlalu banyak permintaan', 
+      message: 'Silakan coba lagi nanti',
+      retryAfter: 60 
+    }, 429);
+  }
 });
+
 app.use('/api/*', limiter);
 
 // ========== API ROUTES ==========
@@ -116,7 +155,20 @@ app.get('/uploads/*', async (c) => {
 
 // 404 handler
 app.notFound((c) => {
-  return c.text("404 Not Found", 404);
+  return c.json({ 
+    error: "Not Found",
+    message: "Endpoint tidak ditemukan"
+  }, 404);
+});
+
+// Error handler
+app.onError((err, c) => {
+  console.error('❌ Error:', err);
+  return c.json({ 
+    error: process.env.NODE_ENV === 'production' 
+      ? 'Terjadi kesalahan internal' 
+      : err.message 
+  }, 500);
 });
 
 // ========== START SERVER ==========
@@ -132,14 +184,17 @@ if (!fs.existsSync(uploadDir)) {
 const server = serve({
   fetch: app.fetch,
   port,
-}, (info) => {
+}, async (info) => {
   console.log(`🚀 Server running at http://localhost:${info.port}`);
   console.log(`📁 Upload directory: ${uploadDir}`);
   
-  // Inisialisasi WebSocket
-  initWebSocket(server);
-  console.log(`🔌 WebSocket server running at ws://localhost:${info.port}/ws`);
+  // Inisialisasi WebSocket - DENGAN TRY-CATCH
+  try {
+    const { initWebSocket } = await import('./src/utils/websocket.js');
+    initWebSocket(server);
+    console.log(`🔌 WebSocket server running at ws://localhost:${info.port}/ws`);
+  } catch (wsError) {
+    console.error('❌ WebSocket initialization failed:', wsError);
+    console.log('📡 Falling back to SSE only');
+  }
 });
-
-// Export untuk digunakan di routes
-export { broadcastToUser, broadcastToAll };

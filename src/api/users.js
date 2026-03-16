@@ -5,7 +5,15 @@ import { checkLikeAchievements } from "../utils/achievement-check.js";
 import { eq, and, desc, sql } from "drizzle-orm";
 import { v4 as uuidv4 } from "uuid";
 import bcrypt from "bcryptjs";
-import { broadcastToUser, broadcastToAll } from "../../index.js";
+import { broadcastToUser, broadcastToAll } from "../utils/websocket.js";
+import { 
+  registerSchema, 
+  loginSchema, 
+  updateUserSchema,
+  userIdSchema,
+  onlineStatusSchema
+} from "../validators/schemas.js";
+import { validateRequest, validateParams } from "../utils/validate.js";
 
 const app = new Hono();
 
@@ -45,21 +53,18 @@ async function verifyRecaptcha(token) {
 // POST /api/users/login - Login
 app.post("/login", async (c) => {
   try {
-    const body = await c.req.json();
-
-    console.log('Login attempt for email:', body.email);
-
-    if (!body.recaptchaToken) {
-      return c.json({ error: "reCAPTCHA token diperlukan" }, 400);
+    // VALIDASI DENGAN ZOD
+    const validation = await validateRequest(c, loginSchema);
+    if (!validation.success) {
+      return c.json({ error: validation.error.message, details: validation.error.details }, 400);
     }
     
+    const body = validation.data;
+    console.log('Login attempt for email:', body.email);
+
     const isValid = await verifyRecaptcha(body.recaptchaToken);
     if (!isValid) {
       return c.json({ error: "Verifikasi reCAPTCHA gagal" }, 400);
-    }
-
-    if (!body.email || !body.password) {
-      return c.json({ error: "Email dan password harus diisi" }, 400);
     }
 
     // SELECT dengan last_active (sudah ada di database)
@@ -79,7 +84,7 @@ app.post("/login", async (c) => {
         tokenAkses: users_26.tokenAkses,
         tokenExpired: users_26.tokenExpired,
         isActive: users_26.isActive,
-        lastActive: users_26.lastActive,           // <-- TAMBAHKAN KEMBALI
+        lastActive: users_26.lastActive,
         lastNotifRead: users_26.lastNotifRead,
         createdAt: users_26.createdAt,
         updatedAt: users_26.updatedAt
@@ -109,7 +114,7 @@ app.post("/login", async (c) => {
       .set({ 
         tokenAkses: token, 
         tokenExpired: expiredAt,
-        lastActive: new Date()                    // <-- UPDATE last_active saat login
+        lastActive: new Date()
       })
       .where(eq(users_26.id, user.id));
 
@@ -129,23 +134,17 @@ app.post("/login", async (c) => {
 // POST /api/users/register - Register
 app.post("/register", async (c) => {
   try {
-    const body = await c.req.json();
-
-    if (!body.recaptchaToken) {
-      return c.json({ error: "reCAPTCHA token diperlukan" }, 400);
+    // VALIDASI DENGAN ZOD
+    const validation = await validateRequest(c, registerSchema);
+    if (!validation.success) {
+      return c.json({ error: validation.error.message, details: validation.error.details }, 400);
     }
     
+    const body = validation.data;
+
     const isValid = await verifyRecaptcha(body.recaptchaToken);
     if (!isValid) {
       return c.json({ error: "Verifikasi reCAPTCHA gagal" }, 400);
-    }
-
-    if (!body.namaLengkap || !body.asalSekolah || !body.email || !body.password) {
-      return c.json({ error: "Data wajib harus diisi" }, 400);
-    }
-
-    if (body.password.length < 6) {
-      return c.json({ error: "Password minimal 6 karakter" }, 400);
     }
 
     // Cek email sudah terdaftar
@@ -180,7 +179,7 @@ app.post("/register", async (c) => {
         fotoProfil: "https://media.istockphoto.com/id/1495088043/id/vektor/ikon-profil-pengguna-avatar-atau-ikon-orang-gambar-profil-simbol-potret-gambar-potret.jpg?s=2048x2048&w=is&k=20&c=G7qTBxWs68Pm03TIb6rsOCo_m2JptQ8SVTrFfXq0kfU=",
         isActive: true,
         role: "user",
-        lastActive: new Date(),                    // <-- SET last_active saat register
+        lastActive: new Date(),
       })
       .returning();
 
@@ -209,7 +208,7 @@ app.get("/", async (c) => {
         asalSekolah: users_26.asalSekolah,
         title: users_26.title,
         fotoProfil: users_26.fotoProfil,
-        lastActive: users_26.lastActive,           // <-- TAMBAHKAN untuk online status
+        lastActive: users_26.lastActive,
         isActive: users_26.isActive
       })
       .from(users_26)
@@ -234,7 +233,7 @@ app.get("/leaderboard", async (c) => {
         asalSekolah: users_26.asalSekolah,
         title: users_26.title,
         fotoProfil: users_26.fotoProfil,
-        lastActive: users_26.lastActive,           // <-- TAMBAHKAN
+        lastActive: users_26.lastActive,
         totalLikes: sql`COALESCE(SUM(${posts.likeCount}), 0)::integer`
       })
       .from(users_26)
@@ -258,12 +257,13 @@ app.get("/leaderboard", async (c) => {
 // GET /api/users/:id
 app.get("/:id", async (c) => {
   try {
-    const idParam = c.req.param("id");
-    const id = parseInt(idParam);
-    
-    if (isNaN(id)) {
-      return c.json({ error: "ID tidak valid" }, 400);
+    // VALIDASI PARAM DENGAN ZOD
+    const validation = validateParams(c, userIdSchema);
+    if (!validation.success) {
+      return c.json({ error: validation.error.message, details: validation.error.details }, 400);
     }
+    
+    const { id } = validation.data;
     
     const [user] = await db
       .select({
@@ -280,7 +280,7 @@ app.get("/:id", async (c) => {
         tokenAkses: users_26.tokenAkses,
         tokenExpired: users_26.tokenExpired,
         isActive: users_26.isActive,
-        lastActive: users_26.lastActive,           // <-- TAMBAHKAN
+        lastActive: users_26.lastActive,          
         lastNotifRead: users_26.lastNotifRead,
         createdAt: users_26.createdAt,
         updatedAt: users_26.updatedAt
@@ -304,13 +304,20 @@ app.get("/:id", async (c) => {
 // PUT /api/users/:id
 app.put("/:id", async (c) => {
   try {
-    const idParam = c.req.param("id");
-    const id = parseInt(idParam);
-    const body = await c.req.json();
-    
-    if (isNaN(id)) {
-      return c.json({ error: "ID tidak valid" }, 400);
+    // VALIDASI PARAM DENGAN ZOD
+    const paramsValidation = validateParams(c, userIdSchema);
+    if (!paramsValidation.success) {
+      return c.json({ error: paramsValidation.error.message, details: paramsValidation.error.details }, 400);
     }
+    
+    // VALIDASI BODY DENGAN ZOD
+    const bodyValidation = await validateRequest(c, updateUserSchema);
+    if (!bodyValidation.success) {
+      return c.json({ error: bodyValidation.error.message, details: bodyValidation.error.details }, 400);
+    }
+    
+    const { id } = paramsValidation.data;
+    const body = bodyValidation.data;
     
     const [existingUser] = await db
       .select({
@@ -345,14 +352,16 @@ app.put("/:id", async (c) => {
   }
 });
 
-
 // ========== HEARTBEAT ==========
 app.post("/:id/heartbeat", async (c) => {
   try {
-    const idParam = c.req.param("id");
-    const id = parseInt(idParam);
+    // VALIDASI PARAM DENGAN ZOD
+    const validation = validateParams(c, userIdSchema);
+    if (!validation.success) {
+      return c.json({ error: validation.error.message, details: validation.error.details }, 400);
+    }
     
-    if (isNaN(id)) return c.json({ error: "ID tidak valid" }, 400);
+    const { id } = validation.data;
     
     await db
       .update(users_26)
@@ -383,35 +392,23 @@ app.post("/:id/heartbeat", async (c) => {
 // ========== ONLINE STATUS - VERSI DRIZZLE ==========
 app.post("/online-status", async (c) => {
   try {
-    const { userIds } = await c.req.json();
+    // VALIDASI BODY DENGAN ZOD
+    const validation = await validateRequest(c, onlineStatusSchema);
+    if (!validation.success) {
+      return c.json({ error: validation.error.message, details: validation.error.details }, 400);
+    }
+    
+    const { userIds } = validation.data;
     
     console.log('Online status request for users:', userIds);
-
-    if (!userIds || !Array.isArray(userIds)) {
-      return c.json({ error: "Invalid request" }, 400);
-    }
     
-    if (userIds.length === 0) {
-      return c.json({});
-    }
-    
-    // Filter userIds yang valid
-    const validUserIds = userIds.filter(id => id && !isNaN(id));
-    
-    if (validUserIds.length === 0) {
-      return c.json({});
-    }
-    
-    console.log('Valid user IDs:', validUserIds);
-    
-    // METODE 2: Menggunakan Drizzle dengan IN clause yang benar
     const users = await db
       .select({
         id: users_26.id,
         lastActive: users_26.lastActive
       })
       .from(users_26)
-      .where(sql`${users_26.id} IN (${sql.join(validUserIds, sql`, `)})`);
+      .where(sql`${users_26.id} IN (${sql.join(userIds, sql`, `)})`);
     
     console.log('Found users:', users.length);
     
@@ -439,12 +436,13 @@ app.post("/online-status", async (c) => {
 // POST /api/users/:id/upload-photo
 app.post("/:id/upload-photo", async (c) => {
   try {
-    const idParam = c.req.param("id");
-    const id = parseInt(idParam);
-    
-    if (isNaN(id)) {
-      return c.json({ error: "ID tidak valid" }, 400);
+    // VALIDASI PARAM DENGAN ZOD
+    const paramsValidation = validateParams(c, userIdSchema);
+    if (!paramsValidation.success) {
+      return c.json({ error: paramsValidation.error.message, details: paramsValidation.error.details }, 400);
     }
+    
+    const { id } = paramsValidation.data;
     
     const [existingUser] = await db
       .select({
@@ -499,7 +497,7 @@ app.post("/:id/upload-photo", async (c) => {
       .set({
         fotoProfil: publicUrl,
         fotoProfilPath: filePath,
-        lastActive: new Date(),                    // <-- UPDATE last_active
+        lastActive: new Date(),
         updatedAt: new Date()
       })
       .where(eq(users_26.id, id))
@@ -523,6 +521,10 @@ app.post("/logout", async (c) => {
     const body = await c.req.json();
     const token = body.token;
 
+    if (!token) {
+      return c.json({ error: "Token diperlukan" }, 400);
+    }
+
     const [user] = await db
       .select({
         id: users_26.id
@@ -543,7 +545,7 @@ app.post("/logout", async (c) => {
       .set({ 
         tokenAkses: null, 
         tokenExpired: null,
-        lastActive: new Date()                     // <-- UPDATE last_active saat logout
+        lastActive: new Date()
       })
       .where(eq(users_26.id, user.id));
 

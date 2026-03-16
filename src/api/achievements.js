@@ -1,11 +1,9 @@
-// ===================================================
-// FILE: achievements.js - API untuk Badge & Achievement
-// ===================================================
-
 import { Hono } from "hono";
 import { db } from "../db/index.js";
 import { achievements, userAchievements, users_26 } from "../db/schema.js";
 import { eq, and, desc, sql } from "drizzle-orm";
+import { achievementCheckSchema,userIdSchema, userPostSchema } from "../validators/schemas.js";
+import { validateRequest, validateParams } from "../utils/validate.js";
 
 const app = new Hono();
 
@@ -27,11 +25,15 @@ app.get("/", async (c) => {
 // ========== GET USER ACHIEVEMENTS ==========
 app.get("/user/:userId", async (c) => {
   try {
-    const userId = parseInt(c.req.param("userId"));
-    
-    if (isNaN(userId)) {
-      return c.json({ error: "User ID tidak valid" }, 400);
+    // VALIDASI PARAM DENGAN SCHEMA YANG BENAR
+    const validation = validateParams(c, userPostSchema); // <-- PAKAI userPostSchema
+    if (!validation.success) {
+      console.error('Validation error:', validation.error);
+      return c.json({ error: validation.error.message, details: validation.error.details }, 400);
     }
+    
+    const { userId } = validation.data;
+    console.log('Validated userId for achievements:', userId);
 
     const userAchs = await db
       .select({
@@ -64,12 +66,14 @@ app.get("/user/:userId", async (c) => {
 // ========== GET USER ACHIEVEMENT STATS ==========
 app.get("/stats/:userId", async (c) => {
   try {
-    const userId = parseInt(c.req.param("userId"));
-    
-    if (isNaN(userId)) {
-      return c.json({ error: "User ID tidak valid" }, 400);
+    // VALIDASI PARAM DENGAN SCHEMA YANG BENAR
+    const validation = validateParams(c, userPostSchema); // <-- PAKAI userPostSchema
+    if (!validation.success) {
+      console.error('Validation error:', validation.error);
+      return c.json({ error: validation.error.message, details: validation.error.details }, 400);
     }
-
+    
+    const { userId } = validation.data;
     console.log("Fetching achievement stats for user:", userId);
 
     // Hitung total achievements
@@ -166,11 +170,19 @@ app.get("/leaderboard/:category?", async (c) => {
 // ========== CHECK ACHIEVEMENT PROGRESS ==========
 app.post("/check/:userId", async (c) => {
   try {
-    const userId = parseInt(c.req.param("userId"));
-    
-    if (isNaN(userId)) {
-      return c.json({ error: "User ID tidak valid" }, 400);
+    // VALIDASI PARAM DENGAN ZOD
+    const paramsValidation = validateParams(c, userIdSchema);
+    if (!paramsValidation.success) {
+      return c.json({ error: paramsValidation.error.message, details: paramsValidation.error.details }, 400);
     }
+    
+    // VALIDASI BODY (jika ada)
+    const bodyValidation = await validateRequest(c, achievementCheckSchema);
+    if (!bodyValidation.success) {
+      return c.json({ error: bodyValidation.error.message, details: bodyValidation.error.details }, 400);
+    }
+    
+    const { id: userId } = paramsValidation.data;
 
     // Panggil fungsi pengecekan (implementasi di sini)
     

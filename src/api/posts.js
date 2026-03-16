@@ -2,13 +2,22 @@ import { Hono } from "hono";
 import { db } from "../db/index.js";
 import { posts, likes, users_26, comments, notifications, postViews } from "../db/schema.js";
 import { eq, and, desc, sql } from "drizzle-orm";
-import { broadcastToUser, broadcastToAll } from "../../index.js";
+import { broadcastToUser, broadcastToAll } from "../utils/websocket.js";
 import { 
   checkPostAchievements, 
   checkLikeAchievements, 
-  checkCommentAchievements,
-  checkSpecialAchievements 
+  checkCommentAchievements
 } from "../utils/achievement-check.js";
+import {
+   createPostSchema,
+  updatePostSchema,
+  postIdSchema,
+  userPostSchema,  // <-- PASTIKAN INI DI-IMPORT
+  createCommentSchema,
+  likeSchema,
+  viewSchema
+} from "../validators/schemas.js";
+import { validateRequest, validateParams } from "../utils/validate.js";
 
 const app = new Hono();
 
@@ -38,7 +47,6 @@ app.get("/", async (c) => {
       .from(posts)
       .leftJoin(users_26, eq(posts.userId, users_26.id))
       .orderBy(desc(posts.createdAt));
-      // HAPUS .limit() dan .offset()
 
     if (sekolah && sekolah !== "all") {
       query = query.where(eq(users_26.asalSekolah, sekolah));
@@ -58,11 +66,15 @@ app.get("/user/:userId", async (c) => {
   const startTime = Date.now();
 
   try {
-    const userId = parseInt(c.req.param("userId"));
-
-    if (isNaN(userId)) {
-      return c.json({ error: "User ID tidak valid" }, 400);
+    // VALIDASI PARAM DENGAN SCHEMA YANG BENAR
+    const validation = validateParams(c, userPostSchema); // <-- PAKAI userPostSchema, BUKAN postIdSchema
+    if (!validation.success) {
+      console.error('Validation error:', validation.error);
+      return c.json({ error: validation.error.message, details: validation.error.details }, 400);
     }
+    
+    const { userId } = validation.data;
+    console.log('Validated userId:', userId);
 
     const userPosts = await db
       .select({
@@ -85,7 +97,7 @@ app.get("/user/:userId", async (c) => {
     return c.json(userPosts);
   } catch (error) {
     console.error("❌ Get user posts error:", error);
-    return c.json([], 500);
+    return c.json({ error: error.message }, 500);
   }
 });
 
@@ -94,11 +106,13 @@ app.get("/:id", async (c) => {
   const startTime = Date.now();
 
   try {
-    const postId = parseInt(c.req.param("id"));
-
-    if (isNaN(postId)) {
-      return c.json({ error: "Post ID tidak valid" }, 400);
+    // VALIDASI PARAM DENGAN ZOD
+    const validation = validateParams(c, postIdSchema);
+    if (!validation.success) {
+      return c.json({ error: validation.error.message, details: validation.error.details }, 400);
     }
+    
+    const { id: postId } = validation.data;
 
     const [post] = await db
       .select({
@@ -132,11 +146,13 @@ app.post("/", async (c) => {
   const startTime = Date.now();
   
   try {
-    const body = await c.req.json();
-
-    if (!body.userId || !body.judul || !body.konten) {
-      return c.json({ error: "Data tidak lengkap" }, 400);
+    // VALIDASI BODY DENGAN ZOD
+    const validation = await validateRequest(c, createPostSchema);
+    if (!validation.success) {
+      return c.json({ error: validation.error.message, details: validation.error.details }, 400);
     }
+    
+    const body = validation.data;
 
     const [user] = await db
       .select({ id: users_26.id, namaLengkap: users_26.namaLengkap })
@@ -220,11 +236,13 @@ app.get("/:postId/comments", async (c) => {
   const startTime = Date.now();
   
   try {
-    const postId = parseInt(c.req.param("postId"));
-    
-    if (isNaN(postId)) {
-      return c.json({ error: "Post ID tidak valid" }, 400);
+    // VALIDASI PARAM DENGAN ZOD
+    const validation = validateParams(c, postIdSchema);
+    if (!validation.success) {
+      return c.json({ error: validation.error.message, details: validation.error.details }, 400);
     }
+    
+    const { id: postId } = validation.data;
 
     console.log(`📝 Fetching comments for post ${postId}`);
 
@@ -259,12 +277,20 @@ app.post("/:postId/comments", async (c) => {
   const startTime = Date.now();
   
   try {
-    const postId = parseInt(c.req.param("postId"));
-    const body = await c.req.json();
-
-    if (isNaN(postId) || !body.userId || !body.text) {
-      return c.json({ error: "Data tidak lengkap" }, 400);
+    // VALIDASI PARAM DENGAN ZOD
+    const paramsValidation = validateParams(c, postIdSchema);
+    if (!paramsValidation.success) {
+      return c.json({ error: paramsValidation.error.message, details: paramsValidation.error.details }, 400);
     }
+    
+    // VALIDASI BODY DENGAN ZOD
+    const bodyValidation = await validateRequest(c, createCommentSchema);
+    if (!bodyValidation.success) {
+      return c.json({ error: bodyValidation.error.message, details: bodyValidation.error.details }, 400);
+    }
+    
+    const { id: postId } = paramsValidation.data;
+    const body = bodyValidation.data;
 
     const [post] = await db
       .select()
@@ -365,13 +391,20 @@ app.post("/:id/like", async (c) => {
   const startTime = Date.now();
   
   try {
-    const postId = parseInt(c.req.param("id"));
-    const body = await c.req.json();
-    const userId = body.userId;
-
-    if (isNaN(postId) || !userId) {
-      return c.json({ error: "Data tidak valid" }, 400);
+    // VALIDASI PARAM DENGAN ZOD
+    const paramsValidation = validateParams(c, postIdSchema);
+    if (!paramsValidation.success) {
+      return c.json({ error: paramsValidation.error.message, details: paramsValidation.error.details }, 400);
     }
+    
+    // VALIDASI BODY DENGAN ZOD
+    const bodyValidation = await validateRequest(c, likeSchema);
+    if (!bodyValidation.success) {
+      return c.json({ error: bodyValidation.error.message, details: bodyValidation.error.details }, 400);
+    }
+    
+    const { id: postId } = paramsValidation.data;
+    const { userId } = bodyValidation.data;
 
     const [post] = await db
       .select()
@@ -502,12 +535,20 @@ app.put("/:id", async (c) => {
   const startTime = Date.now();
 
   try {
-    const postId = parseInt(c.req.param("id"));
-    const body = await c.req.json();
-
-    if (isNaN(postId)) {
-      return c.json({ error: "Post ID tidak valid" }, 400);
+    // VALIDASI PARAM DENGAN ZOD
+    const paramsValidation = validateParams(c, postIdSchema);
+    if (!paramsValidation.success) {
+      return c.json({ error: paramsValidation.error.message, details: paramsValidation.error.details }, 400);
     }
+    
+    // VALIDASI BODY DENGAN ZOD
+    const bodyValidation = await validateRequest(c, updatePostSchema);
+    if (!bodyValidation.success) {
+      return c.json({ error: bodyValidation.error.message, details: bodyValidation.error.details }, 400);
+    }
+    
+    const { id: postId } = paramsValidation.data;
+    const body = bodyValidation.data;
 
     const [existingPost] = await db
       .select()
@@ -548,11 +589,13 @@ app.delete("/:id", async (c) => {
   const startTime = Date.now();
 
   try {
-    const postId = parseInt(c.req.param("id"));
-
-    if (isNaN(postId)) {
-      return c.json({ error: "Post ID tidak valid" }, 400);
+    // VALIDASI PARAM DENGAN ZOD
+    const validation = validateParams(c, postIdSchema);
+    if (!validation.success) {
+      return c.json({ error: validation.error.message, details: validation.error.details }, 400);
     }
+    
+    const { id: postId } = validation.data;
 
     const [existingPost] = await db
       .select()
@@ -603,7 +646,7 @@ app.get("/leaderboard", async (c) => {
           namaLengkap: users_26.namaLengkap,
           asalSekolah: users_26.asalSekolah,
           fotoProfil: users_26.fotoProfil,
-          lastActive: users_26.lastActive, // <-- TAMBAHKAN
+          lastActive: users_26.lastActive,
         },
       })
       .from(posts)
@@ -630,12 +673,20 @@ app.post("/:id/view", async (c) => {
   const startTime = Date.now();
 
   try {
-    const postId = parseInt(c.req.param("id"));
-    const { userId } = await c.req.json();
-
-    if (isNaN(postId) || !userId) {
-      return c.json({ error: "Data tidak valid" }, 400);
+    // VALIDASI PARAM DENGAN ZOD
+    const paramsValidation = validateParams(c, postIdSchema);
+    if (!paramsValidation.success) {
+      return c.json({ error: paramsValidation.error.message, details: paramsValidation.error.details }, 400);
     }
+    
+    // VALIDASI BODY DENGAN ZOD
+    const bodyValidation = await validateRequest(c, viewSchema);
+    if (!bodyValidation.success) {
+      return c.json({ error: bodyValidation.error.message, details: bodyValidation.error.details }, 400);
+    }
+    
+    const { id: postId } = paramsValidation.data;
+    const { userId } = bodyValidation.data;
 
     // Update lastActive user yang view
     await db

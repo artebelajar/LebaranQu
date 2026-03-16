@@ -2,6 +2,8 @@ import { Hono } from "hono";
 import { db } from "../db/index.js";
 import { notifications, users_26, posts } from "../db/schema.js";
 import { eq, and, desc, sql } from "drizzle-orm";
+import { markReadSchema, userIdSchema } from "../validators/schemas.js";
+import { validateRequest, validateParams } from "../utils/validate.js";
 
 const app = new Hono();
 
@@ -11,8 +13,8 @@ app.get("/", async (c) => {
     const userId = parseInt(c.req.query("userId"));
     const limit = parseInt(c.req.query("limit") || "50");
     
-    if (!userId) {
-      return c.json({ error: "User ID required" }, 400);
+    if (!userId || isNaN(userId)) {
+      return c.json({ error: "User ID diperlukan" }, 400);
     }
 
     const userNotifications = await db
@@ -56,18 +58,20 @@ app.get("/", async (c) => {
 // POST /api/notifications/mark-read - Tandai notifikasi sebagai dibaca
 app.post("/mark-read", async (c) => {
   try {
-    const { userId, notificationIds } = await c.req.json();
-
-    if (!userId) {
-      return c.json({ error: "User ID required" }, 400);
+    // VALIDASI DENGAN ZOD
+    const validation = await validateRequest(c, markReadSchema);
+    if (!validation.success) {
+      return c.json({ error: validation.error.message, details: validation.error.details }, 400);
     }
+    
+    const { userId, notificationIds } = validation.data;
 
     if (notificationIds && notificationIds.length > 0) {
       // Tandai notifikasi tertentu
       await db
         .update(notifications)
         .set({ isRead: true })
-        .where(sql`${notifications.id} IN (${notificationIds.join(',')}) AND ${notifications.userId} = ${userId}`);
+        .where(sql`${notifications.id} = ANY(${notificationIds}::int[]) AND ${notifications.userId} = ${userId}`);
     } else {
       // Tandai semua notifikasi user sebagai dibaca
       await db
@@ -91,8 +95,8 @@ app.get("/unread-count", async (c) => {
   try {
     const userId = parseInt(c.req.query("userId"));
     
-    if (!userId) {
-      return c.json({ error: "User ID required" }, 400);
+    if (!userId || isNaN(userId)) {
+      return c.json({ error: "User ID diperlukan" }, 400);
     }
 
     const [result] = await db
@@ -115,8 +119,8 @@ app.delete("/clear", async (c) => {
   try {
     const userId = parseInt(c.req.query("userId"));
     
-    if (!userId) {
-      return c.json({ error: "User ID required" }, 400);
+    if (!userId || isNaN(userId)) {
+      return c.json({ error: "User ID diperlukan" }, 400);
     }
 
     await db
