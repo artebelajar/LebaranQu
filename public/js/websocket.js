@@ -1,11 +1,12 @@
 // ===================================================
-// FILE: public/js/websocket.js (FRONTEND - YANG BENAR)
+// FILE: public/js/websocket.js
 // ===================================================
 
-let ws = null;
-let sseSource = null;
-let reconnectAttempts = 0;
-const MAX_RECONNECT_ATTEMPTS = 5;
+// Gunakan var untuk menghindari redeclaration error
+var ws = null;
+var sseSource = null;
+var reconnectAttempts = 0;
+var MAX_RECONNECT_ATTEMPTS = 5; // Ganti dari const ke var
 
 // ========== WEBSOCKET CLIENT ==========
 function connectWebSocket() {
