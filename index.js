@@ -65,9 +65,6 @@ app.use('*', secureHeaders({
     ],
     frameSrc: ["'self'", "https://www.google.com", "https://recaptcha.google.com"],
   },
-  crossOriginEmbedderPolicy: false,
-  crossOriginOpenerPolicy: false,
-  crossOriginResourcePolicy: false,
 }));
 
 // ========== MIDDLEWARE ==========
@@ -85,16 +82,7 @@ app.use('*', compress({ threshold: 1024 }));
 const limiter = rateLimiter({
   windowMs: 60 * 1000,
   limit: 200,
-  standardHeaders: 'draft-7',
-  keyGenerator: (c) => {
-    const userId = c.req.query('userId') || c.req.header('x-user-id');
-    const ip = c.req.header('x-forwarded-for') || c.req.header('x-real-ip') || 'unknown';
-    return userId || ip;
-  },
-  skip: (c) => {
-    const path = c.req.path;
-    return path.includes('/api/users/login') || path.includes('/api/users/register');
-  }
+  keyGenerator: (c) => c.req.header('x-forwarded-for') || 'unknown',
 });
 
 app.use('/api/*', limiter);
@@ -106,91 +94,67 @@ app.route("/api/notifications", notificationsApi);
 app.route("/api/achievements", achievementsApi);
 app.route("/api/leaderboard", leaderboardApi);
 
-// ========== SSE ENDPOINT - PASTIKAN INI ADA ==========
+// ========== SSE ENDPOINT ==========
 app.get("/events", async (c) => {
   const userId = c.req.query('userId');
-  if (!userId) return c.json({ error: "User ID diperlukan" }, 400);
+  
+  if (!userId) {
+    return c.json({ error: "User ID diperlukan" }, 400);
+  }
   
   c.header('Content-Type', 'text/event-stream');
   c.header('Cache-Control', 'no-cache');
   c.header('Connection', 'keep-alive');
   
-  const { readable, writable } = new TransformStream();
-  const writer = writable.getWriter();
-  const encoder = new TextEncoder();
-  
-  // Kirim pesan koneksi berhasil
-  writer.write(encoder.encode(`data: ${JSON.stringify({ type: 'connected', userId })}\n\n`));
-  
-  // Kirim ping setiap 30 detik
-  const pingInterval = setInterval(() => {
-    writer.write(encoder.encode(`: ping\n\n`));
-  }, 30000);
-  
-  // Cleanup saat koneksi ditutup
-  c.req.raw.signal.addEventListener('abort', () => {
-    clearInterval(pingInterval);
-    writer.close();
-    console.log(`📡 SSE connection closed for user ${userId}`);
-  });
-  
-  return c.body(readable, 200);
+  return c.body(
+    new ReadableStream({
+      start(controller) {
+        controller.enqueue(`data: ${JSON.stringify({ type: 'connected', userId })}\n\n`);
+        
+        const pingInterval = setInterval(() => {
+          controller.enqueue(`: ping\n\n`);
+        }, 30000);
+        
+        c.req.raw.signal.addEventListener('abort', () => {
+          clearInterval(pingInterval);
+          controller.close();
+        });
+      },
+    })
+  );
 });
 
 // ========== STATIC FILES ==========
 app.use("/*", serveStatic({ root: join(__dirname, "public") }));
 
-// 404 handler
+// ========== 404 HANDLER ==========
 app.notFound((c) => {
-  return c.json({ error: "Not Found", message: "Endpoint tidak ditemukan" }, 404);
+  return c.json({ error: "Not Found" }, 404);
 });
 
-// Error handler
+// ========== ERROR HANDLER ==========
 app.onError((err, c) => {
   console.error('❌ Error:', err);
   return c.json({ error: err.message }, 500);
 });
 
-// Test endpoint untuk melihat bucket yang tersedia
-app.get('/api/list-buckets', async (c) => {
-  try {
-    const { StorageService } = await import('./src/utils/storage.js');
-    const result = await StorageService.listBuckets();
-    return c.json(result);
-  } catch (error) {
-    return c.json({ error: error.message }, 500);
-  }
-});
+// ========== HEALTH CHECK ==========
+app.get('/health', (c) => c.json({ status: 'ok', time: new Date() }));
 
 // ========== START SERVER ==========
 const port = process.env.PORT || 6006;
 
-const server = serve({
+serve({
   fetch: app.fetch,
   port,
-}, async (info) => {
+}, (info) => {
   console.log(`🚀 Server running at http://localhost:${info.port}`);
-  console.log(`📁 Using Supabase Storage for uploads`);
-  
-  // Test koneksi Supabase
-  try {
-    const { StorageService } = await import('./src/utils/storage.js');
-    const test = await StorageService.testConnection();
-    if (test.success) {
-      console.log(`✅ Supabase Storage connected`);
-    } else {
-      console.warn(`⚠️ Supabase Storage warning:`, test.error);
-    }
-  } catch (error) {
-    console.warn(`⚠️ Could not test Supabase`);
-  }
   
   // Inisialisasi WebSocket
-  try {
-    const { initWebSocket } = await import('./src/utils/websocket.js');
+  import('./src/utils/ws-client.js').then(({ initWebSocket }) => {
     initWebSocket(server);
     console.log(`🔌 WebSocket server running at ws://localhost:${info.port}/ws`);
-  } catch (wsError) {
-    console.log('📡 Falling back to SSE only');
-  }
+  }).catch(err => {
+    console.error('❌ WebSocket init failed:', err);
+  });
 });

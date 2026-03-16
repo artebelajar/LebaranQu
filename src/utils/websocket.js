@@ -74,6 +74,21 @@ function connectWebSocket() {
   }
 }
 
+function connectWebSocket() {
+  if (!currentUser) return;
+  
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const wsUrl = `${protocol}//${window.location.host}/ws?userId=${currentUser.id}`;
+  
+  try {
+    ws = new WebSocket(wsUrl);
+    // ... sisanya tetap
+  } catch (error) {
+    console.error('WebSocket error:', error);
+    connectSSE(); // fallback
+  }
+}
+
 // ========== SSE CLIENT (FALLBACK) ==========
 function connectSSE() {
   if (!currentUser) return;
