@@ -1466,12 +1466,23 @@
 
       // Go to profile
       function goToProfile(userId) {
+        // Jika userId diberikan, langsung ke profile dengan ID tersebut
         if (userId) {
           window.location.href = `/profile.html?id=${userId}`;
-        } else if (currentUser) {
+          return;
+        }
+
+        // Jika tidak ada userId, cek currentUser
+        if (currentUser && currentUser.id) {
           window.location.href = `/profile.html?id=${currentUser.id}`;
+        } else {
+          // Fallback ke profile tanpa ID (akan redirect ke login jika perlu)
+          window.location.href = "/profile.html";
         }
       }
+
+      // Export ke window
+      window.goToProfile = goToProfile;
 
       // Double tap to top
       let lastTap = 0;
@@ -1718,18 +1729,18 @@
     <script src="js/config.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/realtime.js"></script>
     <script src="js/leaderboard.js"></script>
     <script src="js/online-status.js"></script>
     <script src="js/typing.js"></script>
     <script src="js/share.js"></script>
-    <script src="js/realtime.js"></script>
     <script src="js/posts.js"></script>
     <script src="js/comments.js"></script>
     <script src="js/likes.js"></script>
     <script src="js/notifications.js"></script>
     <script src="js/school.js"></script>
     <script src="js/create-post.js"></script>
-    <script src="js/websocket.js"></script>
+    <!-- <script src="js/websocket.js"></script> -->
     <script src="js/dashboard.js"></script>
     <script>
       // Heartbeat

@@ -6,7 +6,7 @@ var sseSource = null;
 var reconnectAttempts = 0;
 var MAX_RECONNECT_ATTEMPTS = 5;
 
-// ========== SSE CLIENT (MAIN) ==========
+// ========== SSE CLIENT (SATU-SATUNYA KONEKSI REAL-TIME) ==========
 function connectSSE() {
   if (!currentUser) {
     console.warn('⚠️ Cannot connect SSE: No current user');
@@ -65,9 +65,9 @@ function connectSSE() {
   }
 }
 
-// ========== WEBSOCKET CLIENT (DISABLE - PAKAI SSE SAJA) ==========
+// ========== WEBSOCKET DINONAKTIFKAN ==========
 function connectWebSocket() {
-  console.log("⚠️ WebSocket not supported on Vercel, using SSE instead");
+  console.log("⚠️ WebSocket tidak digunakan, menggunakan SSE");
   connectSSE();
 }
 
