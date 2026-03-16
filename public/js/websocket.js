@@ -1,92 +1,22 @@
 // ===================================================
-// FILE: public/js/websocket.js
+// FILE: public/js/websocket.js (FRONTEND)
 // ===================================================
 
-// Gunakan var untuk menghindari redeclaration error
-var ws = null;
 var sseSource = null;
 var reconnectAttempts = 0;
-var MAX_RECONNECT_ATTEMPTS = 5; // Ganti dari const ke var
+var MAX_RECONNECT_ATTEMPTS = 5;
 
-// ========== WEBSOCKET CLIENT ==========
-function connectWebSocket() {
-  if (!currentUser) return;
-
-  // Gunakan wss:// untuk HTTPS, ws:// untuk HTTP
-  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-  const wsUrl = `${protocol}//${window.location.host}/ws?userId=${currentUser.id}`;
-
-  console.log("🔌 Connecting WebSocket to:", wsUrl);
-
-  try {
-    ws = new WebSocket(wsUrl);
-
-    ws.onopen = () => {
-      console.log("🔌 WebSocket connected");
-      reconnectAttempts = 0;
-
-      // Send ping every 30 seconds
-      if (window.pingInterval) clearInterval(window.pingInterval);
-      window.pingInterval = setInterval(() => {
-        if (ws && ws.readyState === WebSocket.OPEN) {
-          ws.send(JSON.stringify({ type: "ping" }));
-        }
-      }, 30000);
-    };
-
-    ws.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        console.log("📨 WebSocket message:", data);
-        if (window.handleRealtimeUpdate) {
-          window.handleRealtimeUpdate(data);
-        }
-      } catch (error) {
-        console.error("WebSocket message error:", error);
-      }
-    };
-
-    ws.onclose = (event) => {
-      console.log("🔌 WebSocket disconnected:", event.code, event.reason);
-
-      if (window.pingInterval) {
-        clearInterval(window.pingInterval);
-        window.pingInterval = null;
-      }
-
-      if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
-        reconnectAttempts++;
-        const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000);
-        console.log(
-          `🔄 Reconnecting in ${delay / 1000}s... (attempt ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})`,
-        );
-        setTimeout(connectWebSocket, delay);
-      } else {
-        console.log(
-          "❌ Max reconnection attempts reached, falling back to SSE",
-        );
-        connectSSE();
-      }
-    };
-
-    ws.onerror = (error) => {
-      console.error("WebSocket error:", error);
-    };
-  } catch (error) {
-    console.error("WebSocket connection error:", error);
-    connectSSE();
-  }
-}
-
-// ========== SSE CLIENT (FALLBACK) ==========
+// ========== SSE CLIENT (MAIN) ==========
 function connectSSE() {
-  if (!currentUser) return;
+  if (!currentUser) {
+    console.warn('⚠️ Cannot connect SSE: No current user');
+    return;
+  }
 
   if (sseSource) {
     sseSource.close();
   }
 
-  // Gunakan URL yang benar dengan protocol https
   const sseUrl = `/events?userId=${currentUser.id}`;
   console.log("📡 Connecting SSE to:", sseUrl);
 
@@ -94,7 +24,7 @@ function connectSSE() {
     sseSource = new EventSource(sseUrl);
 
     sseSource.onopen = () => {
-      console.log("📡 SSE connected");
+      console.log("✅ SSE connected");
       reconnectAttempts = 0;
     };
 
@@ -116,15 +46,17 @@ function connectSSE() {
       console.error("SSE error:", error);
 
       if (sseSource.readyState === EventSource.CLOSED) {
-        console.log("📡 SSE closed");
+        console.log("📡 SSE connection closed");
 
         if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
           reconnectAttempts++;
           const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000);
           console.log(
-            `🔄 Reconnecting SSE in ${delay / 1000}s... (attempt ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})`,
+            `🔄 Reconnecting SSE in ${delay / 1000}s... (attempt ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})`
           );
           setTimeout(connectSSE, delay);
+        } else {
+          console.log("❌ Max reconnection attempts reached");
         }
       }
     };
@@ -133,19 +65,17 @@ function connectSSE() {
   }
 }
 
+// ========== WEBSOCKET CLIENT (DISABLE - PAKAI SSE SAJA) ==========
+function connectWebSocket() {
+  console.log("⚠️ WebSocket not supported on Vercel, using SSE instead");
+  connectSSE();
+}
+
 // ========== CLOSE CONNECTIONS ==========
 function closeConnections() {
-  if (ws) {
-    ws.close();
-    ws = null;
-  }
   if (sseSource) {
     sseSource.close();
     sseSource = null;
-  }
-  if (window.pingInterval) {
-    clearInterval(window.pingInterval);
-    window.pingInterval = null;
   }
 }
 

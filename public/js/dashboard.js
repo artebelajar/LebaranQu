@@ -40,6 +40,14 @@ function initDashboard() {
     console.warn("postDetailContent element not found");
   }
 
+   try {
+    if (typeof connectSSE === 'function') {
+      connectSSE();
+    }
+  } catch (error) {
+    console.error('SSE connection failed:', error);
+  }
+
   document.getElementById("userNameDisplay").textContent = currentUser.namaLengkap;
   document.getElementById("ucapanNama").textContent = currentUser.namaLengkap;
 

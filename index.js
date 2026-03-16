@@ -94,7 +94,7 @@ app.route("/api/notifications", notificationsApi);
 app.route("/api/achievements", achievementsApi);
 app.route("/api/leaderboard", leaderboardApi);
 
-// ========== SSE ENDPOINT ==========
+// ========== SSE ENDPOINT (Server-Sent Events) ==========
 app.get("/events", async (c) => {
   const userId = c.req.query('userId');
   
@@ -102,26 +102,38 @@ app.get("/events", async (c) => {
     return c.json({ error: "User ID diperlukan" }, 400);
   }
   
+  console.log(`📡 SSE connection requested for user ${userId}`);
+  
+  // Set headers untuk SSE
   c.header('Content-Type', 'text/event-stream');
   c.header('Cache-Control', 'no-cache');
   c.header('Connection', 'keep-alive');
+  c.header('Access-Control-Allow-Origin', '*');
   
-  return c.body(
-    new ReadableStream({
-      start(controller) {
-        controller.enqueue(`data: ${JSON.stringify({ type: 'connected', userId })}\n\n`);
-        
-        const pingInterval = setInterval(() => {
+  // Buat stream
+  const stream = new ReadableStream({
+    start(controller) {
+      // Kirim pesan koneksi berhasil
+      controller.enqueue(`data: ${JSON.stringify({ type: 'connected', userId })}\n\n`);
+      
+      // Kirim ping setiap 30 detik
+      const pingInterval = setInterval(() => {
+        try {
           controller.enqueue(`: ping\n\n`);
-        }, 30000);
-        
-        c.req.raw.signal.addEventListener('abort', () => {
+        } catch (e) {
           clearInterval(pingInterval);
-          controller.close();
-        });
-      },
-    })
-  );
+        }
+      }, 30000);
+      
+      // Bersihkan interval saat koneksi ditutup
+      c.req.raw.signal.addEventListener('abort', () => {
+        clearInterval(pingInterval);
+        console.log(`📡 SSE connection closed for user ${userId}`);
+      });
+    }
+  });
+  
+  return c.body(stream, 200);
 });
 
 // ========== STATIC FILES ==========

@@ -126,3 +126,5 @@ function handleNewComment(postId, comment) {
     showToast(`${comment.user.namaLengkap} berkomentar`, "info");
   }
 }
+
+window.handleRealtimeUpdate = handleRealtimeUpdate;
