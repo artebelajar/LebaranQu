@@ -106,7 +106,7 @@ app.route("/api/notifications", notificationsApi);
 app.route("/api/achievements", achievementsApi);
 app.route("/api/leaderboard", leaderboardApi);
 
-// ========== SSE ENDPOINT ==========
+// ========== SSE ENDPOINT - PASTIKAN INI ADA ==========
 app.get("/events", async (c) => {
   const userId = c.req.query('userId');
   
@@ -114,20 +114,26 @@ app.get("/events", async (c) => {
     return c.json({ error: "User ID diperlukan" }, 400);
   }
   
+  console.log(`📡 SSE connection requested for user ${userId}`);
+  
   c.header('Content-Type', 'text/event-stream');
   c.header('Cache-Control', 'no-cache');
   c.header('Connection', 'keep-alive');
+  c.header('Access-Control-Allow-Origin', '*');
   
   const { readable, writable } = new TransformStream();
   const writer = writable.getWriter();
   const encoder = new TextEncoder();
   
+  // Kirim pesan koneksi berhasil
   writer.write(encoder.encode(`data: ${JSON.stringify({ type: 'connected', userId })}\n\n`));
   
+  // Kirim ping setiap 30 detik
   const pingInterval = setInterval(() => {
     writer.write(encoder.encode(`: ping\n\n`));
   }, 30000);
   
+  // Cleanup saat koneksi ditutup
   c.req.raw.signal.addEventListener('abort', () => {
     clearInterval(pingInterval);
     writer.close();
