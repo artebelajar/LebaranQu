@@ -8,7 +8,6 @@ import { rateLimiter } from 'hono-rate-limiter';
 import dotenv from "dotenv";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
-import postgres from "postgres";
 
 // Import routes
 import usersApi from "./src/api/users.js";
@@ -21,13 +20,6 @@ dotenv.config();
 
 const app = new Hono();
 const __dirname = dirname(fileURLToPath(import.meta.url));
-
-// Database connection
-const sql = postgres(process.env.DATABASE_URL, {
-  max: 10,
-  idle_timeout: 30,
-  connect_timeout: 10,
-});
 
 // ========== SECURITY HEADERS ==========
 app.use('*', secureHeaders({
@@ -102,54 +94,41 @@ app.route("/api/notifications", notificationsApi);
 app.route("/api/achievements", achievementsApi);
 app.route("/api/leaderboard", leaderboardApi);
 
-// ========== SSE ENDPOINT ==========
+// ========== SIMPLE SSE ENDPOINT ==========
 app.get("/events", (c) => {
   const userId = c.req.query('userId');
   
-  if (!userId) {
-    return c.json({ error: "User ID diperlukan" }, 400);
-  }
+  console.log(`📡 SSE request received for userId: ${userId}`);
   
-  console.log(`📡 SSE connection requested for user ${userId}`);
+  if (!userId) {
+    return c.text('Event stream berjalan', 200);
+  }
   
   c.header('Content-Type', 'text/event-stream');
   c.header('Cache-Control', 'no-cache');
   c.header('Connection', 'keep-alive');
   c.header('Access-Control-Allow-Origin', '*');
   
-  const stream = new ReadableStream({
-    start(controller) {
-      controller.enqueue(`data: ${JSON.stringify({ type: 'connected', userId })}\n\n`);
-      
-      const pingInterval = setInterval(() => {
-        try {
-          controller.enqueue(`: ping\n\n`);
-        } catch (e) {
-          clearInterval(pingInterval);
-        }
-      }, 30000);
-      
-      c.req.raw.signal.addEventListener('abort', () => {
-        clearInterval(pingInterval);
-        console.log(`📡 SSE connection closed for user ${userId}`);
-      });
-    }
+  return c.text(`data: ${JSON.stringify({ type: 'connected', userId })}\n\n`);
+});
+
+// ========== TEST ENDPOINT ==========
+app.get("/test", (c) => {
+  return c.text("Server is running!");
+});
+
+// ========== HEALTH CHECK ==========
+app.get("/health", (c) => {
+  return c.json({ 
+    status: 'ok', 
+    time: new Date().toISOString(),
+    env: process.env.NODE_ENV || 'development',
+    message: 'Server is healthy'
   });
-  
-  return c.body(stream, 200);
 });
 
 // ========== STATIC FILES ==========
 app.use("/*", serveStatic({ root: join(__dirname, "public") }));
-
-// ========== HEALTH CHECK ==========
-app.get('/health', (c) => {
-  return c.json({ 
-    status: 'ok', 
-    time: new Date().toISOString(),
-    env: process.env.NODE_ENV || 'development'
-  });
-});
 
 // ========== 404 HANDLER ==========
 app.notFound((c) => {
@@ -170,6 +149,7 @@ serve({
   port,
 }, (info) => {
   console.log(`🚀 Server running at http://localhost:${info.port}`);
-  console.log(`📡 SSE endpoint available at /events`);
+  console.log(`📡 SSE endpoint at /events`);
   console.log(`🔍 Health check at /health`);
+  console.log(`🧪 Test endpoint at /test`);
 });

@@ -17,12 +17,12 @@
       "dest": "/index.js"
     },
     {
-      "src": "/uploads/(.*)",
-      "dest": "/public/uploads/$1"
+      "src": "/events(.*)",
+      "dest": "/index.js"
     },
     {
-      "src": "/js/(.*)",
-      "dest": "/public/js/$1"
+      "src": "/health",
+      "dest": "/index.js"
     },
     {
       "src": "/(.*)",
@@ -31,11 +31,5 @@
   ],
   "env": {
     "NODE_ENV": "production"
-  },
-  "build": {
-    "env": {
-      "ENABLE_EXPERIMENTAL_CORE_PACK": "1"
-    }
-  },
-  "installCommand": "pnpm install --no-frozen-lockfile"
+  }
 }
