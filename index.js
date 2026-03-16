@@ -144,17 +144,32 @@ app.get('/health', (c) => c.json({ status: 'ok', time: new Date() }));
 // ========== START SERVER ==========
 const port = process.env.PORT || 6006;
 
-serve({
+const server = serve({
   fetch: app.fetch,
   port,
-}, (info) => {
+}, async (info) => {
   console.log(`🚀 Server running at http://localhost:${info.port}`);
+  console.log(`📁 Using Supabase Storage for uploads`);
   
-  // Inisialisasi WebSocket
-  import('./src/utils/ws-client.js').then(({ initWebSocket }) => {
-    initWebSocket(server);
-    console.log(`🔌 WebSocket server running at ws://localhost:${info.port}/ws`);
-  }).catch(err => {
-    console.error('❌ WebSocket init failed:', err);
-  });
+  // Inisialisasi WebSocket - PASTIKAN INI DIPANGGIL
+  try {
+    const { initWebSocket } = await import('./src/utils/websocket.js');
+    const wss = initWebSocket(server);
+    if (wss) {
+      console.log(`🔌 WebSocket server running at ws://localhost:${info.port}/ws`);
+      console.log(`🔒 For HTTPS: wss://${process.env.VERCEL_URL || 'yourdomain.com'}/ws`);
+    } else {
+      console.error('❌ Failed to initialize WebSocket server');
+    }
+  } catch (error) {
+    console.error('❌ WebSocket initialization error:', error);
+  }
+  
+  // Test koneksi database
+  try {
+    await sql`SELECT 1`;
+    console.log('✅ Database connected');
+  } catch (dbError) {
+    console.error('❌ Database connection failed:', dbError.message);
+  }
 });

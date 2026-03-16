@@ -8,60 +8,83 @@ const clients = new Map(); // userId -> WebSocket
 
 export function initWebSocket(server) {
   try {
-    wss = new WebSocketServer({ server, path: '/ws' });
+    console.log('🔌 Initializing WebSocket server...');
     
-    console.log(`🔌 WebSocket server initialized`);
+    wss = new WebSocketServer({ 
+      server, 
+      path: '/ws'  // PASTIKAN PATH INI SAMA DENGAN YANG DI FRONTEND
+    });
+    
+    console.log(`✅ WebSocket server initialized on path: /ws`);
 
     wss.on('connection', (ws, req) => {
-      const url = new URL(req.url, `http://${req.headers.host}`);
-      const userId = parseInt(url.searchParams.get('userId'));
+      try {
+        const url = new URL(req.url, `http://${req.headers.host}`);
+        const userId = parseInt(url.searchParams.get('userId'));
 
-      if (userId) {
-        clients.set(userId, ws);
-        console.log(`👤 User ${userId} connected to WebSocket`);
+        if (userId) {
+          clients.set(userId, ws);
+          console.log(`👤 User ${userId} connected to WebSocket. Total clients: ${clients.size}`);
 
-        broadcastToAll({
-          type: 'user_online',
-          userId: userId,
-          online: true,
-          timestamp: new Date()
+          // Broadcast ke semua user bahwa user ini online
+          broadcastToAll({
+            type: 'user_online',
+            userId: userId,
+            online: true,
+            timestamp: new Date()
+          });
+
+          // Kirim konfirmasi ke user yang baru connect
+          ws.send(JSON.stringify({
+            type: 'connected',
+            message: 'WebSocket connected successfully',
+            userId
+          }));
+        } else {
+          console.warn('⚠️ WebSocket connection without userId');
+          ws.close(1008, 'User ID required');
+        }
+
+        // Handle pesan dari client
+        ws.on('message', (message) => {
+          try {
+            const data = JSON.parse(message.toString());
+            if (data.type === 'ping') {
+              ws.send(JSON.stringify({ type: 'pong', timestamp: Date.now() }));
+            }
+          } catch (error) {
+            console.error('WebSocket message error:', error);
+          }
         });
 
-        ws.send(JSON.stringify({
-          type: 'connected',
-          message: 'WebSocket connected successfully',
-          userId
-        }));
+        // Handle koneksi ditutup
+        ws.on('close', (code, reason) => {
+          // Cari user mana yang terputus
+          for (const [id, client] of clients.entries()) {
+            if (client === ws) {
+              clients.delete(id);
+              console.log(`🔴 User ${id} disconnected. Total clients: ${clients.size}`);
+
+              // Broadcast ke semua user bahwa user ini offline
+              broadcastToAll({
+                type: 'user_online',
+                userId: id,
+                online: false,
+                timestamp: new Date()
+              });
+              break;
+            }
+          }
+        });
+
+        // Handle error
+        ws.on('error', (error) => {
+          console.error('WebSocket connection error:', error);
+        });
+
+      } catch (error) {
+        console.error('Error in WebSocket connection handler:', error);
       }
-
-      ws.on('message', (message) => {
-        try {
-          const data = JSON.parse(message.toString());
-          // Handle ping
-          if (data.type === 'ping') {
-            ws.send(JSON.stringify({ type: 'pong', timestamp: Date.now() }));
-          }
-        } catch (error) {
-          console.error('WebSocket message error:', error);
-        }
-      });
-
-      ws.on('close', () => {
-        for (const [id, client] of clients.entries()) {
-          if (client === ws) {
-            clients.delete(id);
-            console.log(`🔴 User ${id} disconnected from WebSocket`);
-
-            broadcastToAll({
-              type: 'user_online',
-              userId: id,
-              online: false,
-              timestamp: new Date()
-            });
-            break;
-          }
-        }
-      });
     });
 
     return wss;
@@ -73,7 +96,7 @@ export function initWebSocket(server) {
 
 export function broadcastToUser(userId, data) {
   const ws = clients.get(userId);
-  if (ws && ws.readyState === 1) {
+  if (ws && ws.readyState === 1) { // 1 = OPEN
     ws.send(JSON.stringify(data));
     return true;
   }
@@ -82,7 +105,7 @@ export function broadcastToUser(userId, data) {
 
 export function broadcastToAll(data) {
   clients.forEach((ws) => {
-    if (ws.readyState === 1) {
+    if (ws && ws.readyState === 1) {
       ws.send(JSON.stringify(data));
     }
   });
