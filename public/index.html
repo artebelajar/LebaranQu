@@ -1103,7 +1103,7 @@
       </div>
     </div>
 
-    <!-- Bottom Navigation untuk Mobile - Perbaiki bagian profile -->
+    <<!-- Bottom Navigation untuk Mobile - Perbaiki bagian profile -->
     <div class="bottom-nav md:hidden">
       <div
         class="nav-item"
@@ -1465,24 +1465,13 @@
       }
 
       // Go to profile
-      // ========== GO TO PROFILE FUNCTION ==========
       function goToProfile(userId) {
-        // Jika userId diberikan, langsung ke profile dengan ID tersebut
         if (userId) {
           window.location.href = `/profile.html?id=${userId}`;
-          return;
-        }
-
-        // Jika tidak ada userId, cek currentUser
-        if (currentUser && currentUser.id) {
+        } else if (currentUser) {
           window.location.href = `/profile.html?id=${currentUser.id}`;
-        } else {
-          // Fallback ke profile tanpa ID (akan redirect ke login jika perlu)
-          window.location.href = "/profile.html";
         }
       }
-
-      // Export ke window
 
       // Double tap to top
       let lastTap = 0;
@@ -1822,7 +1811,6 @@
           showToast("Gagal memproses link Instagram", "error");
         }
       };
-      window.goToProfile = goToProfile;
     </script>
   </body>
 </html>
