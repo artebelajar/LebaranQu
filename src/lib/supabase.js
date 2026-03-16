@@ -1,7 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import dotenv from 'dotenv';
 
-dotenv.config();
+// dotenv.config();
 
 if (!process.env.SUPABASE_URL) {
   throw new Error('SUPABASE_URL is not defined in .env');
