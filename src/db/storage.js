@@ -84,4 +84,18 @@ export class StorageService {
       return { success: false, error: error.message };
     }
   }
+  
+  static async listBuckets() {
+    try {
+      const { data, error } = await supabase.storage.listBuckets();
+      if (error) throw error;
+      return { 
+        success: true, 
+        buckets: data.map(b => ({ name: b.name, public: b.public })),
+        message: `Buckets available: ${data.map(b => b.name).join(', ')}`
+      };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
 }

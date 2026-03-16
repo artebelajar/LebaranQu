@@ -151,14 +151,14 @@ app.onError((err, c) => {
   return c.json({ error: err.message }, 500);
 });
 
-// Test endpoint untuk cek koneksi Supabase
-app.get('/api/storage-test', async (c) => {
+// Test endpoint untuk melihat bucket yang tersedia
+app.get('/api/list-buckets', async (c) => {
   try {
     const { StorageService } = await import('./src/utils/storage.js');
-    const result = await StorageService.testConnection();
+    const result = await StorageService.listBuckets();
     return c.json(result);
   } catch (error) {
-    return c.json({ success: false, error: error.message }, 500);
+    return c.json({ error: error.message }, 500);
   }
 });
 
@@ -187,7 +187,7 @@ const server = serve({
   
   // Inisialisasi WebSocket
   try {
-    const { initWebSocket } = await import('./src/utils/ws-client.js');
+    const { initWebSocket } = await import('./src/utils/websocket.js');
     initWebSocket(server);
     console.log(`🔌 WebSocket server running at ws://localhost:${info.port}/ws`);
   } catch (wsError) {
