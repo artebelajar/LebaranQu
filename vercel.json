@@ -1,17 +1,41 @@
 {
   "version": 2,
+  "name": "lebaranqu",
   "builds": [
     {
       "src": "index.js",
       "use": "@vercel/node"
     },
     {
-      "src": "public/**/*",
+      "src": "public/**",
       "use": "@vercel/static"
     }
   ],
   "routes": [
-    { "src": "/api(.*)", "dest": "/index.js" },
-    { "src": "/(.*)", "dest": "/public/$1" }
-  ]
+    {
+      "src": "/api/(.*)",
+      "dest": "/index.js"
+    },
+    {
+      "src": "/uploads/(.*)",
+      "dest": "/public/uploads/$1"
+    },
+    {
+      "src": "/js/(.*)",
+      "dest": "/public/js/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/public/$1"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  },
+  "build": {
+    "env": {
+      "ENABLE_EXPERIMENTAL_CORE_PACK": "1"
+    }
+  },
+  "installCommand": "pnpm install --no-frozen-lockfile"
 }
