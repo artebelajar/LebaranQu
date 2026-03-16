@@ -2020,6 +2020,159 @@
         }
       };
 
+      // ========== LOAD PROFILE DENGAN ERROR HANDLING LEBIH BAIK ==========
+      window.loadProfile = async function () {
+        try {
+          console.log("Loading profile...");
+
+          document.getElementById("loadingState").classList.remove("hidden");
+          document.getElementById("profileContent").classList.add("hidden");
+          document.getElementById("errorState").classList.add("hidden");
+
+          // Dapatkan ID dari URL
+          const urlParams = new URLSearchParams(window.location.search);
+          let userIdToLoad = urlParams.get("id");
+
+          console.log("Raw profile ID from URL:", userIdToLoad);
+
+          // Jika tidak ada ID di URL, gunakan ID user yang login
+          if (!userIdToLoad) {
+            if (!currentUser) {
+              throw new Error("Tidak ada user yang login");
+            }
+            userIdToLoad = currentUser.id;
+            console.log("No ID in URL, showing own profile:", userIdToLoad);
+          } else {
+            // Konversi ke number
+            userIdToLoad = parseInt(userIdToLoad);
+            if (isNaN(userIdToLoad)) {
+              throw new Error("ID user tidak valid");
+            }
+            console.log("Loading profile for user ID:", userIdToLoad);
+          }
+
+          // Fetch data user
+          const userRes = await fetch(`${API_BASE}/users/${userIdToLoad}`);
+
+          if (userRes.status === 404) {
+            console.error(`User with ID ${userIdToLoad} not found`);
+
+            // Tampilkan pesan error yang lebih user-friendly
+            document.getElementById("loadingState").classList.add("hidden");
+            document.getElementById("errorState").classList.remove("hidden");
+
+            const errorMessage = document.getElementById("errorMessage");
+            errorMessage.innerHTML = `
+        User dengan ID ${userIdToLoad} tidak ditemukan.<br>
+        <span class="text-sm mt-2 block">Mungkin user sudah dihapus atau ID salah.</span>
+      `;
+
+            // Tambahkan tombol untuk kembali ke profile sendiri
+            const errorState = document.getElementById("errorState");
+            const existingButton = errorState.querySelector(
+              ".back-to-own-profile",
+            );
+
+            if (!existingButton && currentUser) {
+              const backButton = document.createElement("button");
+              backButton.className =
+                "back-to-own-profile mt-4 bg-emerald-600 text-white px-6 py-3 rounded-xl hover:bg-emerald-700 transition block w-full";
+              backButton.innerHTML =
+                '<i class="fas fa-user mr-2"></i>Lihat Profile Saya';
+              backButton.onclick = () => {
+                window.location.href = `/profile.html?id=${currentUser.id}`;
+              };
+              errorState.querySelector(".bg-red-50").appendChild(backButton);
+            }
+
+            return;
+          }
+
+          if (!userRes.ok) {
+            throw new Error(`HTTP error ${userRes.status}`);
+          }
+
+          window.profileUser = await userRes.json();
+          console.log("User data loaded:", profileUser);
+
+          // Update UI dasar
+          if (typeof window.updateProfileUI === "function") {
+            window.updateProfileUI();
+          }
+
+          // Setup UI berdasarkan kepemilikan
+          window.isOwnProfile =
+            !urlParams.get("id") ||
+            parseInt(urlParams.get("id")) === currentUser?.id;
+
+          if (typeof window.setupProfileUI === "function") {
+            window.setupProfileUI();
+          }
+
+          // Load user posts
+          if (typeof window.loadUserPosts === "function") {
+            await window.loadUserPosts(userIdToLoad);
+          }
+
+          // LOAD ACHIEVEMENTS
+          if (window.loadUserAchievements) {
+            try {
+              await window.loadUserAchievements(userIdToLoad);
+
+              if (window.renderAchievementBadges) {
+                const completedAchs = (window.userAchievements || []).filter(
+                  (ach) => ach.completed,
+                );
+                window.renderAchievementBadges(
+                  "recentBadges",
+                  completedAchs,
+                  4,
+                );
+              }
+
+              if (window.loadAchievementStats) {
+                const stats = await window.loadAchievementStats(userIdToLoad);
+                document.getElementById("totalAchievements").textContent =
+                  stats.completed || 0;
+              }
+            } catch (achError) {
+              console.error("Error loading achievements:", achError);
+            }
+          }
+
+          document.getElementById("loadingState").classList.add("hidden");
+          document.getElementById("profileContent").classList.remove("hidden");
+        } catch (error) {
+          console.error("Error loading profile:", error);
+
+          document.getElementById("loadingState").classList.add("hidden");
+          document.getElementById("errorState").classList.remove("hidden");
+
+          const errorMessage = document.getElementById("errorMessage");
+          errorMessage.textContent = error.message;
+
+          // Jika error karena user tidak ditemukan, tambahkan opsi untuk lihat profile sendiri
+          if (error.message.includes("tidak ditemukan") && currentUser) {
+            const errorState = document.getElementById("errorState");
+            const existingButton = errorState.querySelector(
+              ".back-to-own-profile",
+            );
+
+            if (!existingButton) {
+              const backButton = document.createElement("button");
+              backButton.className =
+                "back-to-own-profile mt-4 bg-emerald-600 text-white px-6 py-3 rounded-xl hover:bg-emerald-700 transition block w-full";
+              backButton.innerHTML =
+                '<i class="fas fa-user mr-2"></i>Lihat Profile Saya';
+              backButton.onclick = () => {
+                window.location.href = `/profile.html?id=${currentUser.id}`;
+              };
+              errorState.querySelector(".bg-red-50").appendChild(backButton);
+            }
+          }
+        }
+      };
+
       // ========== INISIALISASI ==========
       function initProfileWithFix() {
         // console.log("Initializing profile page with fixes...");

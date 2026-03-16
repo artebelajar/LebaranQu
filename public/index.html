@@ -22,10 +22,6 @@
     <!-- Optimasi font -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
-    />
     <title>LebaranQu - Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link
@@ -85,6 +81,7 @@
         -webkit-backdrop-filter: blur(10px);
         background: rgba(255, 255, 255, 0.95);
         border-top: 1px solid rgba(0, 0, 0, 0.05);
+        transition: transform 0.3s ease;
       }
 
       .nav-item {
@@ -399,8 +396,30 @@
           position: sticky;
           top: 5rem;
           height: fit-content;
-          max-height: calc(100vh - 6rem);
+          max-height: calc(100vh - 8rem);
           overflow-y: auto;
+        }
+
+        /* Perbaikan untuk container utama di desktop */
+        .container {
+          max-width: 1280px;
+          margin-left: auto;
+          margin-right: auto;
+          padding-left: 2rem;
+          padding-right: 2rem;
+        }
+
+        /* Hilangkan padding berlebih di section */
+        .space-y-6 {
+          --tw-space-y-reverse: 0;
+          margin-top: calc(1.5rem * calc(1 - var(--tw-space-y-reverse)));
+          margin-bottom: calc(1.5rem * var(--tw-space-y-reverse));
+        }
+
+        .md\\:space-y-8 {
+          --tw-space-y-reverse: 0;
+          margin-top: calc(2rem * calc(1 - var(--tw-space-y-reverse)));
+          margin-bottom: calc(2rem * var(--tw-space-y-reverse));
         }
       }
 
@@ -617,6 +636,28 @@
         background-color: #f9fafb;
         border-radius: 0.75rem;
         margin-bottom: 1rem;
+      }
+
+      /* Perbaikan untuk menghilangkan overlay berlebih di desktop */
+      .desktop-only {
+        display: none;
+      }
+      
+      @media (min-width: 768px) {
+        .desktop-only {
+          display: block;
+        }
+        
+        /* Pastikan tidak ada padding/margin berlebih */
+        .md\\:py-8 {
+          padding-top: 2rem;
+          padding-bottom: 2rem;
+        }
+        
+        .md\\:px-8 {
+          padding-left: 2rem;
+          padding-right: 2rem;
+        }
       }
     </style>
   </head>
@@ -1026,7 +1067,6 @@
               </div>
 
               <!-- Pagination -->
-              <!-- Di index.html, cari bagian posts list, pastikan ada ini: -->
               <div
                 id="paginationContainer"
                 class="flex justify-center items-center space-x-2 mt-6"
@@ -1364,11 +1404,9 @@
 
         if (Math.abs(swipeDistance) > minSwipeDistance) {
           if (swipeDistance > 0) {
-            // Swipe kanan - navigasi ke halaman sebelumnya
-            // console.log("Swipe kanan");
+            // Swipe kanan
           } else {
-            // Swipe kiri - navigasi ke halaman berikutnya
-            // console.log("Swipe kiri");
+            // Swipe kiri
           }
         }
       }
@@ -1478,7 +1516,6 @@
 
       // ========== NOTIFIKASI MOBILE ==========
 
-      // Load notifikasi untuk mobile
       async function loadMobileNotifications() {
         if (!currentUser) return;
 
@@ -1510,23 +1547,21 @@
             listEl.classList.remove("hidden");
           }
 
-          // Update badge di bottom nav
           updateMobileNotificationBadge();
         } catch (error) {
           console.error("Error loading mobile notifications:", error);
           loadingEl.classList.add("hidden");
           emptyEl.classList.remove("hidden");
           emptyEl.innerHTML = `
-      <i class="fas fa-exclamation-circle text-4xl text-red-300 mb-3"></i>
-      <p class="text-sm text-red-500">Gagal memuat notifikasi</p>
-      <button onclick="loadMobileNotifications()" class="mt-2 text-xs text-emerald-600">
-        Coba lagi
-      </button>
-    `;
+            <i class="fas fa-exclamation-circle text-4xl text-red-300 mb-3"></i>
+            <p class="text-sm text-red-500">Gagal memuat notifikasi</p>
+            <button onclick="loadMobileNotifications()" class="mt-2 text-xs text-emerald-600">
+              Coba lagi
+            </button>
+          `;
         }
       }
 
-      // Render notifikasi mobile
       function renderMobileNotifications() {
         const listEl = document.getElementById("mobileNotificationList");
 
@@ -1537,65 +1572,50 @@
             const icon = getNotificationIcon(notif.type);
 
             return `
-      <div class="p-3 bg-gray-50 rounded-lg ${isUnread ? "border-l-4 border-emerald-500" : ""} active:bg-gray-100 transition cursor-pointer"
-           onclick="handleMobileNotificationClick(${notif.id}, '${notif.type}', ${notif.postId || "null"})">
-        <div class="flex gap-3">
-          <div class="flex-shrink-0 w-8 h-8 rounded-full bg-${icon.bgColor} flex items-center justify-center">
-            <i class="fas ${icon.icon} text-${icon.color}"></i>
-          </div>
-          <div class="flex-1">
-            <div class="flex justify-between items-start">
-              <p class="text-sm text-gray-800">${notif.message}</p>
-              ${isUnread ? '<span class="w-2 h-2 bg-emerald-500 rounded-full"></span>' : ""}
-            </div>
-            <div class="flex items-center gap-2 mt-1">
-              ${
-                notif.fromUser
-                  ? `
-                <img src="${notif.fromUser.fotoProfil || "/images/default-avatar.png"}" 
-                     class="w-4 h-4 rounded-full object-cover">
-                <span class="text-xs text-gray-500">${notif.fromUser.namaLengkap}</span>
-              `
-                  : ""
-              }
-              <span class="text-xs text-gray-400">${timeAgo}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
+              <div class="p-3 bg-gray-50 rounded-lg ${isUnread ? "border-l-4 border-emerald-500" : ""} active:bg-gray-100 transition cursor-pointer"
+                   onclick="handleMobileNotificationClick(${notif.id}, '${notif.type}', ${notif.postId || "null"})">
+                <div class="flex gap-3">
+                  <div class="flex-shrink-0 w-8 h-8 rounded-full bg-${icon.bgColor} flex items-center justify-center">
+                    <i class="fas ${icon.icon} text-${icon.color}"></i>
+                  </div>
+                  <div class="flex-1">
+                    <div class="flex justify-between items-start">
+                      <p class="text-sm text-gray-800">${notif.message}</p>
+                      ${isUnread ? '<span class="w-2 h-2 bg-emerald-500 rounded-full"></span>' : ""}
+                    </div>
+                    <div class="flex items-center gap-2 mt-1">
+                      ${
+                        notif.fromUser
+                          ? `
+                            <img src="${notif.fromUser.fotoProfil || "/images/default-avatar.png"}" 
+                                 class="w-4 h-4 rounded-full object-cover">
+                            <span class="text-xs text-gray-500">${notif.fromUser.namaLengkap}</span>
+                          `
+                          : ""
+                      }
+                      <span class="text-xs text-gray-400">${timeAgo}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            `;
           })
           .join("");
       }
 
-      // Handle klik notifikasi di mobile
-      async function handleMobileNotificationClick(
-        notificationId,
-        type,
-        postId,
-      ) {
-        // Tandai sebagai dibaca
+      async function handleMobileNotificationClick(notificationId, type, postId) {
         await markNotificationRead([notificationId]);
-
-        // Update list
         await loadMobileNotifications();
-
-        // Update badge
         updateMobileNotificationBadge();
 
-        // Aksi berdasarkan tipe
         if (postId) {
-          // Tutup sheet dulu
           hideNotificationSheet();
-
-          // Redirect ke halaman post detail
           setTimeout(() => {
             window.location.href = `/post-detail.html?id=${postId}`;
           }, 300);
         }
       }
 
-      // Update badge notifikasi di bottom nav
       function updateMobileNotificationBadge() {
         const badge = document.querySelector(
           '.nav-item[data-page="notifications"] .notification-badge',
@@ -1603,7 +1623,6 @@
 
         if (mobileUnreadCount > 0) {
           if (!badge) {
-            // Buat badge baru
             const notifItem = document.querySelector(
               '.nav-item[data-page="notifications"]',
             );
@@ -1624,20 +1643,18 @@
         }
       }
 
-      // Tandai semua notifikasi sebagai dibaca di mobile
       async function markAllMobileNotificationsRead() {
         await markNotificationRead();
         await loadMobileNotifications();
       }
 
-      // Toggle notification sheet
       function toggleNotificationSheet() {
         const sheet = document.getElementById("notificationSheet");
         sheet.classList.toggle("show");
 
         if (sheet.classList.contains("show")) {
           loadMobileNotifications();
-          document.body.style.overflow = "hidden"; // Prevent background scrolling
+          document.body.style.overflow = "hidden";
         } else {
           document.body.style.overflow = "";
         }
@@ -1648,7 +1665,6 @@
         document.body.style.overflow = "";
       }
 
-      // Close sheet with handle drag
       let sheetStartY = 0;
       let sheetCurrentY = 0;
 
@@ -1671,7 +1687,6 @@
             const diff = sheetCurrentY - sheetStartY;
 
             if (diff > 0) {
-              // Drag down
               sheet.style.transform = `translateY(${diff}px)`;
             }
           },
@@ -1682,7 +1697,6 @@
           const diff = sheetCurrentY - sheetStartY;
 
           if (diff > 100) {
-            // Close sheet
             hideNotificationSheet();
           }
 
@@ -1692,7 +1706,6 @@
         });
       }
 
-      // Panggil setup setelah DOM ready
       document.addEventListener("DOMContentLoaded", setupSheetDrag);
     </script>
 

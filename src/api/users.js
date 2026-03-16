@@ -14,6 +14,7 @@ import {
   onlineStatusSchema
 } from "../validators/schemas.js";
 import { validateRequest, validateParams } from "../utils/validate.js";
+import { StorageService } from "../utils/storage.js"; 
 
 const app = new Hono();
 
@@ -440,10 +441,10 @@ app.post("/online-status", async (c) => {
   }
 });
 
-// POST /api/users/:id/upload-photo
+// ========== UPLOAD PHOTO - VERSI SUPABASE ==========
 app.post("/:id/upload-photo", async (c) => {
   try {
-    // VALIDASI PARAM DENGAN ZOD
+    // Validasi params
     const paramsValidation = validateParams(c, userIdSchema);
     if (!paramsValidation.success) {
       return c.json({ error: paramsValidation.error.message, details: paramsValidation.error.details }, 400);
@@ -451,6 +452,7 @@ app.post("/:id/upload-photo", async (c) => {
     
     const { id } = paramsValidation.data;
     
+    // Cek user exists
     const [existingUser] = await db
       .select({
         id: users_26.id,
@@ -465,6 +467,7 @@ app.post("/:id/upload-photo", async (c) => {
       return c.json({ error: "User tidak ditemukan" }, 404);
     }
     
+    // Parse form data
     const formData = await c.req.formData();
     const file = formData.get("foto");
     
@@ -472,50 +475,59 @@ app.post("/:id/upload-photo", async (c) => {
       return c.json({ error: "Tidak ada file yang diupload" }, 400);
     }
     
+    console.log('File received:', file.name, file.type, file.size);
+
+    // Validasi tipe file
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      return c.json({ 
+        error: "Tipe file tidak diizinkan. Gunakan JPG, PNG, GIF, atau WebP" 
+      }, 400);
+    }
+    
+    // Validasi ukuran file (2MB)
     if (file.size > 2 * 1024 * 1024) {
       return c.json({ error: "File terlalu besar. Maksimal 2MB" }, 400);
     }
-    
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-    if (!allowedTypes.includes(file.type)) {
-      return c.json({ error: "Tipe file tidak diizinkan. Gunakan JPG, PNG, GIF, atau WebP" }, 400);
+
+    try {
+      // Upload ke Supabase Storage
+      const { url, path } = await StorageService.uploadProfilePhoto(file, id);
+      
+      console.log('Upload successful:', url);
+
+      // Hapus file lama jika ada (opsional)
+      if (existingUser.fotoProfilPath) {
+        await StorageService.deleteFile(existingUser.fotoProfilPath).catch(err => {
+          console.warn('Failed to delete old file:', err.message);
+        });
+      }
+      
+      // Update database
+      const [updatedUser] = await db.update(users_26)
+        .set({
+          fotoProfil: url,
+          fotoProfilPath: path,
+          lastActive: new Date(),
+          updatedAt: new Date()
+        })
+        .where(eq(users_26.id, id))
+        .returning();
+      
+      const { password, ...userWithoutPassword } = updatedUser;
+      
+      return c.json({
+        message: "Foto profil berhasil diupload",
+        user: userWithoutPassword
+      });
+      
+    } catch (uploadError) {
+      console.error("Supabase upload error:", uploadError);
+      return c.json({ 
+        error: "Gagal upload ke Supabase: " + uploadError.message 
+      }, 500);
     }
     
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    
-    const timestamp = Date.now();
-    const extension = file.type.split('/')[1] || 'jpg';
-    const fileName = `profile-${id}-${timestamp}.${extension}`;
-    const filePath = `public/uploads/${fileName}`;
-    const publicUrl = `/uploads/${fileName}`;
-    
-    const fs = await import('fs');
-    const path = await import('path');
-    const uploadDir = path.join(process.cwd(), 'public/uploads');
-    
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    
-    fs.writeFileSync(path.join(process.cwd(), filePath), buffer);
-    
-    const [updatedUser] = await db.update(users_26)
-      .set({
-        fotoProfil: publicUrl,
-        fotoProfilPath: filePath,
-        lastActive: new Date(),
-        updatedAt: new Date()
-      })
-      .where(eq(users_26.id, id))
-      .returning();
-    
-    const { password, ...userWithoutPassword } = updatedUser;
-    
-    return c.json({
-      message: "Foto profil berhasil diupload",
-      user: userWithoutPassword
-    });
   } catch (error) {
     console.error("❌ Upload photo error:", error);
     return c.json({ error: error.message }, 500);

@@ -17,7 +17,7 @@ import notificationsApi from "./src/api/notifications.js";
 import achievementsApi from "./src/api/achievements.js";
 import leaderboardApi from "./src/api/leaderboard.js";
 
-// dotenv.config();
+dotenv.config();
 
 const app = new Hono();
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -64,7 +64,11 @@ app.use('*', secureHeaders({
       "https://media.istockphoto.com",
       "https://cdnjs.cloudflare.com",
       "https://www.gstatic.com",
-      "https://www.google.com"
+      "https://www.google.com",
+      "https://*.supabase.co",           
+      "https://*.supabase.in",           
+      "https://supabase.co",             
+      "https://supabase.in"  
     ],
     
     // CONNECT SOURCES - INI YANG PALING PENTING UNTUK FETCH API

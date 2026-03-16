@@ -22,10 +22,6 @@
     <!-- Optimasi font -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
-    />
     <title>Detail Post - LebaranQu</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link
@@ -34,9 +30,49 @@
     />
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap");
+      
       * {
         font-family: "Poppins", sans-serif;
         -webkit-tap-highlight-color: transparent;
+      }
+
+      /* Tambahkan padding bottom untuk konten utama agar tidak ketutupan tombol */
+      .content-container {
+        padding-bottom: 80px; /* Memberi ruang untuk tombol kembali ke atas */
+      }
+
+      /* Perbaikan untuk comment input */
+      .comment-input-container {
+        position: relative;
+        width: 100%;
+      }
+
+      /* Pastikan tombol kirim tidak ketutupan */
+      .comment-submit-btn {
+        flex-shrink: 0; /* Mencegah tombol mengecil */
+        white-space: nowrap;
+      }
+
+      /* Perbaikan untuk comments list - pastikan bisa di-scroll dengan baik */
+      #commentsList {
+        max-height: 400px;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch; /* Smooth scroll di iOS */
+        padding-right: 4px; /* Ruang untuk scrollbar */
+      }
+
+      /* Bottom action button positioning */
+      .scroll-top-btn {
+        position: fixed;
+        bottom: 20px;
+        right: 16px;
+        z-index: 50;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        transition: all 0.2s ease;
+      }
+
+      .scroll-top-btn:active {
+        transform: scale(0.95);
       }
 
       .fade-in {
@@ -139,8 +175,8 @@
       </div>
     </div>
 
-    <!-- Main Content -->
-    <div id="mainContent" class="hidden">
+    <!-- Main Content - Tambahkan class content-container untuk padding bottom -->
+    <div id="mainContent" class="hidden content-container">
       <!-- Author Info -->
       <div class="bg-white border-b">
         <div class="p-4">
@@ -247,46 +283,65 @@
             </h3>
           </div>
 
-          <!-- Comment Input -->
-          <div class="flex gap-2 mb-4">
+          <!-- Comment Input - Perbaiki layout -->
+          <div class="flex gap-2 mb-4 comment-input-container">
             <img
               src="/images/default-avatar.png"
               id="currentUserFoto"
-              class="w-8 h-8 rounded-full object-cover"
+              class="w-8 h-8 rounded-full object-cover flex-shrink-0"
             />
-            <div class="flex-1 flex gap-2">
+            <div class="flex-1 flex gap-2 min-w-0">
               <input
                 type="text"
                 id="commentInput"
                 placeholder="Tulis komentar..."
-                class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm"
+                class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm min-w-0"
               />
               <button
                 onclick="addComment()"
-                class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 active:scale-95 transition"
+                class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 active:scale-95 transition comment-submit-btn"
               >
                 <i class="fas fa-paper-plane"></i>
               </button>
             </div>
           </div>
 
-          <!-- Comments List -->
-          <div id="commentsList" class="space-y-3 max-h-96 overflow-y-auto">
+          <!-- Comments List - Pastikan ada max-height dan overflow -->
+          <div id="commentsList" class="space-y-3">
             <!-- Akan diisi JavaScript -->
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Bottom Action Button (Kembali ke Atas) -->
+    <!-- Bottom Action Button (Kembali ke Atas) - Sesuaikan posisi -->
     <button
       onclick="scrollToTop()"
-      class="fixed bottom-20 right-4 bg-emerald-600 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center active:scale-95 transition opacity-80 hover:opacity-100"
+      class="fixed bottom-4 right-4 bg-emerald-600 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center active:scale-95 transition opacity-80 hover:opacity-100 scroll-top-btn"
     >
       <i class="fas fa-arrow-up"></i>
     </button>
 
+    <!-- Tambahkan script untuk auto-hide scroll button saat di atas -->
     <script>
+      // Fungsi untuk hide/show scroll button
+      function toggleScrollButton() {
+        const scrollBtn = document.querySelector('.scroll-top-btn');
+        if (!scrollBtn) return;
+        
+        if (window.scrollY > 300) {
+          scrollBtn.style.display = 'flex';
+        } else {
+          scrollBtn.style.display = 'none';
+        }
+      }
+
+      // Listen untuk scroll event
+      window.addEventListener('scroll', toggleScrollButton);
+      
+      // Panggil sekali untuk inisialisasi
+      document.addEventListener('DOMContentLoaded', toggleScrollButton);
+
       const API_BASE = "/api";
       let currentUser = null;
       let currentPost = null;
@@ -412,15 +467,15 @@
                 (comment) => `
                         <div class="flex gap-2 comment-item p-2 rounded-lg hover:bg-gray-50 active:bg-gray-100 transition">
                             <img src="${comment.user?.fotoProfil || "/images/default-avatar.png"}" 
-                                 class="w-6 h-6 rounded-full object-cover cursor-pointer"
+                                 class="w-6 h-6 rounded-full object-cover cursor-pointer flex-shrink-0"
                                  onclick="goToProfile(${comment.user?.id})">
-                            <div class="flex-1">
-                                <div class="flex items-center gap-2">
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2 flex-wrap">
                                     <span class="font-medium text-xs cursor-pointer hover:text-emerald-600"
                                           onclick="goToProfile(${comment.user?.id})">${comment.user?.namaLengkap || "Unknown"}</span>
                                     <span class="text-xs text-gray-400">${formatTime(comment.createdAt)}</span>
                                 </div>
-                                <p class="text-sm text-gray-700">${comment.text}</p>
+                                <p class="text-sm text-gray-700 break-words">${comment.text}</p>
                             </div>
                         </div>
                     `,
