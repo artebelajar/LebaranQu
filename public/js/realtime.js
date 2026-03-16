@@ -1,24 +1,28 @@
 // ===================================================
-// FILE: public/js/realtime.js (CLEAN VERSION)
+// FILE: public/js/realtime.js
 // ===================================================
 
-let sseSource = null;
-let reconnectAttempts = 0;
-const MAX_RECONNECT_ATTEMPTS = 5;
+// Gunakan var untuk menghindari redeclaration
+var sseSource = null;
+var reconnectAttempts = 0;
+var MAX_RECONNECT_ATTEMPTS = 5;
 
 // ========== INITIALIZE SSE ==========
 function initSSE() {
-  // Gunakan window.currentUser
   if (!window.currentUser) {
     console.log('⚠️ No user logged in, SSE not started');
     return;
   }
+  console.log('📡 Initializing SSE for user:', window.currentUser.id);
   connectSSE();
 }
 
 // ========== SSE CLIENT ==========
 function connectSSE() {
-  if (!window.currentUser) return;
+  if (!window.currentUser) {
+    console.log('⚠️ No current user, cannot connect SSE');
+    return;
+  }
 
   if (sseSource) {
     sseSource.close();
@@ -58,8 +62,10 @@ function connectSSE() {
         if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
           reconnectAttempts++;
           const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000);
-          console.log(`🔄 Reconnecting SSE in ${delay / 1000}s...`);
+          console.log(`🔄 Reconnecting SSE in ${delay / 1000}s... (attempt ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})`);
           setTimeout(connectSSE, delay);
+        } else {
+          console.log("❌ Max reconnection attempts reached");
         }
       }
     };
@@ -86,10 +92,14 @@ function handleRealtimeUpdate(data) {
       handleUserOnline(data.userId, data.online);
       break;
     case 'new_post':
-      if (typeof handleNewPost === 'function') handleNewPost(data.post);
+      if (typeof window.handleNewPost === 'function') {
+        window.handleNewPost(data.post);
+      }
       break;
     case 'update_likes':
-      if (typeof handleLikeUpdate === 'function') handleLikeUpdate(data.postId, data.likeCount);
+      if (typeof window.handleLikeUpdate === 'function') {
+        window.handleLikeUpdate(data.postId, data.likeCount);
+      }
       break;
     default:
       console.log('Unknown event type:', data.type);

@@ -1,13 +1,11 @@
 // ===================================================
-// FILE: auth.js - Session Management (GLOBAL)
+// FILE: public/js/auth.js
 // ===================================================
 
-// Deklarasi global dengan var agar bisa diakses lintas file
-if (typeof currentUser === 'undefined') {
-  var currentUser = null;
-  var isAdmin = false;
-  var userLikes = new Set();
-}
+// Deklarasi global dengan var
+var currentUser = null;
+var isAdmin = false;
+var userLikes = new Set();
 
 // ========== CEK SESSION ==========
 function checkSession() {
@@ -26,18 +24,22 @@ function checkSession() {
   }
 
   try {
-    // Parse user dan simpan ke window
+    // Parse user
     const user = JSON.parse(savedUser);
-    window.currentUser = user;  // PASTIKAN INI ADA
-    currentUser = user;         // Untuk kompatibilitas
+    console.log("User parsed:", user);
+    
+    // Simpan ke window DAN ke variabel lokal
+    window.currentUser = user;
+    currentUser = user;
     isAdmin = user.role === "admin" || user.isAdmin === true;
     
-    console.log("User loaded:", user.namaLengkap, "ID:", user.id);
+    console.log("✅ User loaded:", user.namaLengkap, "ID:", user.id);
+    console.log("✅ window.currentUser set:", window.currentUser);
     
     loadUserLikes();
     return true;
   } catch (e) {
-    console.error("Error parsing user:", e);
+    console.error("❌ Error parsing user:", e);
     logout();
     return false;
   }
@@ -49,7 +51,7 @@ function loadUserLikes() {
     const savedLikes = localStorage.getItem(`userLikes_${currentUser.id}`);
     if (savedLikes) {
       userLikes = new Set(JSON.parse(savedLikes));
-      // console.log("Loaded user likes:", Array.from(userLikes));
+      console.log("Loaded user likes:", Array.from(userLikes));
     }
   } catch (e) {
     console.error("Error loading user likes:", e);
@@ -71,8 +73,7 @@ function saveUserLikes() {
 
 // ========== LOGOUT ==========
 function logout() {
-  // Cleanup akan ditambahkan dari file lain
-  if (window.cleanup) window.cleanup();
+  if (window.closeSSE) window.closeSSE();
   
   localStorage.removeItem("currentUser");
   localStorage.removeItem("userToken");
