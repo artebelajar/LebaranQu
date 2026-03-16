@@ -5,7 +5,7 @@
 // ========== LOAD USER POSTS ==========
 async function loadUserPosts(userId) {
   try {
-    console.log(`Loading all posts for user ${userId}...`);
+    // console.log(`Loading all posts for user ${userId}...`);
     
     const postsRes = await fetch(`${API_BASE}/posts/user/${userId}`);
     if (!postsRes.ok) {
@@ -14,7 +14,7 @@ async function loadUserPosts(userId) {
     }
 
     const posts = await postsRes.json();
-    console.log(`User posts loaded: ${posts.length} posts`);
+    // console.log(`User posts loaded: ${posts.length} posts`);
 
     // Hitung total likes
     const totalLikes = posts.reduce(

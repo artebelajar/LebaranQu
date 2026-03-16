@@ -7,13 +7,24 @@ let commentsVisible = {};
 // ========== LOAD COMMENTS ==========
 async function loadComments(postId) {
   try {
-    console.log(`📝 Loading comments for post ${postId}`);
+    // console.log(`📝 Loading comments for post ${postId}`);
     
     const response = await fetch(`${API_BASE}/posts/${postId}/comments`);
     
     if (!response.ok) {
-      console.error('Comments response:', response.status, response.statusText);
-      throw new Error(`Failed to load comments: ${response.status}`);
+      const errorText = await response.text();
+      console.error('Comments response:', response.status, response.statusText, errorText);
+      
+      // Coba parse error message
+      let errorMessage = `Failed to load comments: ${response.status}`;
+      try {
+        const errorData = JSON.parse(errorText);
+        errorMessage = errorData.error || errorMessage;
+      } catch (e) {
+        // Ignore parse error
+      }
+      
+      throw new Error(errorMessage);
     }
 
     const comments = await response.json();
@@ -22,8 +33,101 @@ async function loadComments(postId) {
     
   } catch (error) {
     console.error("Error loading comments:", error);
-    return []; 
+    
+    // Return empty array with error indicator
+    return { 
+      error: true, 
+      message: error.message,
+      data: [] 
+    };
   }
+}
+
+// ========== RENDER POST DETAIL DENGAN ERROR HANDLING ==========
+async function renderPostDetail(postId) {
+  // Hanya render jika bukan mobile
+  if (window.innerWidth < 768) {
+    // console.log("Mobile detected, skipping sidebar render");
+    return;
+  }
+  
+  // Cek apakah allPosts tersedia
+  if (typeof allPosts === 'undefined') {
+    console.error("allPosts is not defined");
+    return;
+  }
+  
+  const post = allPosts.find((p) => p.id === postId);
+  if (!post) {
+    console.error(`Post with id ${postId} not found`);
+    return;
+  }
+
+  const isLiked = userLikes ? userLikes.has(post.id) : false;
+  const comments = await loadComments(postId);
+  const commentCount = Array.isArray(comments) ? comments.length : 0;
+  const isOnline = onlineStatus && onlineStatus[post.user?.id] ? onlineStatus[post.user.id].online : false;
+
+  const detailContent = document.getElementById("postDetailContent");
+  if (!detailContent) {
+    console.error("Element #postDetailContent not found in DOM");
+    return;
+  }
+
+  // Escape post untuk JSON di atribut onclick
+  const postJSON = JSON.stringify(post).replace(/"/g, '&quot;');
+
+  // Tampilkan error jika comments gagal dimuat
+  const commentsHtml = comments.error 
+    ? `<div class="text-center py-4 text-red-500">
+        <i class="fas fa-exclamation-circle mr-1"></i>
+        Gagal memuat komentar: ${comments.message}
+       </div>`
+    : commentCount === 0 
+      ? '<p class="text-center text-gray-500 py-4 text-sm">Belum ada komentar. Jadilah yang pertama!</p>'
+      : comments.map(comment => `
+          <div class="flex gap-2 comment-item p-2 rounded-lg">
+            <img src="${comment.user?.fotoProfil || '/images/default-avatar.png'}" 
+                 class="w-5 h-5 md:w-6 md:h-6 rounded-full object-cover flex-shrink-0 cursor-pointer hover:opacity-80"
+                 onclick="goToProfile(${comment.user?.id})"
+                 onerror="this.src='/images/default-avatar.png'">
+            <div class="flex-1">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="font-medium text-xs md:text-sm cursor-pointer hover:text-emerald-600"
+                      onclick="goToProfile(${comment.user?.id})">${comment.user?.namaLengkap || "Unknown"}</span>
+                <span class="text-xs text-gray-400">${formatTime(comment.createdAt)}</span>
+              </div>
+              <p class="text-xs md:text-sm text-gray-700">${escapeHtml(comment.text)}</p>
+            </div>
+          </div>
+        `).join('');
+
+  detailContent.innerHTML = `
+    <div class="space-y-4">
+      <!-- Header, konten post, dll (sama seperti sebelumnya) -->
+      <!-- ... -->
+      
+      <!-- Comments Section -->
+      <div class="space-y-4 mt-4">
+        <div class="flex gap-2">
+          <img src="${currentUser?.fotoProfil || '/images/default-avatar.png'}" 
+               class="w-6 h-6 md:w-8 md:h-8 rounded-full object-cover flex-shrink-0">
+          <div class="flex-1 flex gap-2">
+            <input type="text" id="newCommentInput" 
+                   placeholder="Tulis komentar..." 
+                   class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm">
+            <button onclick="addComment(${post.id})" 
+                    class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition text-sm whitespace-nowrap">
+              <i class="fas fa-paper-plane"></i>
+            </button>
+          </div>
+        </div>
+        <div id="commentsList" class="space-y-3 max-h-60 overflow-y-auto pr-1">
+          ${commentsHtml}
+        </div>
+      </div>
+    </div>
+  `;
 }
 
 // ========== ADD COMMENT ==========
@@ -71,7 +175,7 @@ function toggleComments(postId) {
 async function renderPostDetail(postId) {
   // Hanya render jika bukan mobile
   if (window.innerWidth < 768) {
-    console.log("Mobile detected, skipping sidebar render");
+    // console.log("Mobile detected, skipping sidebar render");
     return;
   }
   // Cek apakah allPosts tersedia

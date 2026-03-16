@@ -2,6 +2,26 @@
 <html lang="id">
   <head>
     <meta charset="UTF-8" />
+    <!-- Optimasi Mobile -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#10b981" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+
+    <!-- Preload critical resources -->
+    <link rel="preload" href="https://cdn.tailwindcss.com" as="script" />
+    <link
+      rel="preload"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      as="style"
+    />
+
+    <!-- Optimasi font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
@@ -160,7 +180,9 @@
       /* Mobile styles */
       @media (max-width: 767px) {
         body {
-          padding-bottom: calc(var(--bottom-nav-height) + var(--safe-area-bottom));
+          padding-bottom: calc(
+            var(--bottom-nav-height) + var(--safe-area-bottom)
+          );
         }
 
         .desktop-nav {
@@ -251,7 +273,7 @@
 
       .contact-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 20px 30px -10px rgba(0,0,0,0.15);
+        box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.15);
       }
 
       /* Loading skeleton */
@@ -292,11 +314,7 @@
           </div>
 
           <div class="hidden md:flex items-center space-x-8">
-            <a
-              href="/"
-              class="text-gray-600 hover:text-emerald-600"
-              >Beranda</a
-            >
+            <a href="/" class="text-gray-600 hover:text-emerald-600">Beranda</a>
             <a
               href="/syarat.html"
               class="text-emerald-600 font-semibold border-b-2 border-emerald-600"
@@ -410,9 +428,7 @@
               >
             </div>
 
-            <h2
-              class="text-3xl md:text-5xl font-bold mb-2 md:mb-3"
-            >
+            <h2 class="text-3xl md:text-5xl font-bold mb-2 md:mb-3">
               <span
                 class="bg-gradient-to-r from-yellow-200 to-yellow-400 bg-clip-text text-transparent"
                 >THR 50rb</span
@@ -428,7 +444,8 @@
             </p>
 
             <p class="text-base md:text-lg text-emerald-200 italic">
-              "Berbagi kebahagiaan di hari yang fitri, mari kita sambung silaturahmi antar alumni."
+              "Berbagi kebahagiaan di hari yang fitri, mari kita sambung
+              silaturahmi antar alumni."
             </p>
           </div>
         </div>
@@ -436,102 +453,204 @@
 
       <!-- Card Persyaratan - Dengan style shadow seperti index -->
       <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8 mb-6 md:mb-8">
-        <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-1 md:mb-2 flex items-center">
+        <h2
+          class="text-2xl md:text-3xl font-bold text-gray-800 mb-1 md:mb-2 flex items-center"
+        >
           <i class="fas fa-clipboard-list text-emerald-600 mr-3"></i>
           Persyaratan & Ketentuan
         </h2>
-        <p class="text-sm md:text-base text-gray-600 mb-6 md:mb-8 border-b border-gray-200 pb-4">
+        <p
+          class="text-sm md:text-base text-gray-600 mb-6 md:mb-8 border-b border-gray-200 pb-4"
+        >
           THR 50k untuk 27 Pemenang (9 per sekolah)
         </p>
 
         <div class="space-y-4 md:space-y-6">
           <!-- Syarat 1-5 sama seperti sebelumnya -->
-          <div class="requirement-card flex items-start space-x-3 md:space-x-4 p-3 md:p-4 bg-emerald-50 rounded-xl cursor-pointer">
-            <div class="w-6 h-6 md:w-8 md:h-8 bg-emerald-600 text-white rounded-full flex items-center justify-center flex-shrink-0 text-sm md:text-base font-bold">1</div>
+          <div
+            class="requirement-card flex items-start space-x-3 md:space-x-4 p-3 md:p-4 bg-emerald-50 rounded-xl cursor-pointer"
+          >
+            <div
+              class="w-6 h-6 md:w-8 md:h-8 bg-emerald-600 text-white rounded-full flex items-center justify-center flex-shrink-0 text-sm md:text-base font-bold"
+            >
+              1
+            </div>
             <div>
-              <h3 class="font-semibold text-base md:text-lg text-gray-800">Terdaftar sebagai Alumni</h3>
-              <p class="text-xs md:text-sm text-gray-600">Mengisi form registrasi dengan data valid (nama, email, asal sekolah, dan nomor telepon aktif)</p>
+              <h3 class="font-semibold text-base md:text-lg text-gray-800">
+                Terdaftar sebagai Alumni
+              </h3>
+              <p class="text-xs md:text-sm text-gray-600">
+                Mengisi form registrasi dengan data valid (nama, email, asal
+                sekolah, dan nomor telepon aktif)
+              </p>
             </div>
           </div>
 
-          <div class="requirement-card flex items-start space-x-3 md:space-x-4 p-3 md:p-4 bg-emerald-50 rounded-xl cursor-pointer">
-            <div class="w-6 h-6 md:w-8 md:h-8 bg-emerald-600 text-white rounded-full flex items-center justify-center flex-shrink-0 text-sm md:text-base font-bold">2</div>
+          <div
+            class="requirement-card flex items-start space-x-3 md:space-x-4 p-3 md:p-4 bg-emerald-50 rounded-xl cursor-pointer"
+          >
+            <div
+              class="w-6 h-6 md:w-8 md:h-8 bg-emerald-600 text-white rounded-full flex items-center justify-center flex-shrink-0 text-sm md:text-base font-bold"
+            >
+              2
+            </div>
             <div>
-              <h3 class="font-semibold text-base md:text-lg text-gray-800">Nomor Telepon Aktif</h3>
-              <p class="text-xs md:text-sm text-gray-600">Peserta wajib memiliki nomor telepon yang dapat dihubungi untuk konfirmasi kemenangan dan pengiriman hadiah</p>
+              <h3 class="font-semibold text-base md:text-lg text-gray-800">
+                Nomor Telepon Aktif
+              </h3>
+              <p class="text-xs md:text-sm text-gray-600">
+                Peserta wajib memiliki nomor telepon yang dapat dihubungi untuk
+                konfirmasi kemenangan dan pengiriman hadiah
+              </p>
             </div>
           </div>
 
-          <div class="requirement-card flex items-start space-x-3 md:space-x-4 p-3 md:p-4 bg-emerald-50 rounded-xl cursor-pointer">
-            <div class="w-6 h-6 md:w-8 md:h-8 bg-emerald-600 text-white rounded-full flex items-center justify-center flex-shrink-0 text-sm md:text-base font-bold">3</div>
+          <div
+            class="requirement-card flex items-start space-x-3 md:space-x-4 p-3 md:p-4 bg-emerald-50 rounded-xl cursor-pointer"
+          >
+            <div
+              class="w-6 h-6 md:w-8 md:h-8 bg-emerald-600 text-white rounded-full flex items-center justify-center flex-shrink-0 text-sm md:text-base font-bold"
+            >
+              3
+            </div>
             <div>
-              <h3 class="font-semibold text-base md:text-lg text-gray-800">Membuat Cerita</h3>
-              <p class="text-xs md:text-sm text-gray-600">Setiap peserta wajib membuat minimal 1 cerita di halaman utama</p>
+              <h3 class="font-semibold text-base md:text-lg text-gray-800">
+                Membuat Cerita
+              </h3>
+              <p class="text-xs md:text-sm text-gray-600">
+                Setiap peserta wajib membuat minimal 1 cerita di halaman utama
+              </p>
             </div>
           </div>
 
-          <div class="requirement-card flex items-start space-x-3 md:space-x-4 p-3 md:p-4 bg-emerald-50 rounded-xl cursor-pointer">
-            <div class="w-6 h-6 md:w-8 md:h-8 bg-emerald-600 text-white rounded-full flex items-center justify-center flex-shrink-0 text-sm md:text-base font-bold">4</div>
+          <div
+            class="requirement-card flex items-start space-x-3 md:space-x-4 p-3 md:p-4 bg-emerald-50 rounded-xl cursor-pointer"
+          >
+            <div
+              class="w-6 h-6 md:w-8 md:h-8 bg-emerald-600 text-white rounded-full flex items-center justify-center flex-shrink-0 text-sm md:text-base font-bold"
+            >
+              4
+            </div>
             <div>
-              <h3 class="font-semibold text-base md:text-lg text-gray-800">Dipilih oleh Panitia</h3>
-              <p class="text-xs md:text-sm text-gray-600">Pemenang akan dipilih langsung oleh panitia berdasarkan kualitas cerita dan keaktifan di platform</p>
+              <h3 class="font-semibold text-base md:text-lg text-gray-800">
+                Dipilih oleh Panitia
+              </h3>
+              <p class="text-xs md:text-sm text-gray-600">
+                Pemenang akan dipilih langsung oleh panitia berdasarkan kualitas
+                cerita dan keaktifan di platform
+              </p>
             </div>
           </div>
 
-          <div class="requirement-card flex items-start space-x-3 md:space-x-4 p-3 md:p-4 bg-emerald-50 rounded-xl cursor-pointer">
-            <div class="w-6 h-6 md:w-8 md:h-8 bg-emerald-600 text-white rounded-full flex items-center justify-center flex-shrink-0 text-sm md:text-base font-bold">5</div>
+          <div
+            class="requirement-card flex items-start space-x-3 md:space-x-4 p-3 md:p-4 bg-emerald-50 rounded-xl cursor-pointer"
+          >
+            <div
+              class="w-6 h-6 md:w-8 md:h-8 bg-emerald-600 text-white rounded-full flex items-center justify-center flex-shrink-0 text-sm md:text-base font-bold"
+            >
+              5
+            </div>
             <div>
-              <h3 class="font-semibold text-base md:text-lg text-gray-800">Data Valid</h3>
-              <p class="text-xs md:text-sm text-gray-600">Pastikan data yang diisi valid dan dapat dipertanggungjawabkan. Pemenang akan dihubungi via nomor telepon yang didaftarkan</p>
+              <h3 class="font-semibold text-base md:text-lg text-gray-800">
+                Data Valid
+              </h3>
+              <p class="text-xs md:text-sm text-gray-600">
+                Pastikan data yang diisi valid dan dapat dipertanggungjawabkan.
+                Pemenang akan dihubungi via nomor telepon yang didaftarkan
+              </p>
             </div>
           </div>
 
           <!-- Info Pemenang -->
-          <div class="mt-6 md:mt-8 p-5 md:p-6 bg-gradient-to-r from-emerald-600 to-emerald-800 text-white rounded-xl shadow-lg">
-            <h3 class="text-xl md:text-2xl font-bold mb-3 md:mb-4 flex items-center">
+          <div
+            class="mt-6 md:mt-8 p-5 md:p-6 bg-gradient-to-r from-emerald-600 to-emerald-800 text-white rounded-xl shadow-lg"
+          >
+            <h3
+              class="text-xl md:text-2xl font-bold mb-3 md:mb-4 flex items-center"
+            >
               <i class="fas fa-trophy text-yellow-300 mr-2"></i>
               Hadiah Pemenang
             </h3>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
-              <div class="text-center p-3 bg-white/10 rounded-lg backdrop-blur-sm">
+              <div
+                class="text-center p-3 bg-white/10 rounded-lg backdrop-blur-sm"
+              >
                 <div class="text-2xl md:text-4xl font-bold">9</div>
                 <div class="text-xs md:text-sm opacity-90">SDIT Sahabat</div>
               </div>
-              <div class="text-center p-3 bg-white/10 rounded-lg backdrop-blur-sm">
+              <div
+                class="text-center p-3 bg-white/10 rounded-lg backdrop-blur-sm"
+              >
                 <div class="text-2xl md:text-4xl font-bold">9</div>
                 <div class="text-xs md:text-sm opacity-90">PPTQ Al-Madinah</div>
               </div>
-              <div class="text-center p-3 bg-white/10 rounded-lg backdrop-blur-sm">
+              <div
+                class="text-center p-3 bg-white/10 rounded-lg backdrop-blur-sm"
+              >
                 <div class="text-2xl md:text-4xl font-bold">9</div>
                 <div class="text-xs md:text-sm opacity-90">PPQIT Al-Mahir</div>
               </div>
             </div>
-            <div class="text-center mt-4 text-lg md:text-2xl font-bold bg-emerald-500/30 py-2 rounded-lg">
+            <div
+              class="text-center mt-4 text-lg md:text-2xl font-bold bg-emerald-500/30 py-2 rounded-lg"
+            >
               Total: 27 Pemenang x Rp 50.000
             </div>
           </div>
 
           <!-- Timeline -->
           <div class="mt-6 md:mt-8">
-            <h3 class="text-lg md:text-xl font-bold mb-3 md:mb-4 flex items-center">
+            <h3
+              class="text-lg md:text-xl font-bold mb-3 md:mb-4 flex items-center"
+            >
               <i class="fas fa-calendar-alt text-emerald-600 mr-2"></i>
               Timeline
             </h3>
             <div class="space-y-2 md:space-y-3">
-              <div class="flex flex-col md:flex-row md:items-center p-3 bg-gray-50 rounded-xl">
-                <div class="w-full md:w-32 font-semibold text-emerald-700 text-sm md:text-base">1-20 April 2026</div>
-                <div class="flex-1 text-sm md:text-base">Periode registrasi & posting cerita</div>
+              <div
+                class="flex flex-col md:flex-row md:items-center p-3 bg-gray-50 rounded-xl"
+              >
+                <div
+                  class="w-full md:w-32 font-semibold text-emerald-700 text-sm md:text-base"
+                >
+                  1-20 April 2026
+                </div>
+                <div class="flex-1 text-sm md:text-base">
+                  Periode registrasi & posting cerita
+                </div>
               </div>
-              <div class="flex flex-col md:flex-row md:items-center p-3 bg-gray-50 rounded-xl">
-                <div class="w-full md:w-32 font-semibold text-emerald-700 text-sm md:text-base">21-28 April 2026</div>
-                <div class="flex-1 text-sm md:text-base">Periode seleksi oleh panitia</div>
+              <div
+                class="flex flex-col md:flex-row md:items-center p-3 bg-gray-50 rounded-xl"
+              >
+                <div
+                  class="w-full md:w-32 font-semibold text-emerald-700 text-sm md:text-base"
+                >
+                  21-28 April 2026
+                </div>
+                <div class="flex-1 text-sm md:text-base">
+                  Periode seleksi oleh panitia
+                </div>
               </div>
-              <div class="flex flex-col md:flex-row md:items-center p-3 bg-gray-50 rounded-xl">
-                <div class="w-full md:w-32 font-semibold text-emerald-700 text-sm md:text-base">29 April 2026</div>
-                <div class="flex-1 text-sm md:text-base">Pengumuman pemenang via telepon</div>
+              <div
+                class="flex flex-col md:flex-row md:items-center p-3 bg-gray-50 rounded-xl"
+              >
+                <div
+                  class="w-full md:w-32 font-semibold text-emerald-700 text-sm md:text-base"
+                >
+                  29 April 2026
+                </div>
+                <div class="flex-1 text-sm md:text-base">
+                  Pengumuman pemenang via telepon
+                </div>
               </div>
-              <div class="flex flex-col md:flex-row md:items-center p-3 bg-gray-50 rounded-xl">
-                <div class="w-full md:w-32 font-semibold text-emerald-700 text-sm md:text-base">30 April 2026</div>
+              <div
+                class="flex flex-col md:flex-row md:items-center p-3 bg-gray-50 rounded-xl"
+              >
+                <div
+                  class="w-full md:w-32 font-semibold text-emerald-700 text-sm md:text-base"
+                >
+                  30 April 2026
+                </div>
                 <div class="flex-1 text-sm md:text-base">Pembagian THR</div>
               </div>
             </div>
@@ -541,81 +660,129 @@
 
       <!-- Kontak Pembuat Web -->
       <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8 mb-20 md:mb-8">
-        <h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-4 md:mb-6 flex items-center">
+        <h2
+          class="text-xl md:text-2xl font-bold text-gray-800 mb-4 md:mb-6 flex items-center"
+        >
           <i class="fas fa-address-card text-emerald-600 mr-2"></i>
           Kontak Pembuat Website
         </h2>
-        
+
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
           <!-- Profil Pembuat -->
-          <div class="contact-card bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl p-5 md:p-6 border border-emerald-100 shadow-md">
+          <div
+            class="contact-card bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl p-5 md:p-6 border border-emerald-100 shadow-md"
+          >
             <div class="flex items-center gap-3 md:gap-4 mb-3 md:mb-4">
-              <div class="w-12 h-12 md:w-16 md:h-16 bg-emerald-600 rounded-full flex items-center justify-center shadow-lg">
+              <div
+                class="w-12 h-12 md:w-16 md:h-16 bg-emerald-600 rounded-full flex items-center justify-center shadow-lg"
+              >
                 <span class="text-xl md:text-2xl font-bold text-white">A</span>
               </div>
               <div>
-                <h3 class="font-bold text-base md:text-xl text-gray-800">Ahmad Afan Shobari</h3>
-                <p class="text-xs md:text-sm text-gray-600">Web Developer & Founder</p>
+                <h3 class="font-bold text-base md:text-xl text-gray-800">
+                  Ahmad Afan Shobari
+                </h3>
+                <p class="text-xs md:text-sm text-gray-600">
+                  Web Developer & Founder
+                </p>
               </div>
             </div>
             <p class="text-gray-700 text-xs md:text-sm leading-relaxed">
-              Penggagas silaturahmi alumni lintas generasi. Website ini dibuat sebagai portofolio 
-              dan pembelajaran production website sederhana.
+              Penggagas silaturahmi alumni lintas generasi. Website ini dibuat
+              sebagai portofolio dan pembelajaran production website sederhana.
             </p>
           </div>
 
           <!-- Kontak Info -->
-          <div class="contact-card bg-gray-50 rounded-xl p-5 md:p-6 border border-gray-200 shadow-md">
-            <h4 class="font-semibold text-gray-800 mb-3 md:mb-4 flex items-center">
+          <div
+            class="contact-card bg-gray-50 rounded-xl p-5 md:p-6 border border-gray-200 shadow-md"
+          >
+            <h4
+              class="font-semibold text-gray-800 mb-3 md:mb-4 flex items-center"
+            >
               <i class="fas fa-phone-alt text-emerald-600 mr-2"></i>
               Informasi Kontak
             </h4>
-            
+
             <div class="space-y-3 md:space-y-4">
               <!-- WhatsApp -->
-              <div class="flex items-start gap-2 md:gap-3 p-2 hover:bg-white rounded-lg transition">
-                <div class="w-6 h-6 md:w-8 md:h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                  <i class="fab fa-whatsapp text-green-600 text-xs md:text-sm"></i>
+              <div
+                class="flex items-start gap-2 md:gap-3 p-2 hover:bg-white rounded-lg transition"
+              >
+                <div
+                  class="w-6 h-6 md:w-8 md:h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0"
+                >
+                  <i
+                    class="fab fa-whatsapp text-green-600 text-xs md:text-sm"
+                  ></i>
                 </div>
                 <div>
                   <p class="text-xs text-gray-500">WhatsApp</p>
-                  <a href="https://wa.me/6281234567890" target="_blank" class="text-sm md:text-base text-gray-800 font-medium hover:text-green-600 transition">
+                  <a
+                    href="https://wa.me/6281234567890"
+                    target="_blank"
+                    class="text-sm md:text-base text-gray-800 font-medium hover:text-green-600 transition"
+                  >
                     +62 812-3456-7890
                   </a>
                 </div>
               </div>
 
               <!-- Email -->
-              <div class="flex items-start gap-2 md:gap-3 p-2 hover:bg-white rounded-lg transition">
-                <div class="w-6 h-6 md:w-8 md:h-8 bg-emerald-100 rounded-full flex items-center justify-center flex-shrink-0">
-                  <i class="fas fa-envelope text-emerald-600 text-xs md:text-sm"></i>
+              <div
+                class="flex items-start gap-2 md:gap-3 p-2 hover:bg-white rounded-lg transition"
+              >
+                <div
+                  class="w-6 h-6 md:w-8 md:h-8 bg-emerald-100 rounded-full flex items-center justify-center flex-shrink-0"
+                >
+                  <i
+                    class="fas fa-envelope text-emerald-600 text-xs md:text-sm"
+                  ></i>
                 </div>
                 <div>
                   <p class="text-xs text-gray-500">Email</p>
-                  <a href="mailto:afan@almahir.com" class="text-sm md:text-base text-gray-800 font-medium hover:text-emerald-600 transition">
+                  <a
+                    href="mailto:afan@almahir.com"
+                    class="text-sm md:text-base text-gray-800 font-medium hover:text-emerald-600 transition"
+                  >
                     afan@almahir.com
                   </a>
                 </div>
               </div>
 
               <!-- Instagram -->
-              <div class="flex items-start gap-2 md:gap-3 p-2 hover:bg-white rounded-lg transition">
-                <div class="w-6 h-6 md:w-8 md:h-8 bg-pink-100 rounded-full flex items-center justify-center flex-shrink-0">
-                  <i class="fab fa-instagram text-pink-600 text-xs md:text-sm"></i>
+              <div
+                class="flex items-start gap-2 md:gap-3 p-2 hover:bg-white rounded-lg transition"
+              >
+                <div
+                  class="w-6 h-6 md:w-8 md:h-8 bg-pink-100 rounded-full flex items-center justify-center flex-shrink-0"
+                >
+                  <i
+                    class="fab fa-instagram text-pink-600 text-xs md:text-sm"
+                  ></i>
                 </div>
                 <div>
                   <p class="text-xs text-gray-500">Instagram</p>
-                  <a href="https://instagram.com/ahmad.afan" target="_blank" class="text-sm md:text-base text-gray-800 font-medium hover:text-pink-600 transition">
+                  <a
+                    href="https://instagram.com/ahmad.afan"
+                    target="_blank"
+                    class="text-sm md:text-base text-gray-800 font-medium hover:text-pink-600 transition"
+                  >
                     @ahmad.afan
                   </a>
                 </div>
               </div>
             </div>
 
-            <div class="mt-4 md:mt-6 p-3 bg-emerald-50 rounded-lg border border-emerald-200">
+            <div
+              class="mt-4 md:mt-6 p-3 bg-emerald-50 rounded-lg border border-emerald-200"
+            >
               <p class="text-xs text-emerald-700 flex items-start gap-2">
                 <i class="fas fa-info-circle mt-0.5"></i>
-                <span>Jika ada pertanyaan atau masukan, silakan hubungi melalui kontak di atas.</span>
+                <span
+                  >Jika ada pertanyaan atau masukan, silakan hubungi melalui
+                  kontak di atas.</span
+                >
               </p>
             </div>
           </div>
@@ -641,7 +808,11 @@
         <i class="fas fa-file-alt"></i>
         <span>Syarat</span>
       </div>
-      <div class="nav-item" data-page="create" onclick="window.location.href = '/'">
+      <div
+        class="nav-item"
+        data-page="create"
+        onclick="window.location.href = '/'"
+      >
         <i class="fas fa-plus-circle text-emerald-600 text-2xl"></i>
         <span>Buat</span>
       </div>
@@ -653,17 +824,9 @@
       >
         <i class="fas fa-bell"></i>
         <span>Notif</span>
-        <span
-          id="mobileNotifBadge"
-          class="notification-badge hidden"
-          >0</span
-        >
+        <span id="mobileNotifBadge" class="notification-badge hidden">0</span>
       </div>
-      <div
-        class="nav-item"
-        data-page="profile"
-        onclick="goToProfile()"
-      >
+      <div class="nav-item" data-page="profile" onclick="goToProfile()">
         <i class="fas fa-user"></i>
         <span>Profile</span>
       </div>
@@ -730,7 +893,7 @@
               </div>
             </div>
             <p class="text-gray-400 text-sm">
-              Penggagas silaturahmi alumni lintas generasi. Website portofolio 
+              Penggagas silaturahmi alumni lintas generasi. Website portofolio
               dan pembelajaran production website sederhana.
             </p>
           </div>
@@ -780,7 +943,8 @@
               </li>
               <li><i class="fas fa-mosque mr-2"></i>PPTQ Al-Madinah - Solo</li>
               <li>
-                <i class="fas fa-laptop-code mr-2"></i>PPQIT Al-Mahir - IT & Tahfidz
+                <i class="fas fa-laptop-code mr-2"></i>PPQIT Al-Mahir - IT &
+                Tahfidz
               </li>
             </ul>
           </div>
@@ -791,7 +955,8 @@
         >
           <p>© 2026 LebaranQu. All rights reserved.</p>
           <p class="text-sm mt-2">
-            Dibuat dengan <i class="fas fa-heart text-red-500"></i> oleh Ahmad Afan Shobari
+            Dibuat dengan <i class="fas fa-heart text-red-500"></i> oleh Ahmad
+            Afan Shobari
           </p>
         </div>
       </div>
@@ -808,14 +973,14 @@
       // ===================================================
       // FUNGSI-FUNGSI UNTUK HALAMAN SYARAT
       // ===================================================
-      
+
       // Variabel untuk notifikasi mobile
       let mobileNotifications = [];
       let mobileUnreadCount = 0;
 
       // Fungsi logout
       function logout() {
-        if (typeof cleanup === 'function') cleanup();
+        if (typeof cleanup === "function") cleanup();
         localStorage.removeItem("currentUser");
         localStorage.removeItem("userToken");
         window.location.href = "/login.html";
@@ -841,7 +1006,7 @@
       function toggleNotificationSheet() {
         const sheet = document.getElementById("notificationSheet");
         if (!sheet) return;
-        
+
         sheet.classList.toggle("show");
 
         if (sheet.classList.contains("show")) {
@@ -879,9 +1044,9 @@
             `${API_BASE}/notifications?userId=${currentUser.id}&limit=20`,
             {
               headers: {
-                'Authorization': `Bearer ${localStorage.getItem("userToken")}`
-              }
-            }
+                Authorization: `Bearer ${localStorage.getItem("userToken")}`,
+              },
+            },
           );
 
           if (!response.ok) throw new Error("Gagal memuat notifikasi");
@@ -900,12 +1065,12 @@
           }
 
           updateNotificationBadges();
-          
+
           // Juga update notifikasi di dropdown desktop
-          if (typeof notifications !== 'undefined') {
+          if (typeof notifications !== "undefined") {
             notifications = mobileNotifications;
             unreadCount = mobileUnreadCount;
-            if (typeof renderNotifications === 'function') {
+            if (typeof renderNotifications === "function") {
               renderNotifications();
             }
           }
@@ -934,7 +1099,8 @@
             const timeAgo = getTimeAgo(notif.createdAt);
             const icon = getNotificationIcon(notif.type);
             // Default avatar jika foto profil tidak ada
-            const fotoProfil = notif.fromUser?.fotoProfil || "/images/default-avatar.png";
+            const fotoProfil =
+              notif.fromUser?.fotoProfil || "/images/default-avatar.png";
 
             return `
               <div class="p-3 bg-gray-50 rounded-lg ${isUnread ? "border-l-4 border-emerald-500" : ""} notification-item cursor-pointer"
@@ -982,24 +1148,24 @@
       function handleNotificationClick(notificationId, type, postId) {
         // Tandai sebagai dibaca via API
         markNotificationRead([notificationId]);
-        
+
         // Update lokal
-        mobileNotifications = mobileNotifications.map(n => 
-          n.id === notificationId ? {...n, isRead: true} : n
+        mobileNotifications = mobileNotifications.map((n) =>
+          n.id === notificationId ? { ...n, isRead: true } : n,
         );
-        mobileUnreadCount = mobileNotifications.filter(n => !n.isRead).length;
-        
+        mobileUnreadCount = mobileNotifications.filter((n) => !n.isRead).length;
+
         renderMobileNotifications();
         updateNotificationBadges();
-        
+
         // Juga update di dropdown desktop
-        if (typeof notifications !== 'undefined') {
+        if (typeof notifications !== "undefined") {
           notifications = mobileNotifications;
-          if (typeof renderNotifications === 'function') {
+          if (typeof renderNotifications === "function") {
             renderNotifications();
           }
         }
-        
+
         // Redirect ke post jika ada postId
         if (postId) {
           setTimeout(() => {
@@ -1011,29 +1177,29 @@
       // Tandai notifikasi sebagai dibaca via API
       async function markNotificationRead(notificationIds) {
         if (!currentUser) return;
-        
+
         try {
           await fetch(`${API_BASE}/notifications/mark-read`, {
-            method: 'POST',
+            method: "POST",
             headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${localStorage.getItem('userToken')}`
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("userToken")}`,
             },
-            body: JSON.stringify({ notificationIds })
+            body: JSON.stringify({ notificationIds }),
           });
         } catch (error) {
-          console.error('Error marking notifications as read:', error);
+          console.error("Error marking notifications as read:", error);
         }
       }
 
       // Update semua badge notifikasi
       function updateNotificationBadges() {
-        const mobileBadge = document.getElementById('mobileNotifBadge');
-        const desktopBadge = document.getElementById('notificationBadge');
-        
+        const mobileBadge = document.getElementById("mobileNotifBadge");
+        const desktopBadge = document.getElementById("notificationBadge");
+
         if (mobileUnreadCount > 0) {
           const badgeText = mobileUnreadCount > 99 ? "99+" : mobileUnreadCount;
-          
+
           if (mobileBadge) {
             mobileBadge.textContent = badgeText;
             mobileBadge.classList.remove("hidden");
@@ -1050,32 +1216,36 @@
 
       // Toggle dropdown notifikasi (desktop)
       function toggleNotificationDropdown() {
-        const dropdown = document.getElementById('notificationDropdown');
+        const dropdown = document.getElementById("notificationDropdown");
         if (!dropdown) return;
-        
-        dropdown.classList.toggle('hidden');
-        
-        if (!dropdown.classList.contains('hidden')) {
+
+        dropdown.classList.toggle("hidden");
+
+        if (!dropdown.classList.contains("hidden")) {
           loadDesktopNotifications();
         }
       }
 
       // Load notifikasi desktop - menggunakan data yang sama dengan mobile
       function loadDesktopNotifications() {
-        const listEl = document.getElementById('notificationList');
+        const listEl = document.getElementById("notificationList");
         if (!listEl) return;
-        
+
         if (mobileNotifications.length === 0) {
-          listEl.innerHTML = '<div class="p-8 text-center text-gray-500"><i class="fas fa-bell-slash text-4xl mb-3 text-gray-300"></i><p class="text-sm">Belum ada notifikasi</p></div>';
+          listEl.innerHTML =
+            '<div class="p-8 text-center text-gray-500"><i class="fas fa-bell-slash text-4xl mb-3 text-gray-300"></i><p class="text-sm">Belum ada notifikasi</p></div>';
         } else {
-          listEl.innerHTML = mobileNotifications.slice(0, 5).map(notif => {
-            const timeAgo = getTimeAgo(notif.createdAt);
-            const icon = getNotificationIcon(notif.type);
-            const isUnread = !notif.isRead;
-            const fotoProfil = notif.fromUser?.fotoProfil || "/images/default-avatar.png";
-            
-            return `
-              <div class="p-3 hover:bg-gray-50 border-b border-gray-100 cursor-pointer ${isUnread ? 'bg-emerald-50' : ''}"
+          listEl.innerHTML = mobileNotifications
+            .slice(0, 5)
+            .map((notif) => {
+              const timeAgo = getTimeAgo(notif.createdAt);
+              const icon = getNotificationIcon(notif.type);
+              const isUnread = !notif.isRead;
+              const fotoProfil =
+                notif.fromUser?.fotoProfil || "/images/default-avatar.png";
+
+              return `
+              <div class="p-3 hover:bg-gray-50 border-b border-gray-100 cursor-pointer ${isUnread ? "bg-emerald-50" : ""}"
                    onclick="handleNotificationClick(${notif.id}, '${notif.type}', ${notif.postId || "null"})">
                 <div class="flex gap-3">
                   <div class="flex-shrink-0 w-8 h-8 rounded-full bg-${icon.bgColor} flex items-center justify-center">
@@ -1096,49 +1266,53 @@
                       <span class="text-xs text-gray-400">${timeAgo}</span>
                     </div>
                   </div>
-                  ${isUnread ? '<span class="w-2 h-2 bg-emerald-500 rounded-full"></span>' : ''}
+                  ${isUnread ? '<span class="w-2 h-2 bg-emerald-500 rounded-full"></span>' : ""}
                 </div>
               </div>
             `;
-          }).join('');
+            })
+            .join("");
         }
       }
 
       // Mark all as read via API
       async function markAllNotificationsRead() {
         if (!currentUser) return;
-        
+
         try {
           await fetch(`${API_BASE}/notifications/mark-all-read`, {
-            method: 'POST',
+            method: "POST",
             headers: {
-              'Authorization': `Bearer ${localStorage.getItem('userToken')}`
-            }
+              Authorization: `Bearer ${localStorage.getItem("userToken")}`,
+            },
           });
-          
-          mobileNotifications = mobileNotifications.map(n => ({...n, isRead: true}));
+
+          mobileNotifications = mobileNotifications.map((n) => ({
+            ...n,
+            isRead: true,
+          }));
           mobileUnreadCount = 0;
-          
+
           renderMobileNotifications();
           updateNotificationBadges();
-          
-          if (typeof notifications !== 'undefined') {
+
+          if (typeof notifications !== "undefined") {
             notifications = mobileNotifications;
-            if (typeof renderNotifications === 'function') {
+            if (typeof renderNotifications === "function") {
               renderNotifications();
             }
           }
-          
-          const dropdown = document.getElementById('notificationDropdown');
-          if (dropdown) dropdown.classList.add('hidden');
+
+          const dropdown = document.getElementById("notificationDropdown");
+          if (dropdown) dropdown.classList.add("hidden");
         } catch (error) {
-          console.error('Error marking all notifications as read:', error);
+          console.error("Error marking all notifications as read:", error);
         }
       }
 
       // View all notifications
       function viewAllNotifications() {
-        window.location.href = '/notifications.html';
+        window.location.href = "/notifications.html";
       }
 
       // Setup sheet drag
@@ -1150,17 +1324,25 @@
         let sheetStartY = 0;
         let sheetCurrentY = 0;
 
-        handle.addEventListener("touchstart", (e) => {
-          sheetStartY = e.touches[0].clientY;
-        }, { passive: true });
+        handle.addEventListener(
+          "touchstart",
+          (e) => {
+            sheetStartY = e.touches[0].clientY;
+          },
+          { passive: true },
+        );
 
-        handle.addEventListener("touchmove", (e) => {
-          sheetCurrentY = e.touches[0].clientY;
-          const diff = sheetCurrentY - sheetStartY;
-          if (diff > 0) {
-            sheet.style.transform = `translateY(${diff}px)`;
-          }
-        }, { passive: true });
+        handle.addEventListener(
+          "touchmove",
+          (e) => {
+            sheetCurrentY = e.touches[0].clientY;
+            const diff = sheetCurrentY - sheetStartY;
+            if (diff > 0) {
+              sheet.style.transform = `translateY(${diff}px)`;
+            }
+          },
+          { passive: true },
+        );
 
         handle.addEventListener("touchend", () => {
           const diff = sheetCurrentY - sheetStartY;
@@ -1174,26 +1356,32 @@
       }
 
       // Tutup dropdown jika klik di luar
-      document.addEventListener('click', function(event) {
-        const dropdown = document.getElementById('notificationDropdown');
-        const bellIcon = document.querySelector('#notificationContainer button');
-        
-        if (dropdown && !dropdown.classList.contains('hidden') && 
-            bellIcon && !bellIcon.contains(event.target) && 
-            !dropdown.contains(event.target)) {
-          dropdown.classList.add('hidden');
+      document.addEventListener("click", function (event) {
+        const dropdown = document.getElementById("notificationDropdown");
+        const bellIcon = document.querySelector(
+          "#notificationContainer button",
+        );
+
+        if (
+          dropdown &&
+          !dropdown.classList.contains("hidden") &&
+          bellIcon &&
+          !bellIcon.contains(event.target) &&
+          !dropdown.contains(event.target)
+        ) {
+          dropdown.classList.add("hidden");
         }
       });
 
       // ========== INISIALISASI ==========
-      if (typeof checkSession === 'function' && checkSession()) {
+      if (typeof checkSession === "function" && checkSession()) {
         if (document.readyState === "loading") {
-          document.addEventListener("DOMContentLoaded", function() {
+          document.addEventListener("DOMContentLoaded", function () {
             // Update UI
             if (currentUser) {
               const nameDisplay = document.getElementById("userNameDisplay");
               const ucapanNama = document.getElementById("ucapanNama");
-              
+
               if (nameDisplay) {
                 nameDisplay.textContent = currentUser.namaLengkap;
               }
@@ -1201,12 +1389,12 @@
                 ucapanNama.textContent = currentUser.namaLengkap;
               }
             }
-            
+
             // Load notifikasi dari database
             if (currentUser) {
               loadMobileNotifications();
             }
-            
+
             // Setup sheet drag
             setupSheetDrag();
           });
@@ -1215,7 +1403,7 @@
           if (currentUser) {
             const nameDisplay = document.getElementById("userNameDisplay");
             const ucapanNama = document.getElementById("ucapanNama");
-            
+
             if (nameDisplay) {
               nameDisplay.textContent = currentUser.namaLengkap;
             }
@@ -1223,18 +1411,105 @@
               ucapanNama.textContent = currentUser.namaLengkap;
             }
           }
-          
+
           // Load notifikasi dari database
           if (currentUser) {
             loadMobileNotifications();
           }
-          
+
           // Setup sheet drag
           setupSheetDrag();
         }
       } else {
         console.error("Session check failed");
       }
+
+      // ========== AUTO-HIDE BOTTOM NAVBAR SAAT SCROLL (MOBILE ONLY) ==========
+      (function initScrollHideNav() {
+        // Cek apakah ini mobile (lebar layar < 768px)
+        const isMobile = window.innerWidth < 768;
+        if (!isMobile) return;
+
+        const bottomNav = document.querySelector(".bottom-nav");
+        if (!bottomNav) return;
+
+        let lastScrollTop = 0;
+        let scrollThreshold = 10; // Minimal scroll distance untuk trigger
+        let isNavVisible = true;
+        let hideTimeout = null;
+
+        // Sembunyikan navbar saat scroll ke bawah, munculkan saat scroll ke atas
+        window.addEventListener(
+          "scroll",
+          function () {
+            const scrollTop =
+              window.pageYOffset || document.documentElement.scrollTop;
+
+            // Hitung selisih scroll
+            const scrollDiff = Math.abs(scrollTop - lastScrollTop);
+
+            // Hanya proses jika scroll melebihi threshold
+            if (scrollDiff > scrollThreshold) {
+              if (scrollTop > lastScrollTop && scrollTop > 100) {
+                // Scroll ke bawah - sembunyikan navbar
+                if (isNavVisible) {
+                  bottomNav.style.transform = "translateY(100%)";
+                  bottomNav.style.transition = "transform 0.3s ease";
+                  isNavVisible = false;
+                }
+              } else {
+                // Scroll ke atas - tampilkan navbar
+                if (!isNavVisible) {
+                  bottomNav.style.transform = "translateY(0)";
+                  isNavVisible = true;
+                }
+              }
+
+              lastScrollTop = scrollTop;
+            }
+          },
+          { passive: true },
+        );
+
+        // Tampilkan navbar saat user menyentuh bagian bawah layar (untuk navigasi)
+        bottomNav.addEventListener(
+          "touchstart",
+          function () {
+            if (!isNavVisible) {
+              bottomNav.style.transform = "translateY(0)";
+              isNavVisible = true;
+
+              // Reset setelah beberapa detik
+              if (hideTimeout) clearTimeout(hideTimeout);
+              hideTimeout = setTimeout(() => {
+                const currentScroll =
+                  window.pageYOffset || document.documentElement.scrollTop;
+                if (currentScroll > 100 && isNavVisible) {
+                  bottomNav.style.transform = "translateY(100%)";
+                  isNavVisible = false;
+                }
+              }, 2000);
+            }
+          },
+          { passive: true },
+        );
+
+        // Tampilkan navbar saat scroll mencapai top
+        window.addEventListener(
+          "scroll",
+          function () {
+            const scrollTop =
+              window.pageYOffset || document.documentElement.scrollTop;
+            if (scrollTop < 10 && !isNavVisible) {
+              bottomNav.style.transform = "translateY(0)";
+              isNavVisible = true;
+            }
+          },
+          { passive: true },
+        );
+
+        // console.log("📱 Auto-hide bottom navbar initialized for mobile");
+      })();
     </script>
   </body>
 </html>

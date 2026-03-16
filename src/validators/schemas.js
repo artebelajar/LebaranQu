@@ -9,6 +9,7 @@ export const roleEnum = z.enum(['user', 'admin']);
 export const notifTypeEnum = z.enum(['like', 'comment', 'rank_up', 'rank_down', 'event', 'achievement']);
 
 // ========== USER SCHEMAS ==========
+// ========== REGISTER SCHEMA ==========
 export const registerSchema = z.object({
   namaLengkap: z.string()
     .min(3, 'Nama lengkap minimal 3 karakter')
@@ -45,6 +46,7 @@ export const registerSchema = z.object({
     .min(1, 'reCAPTCHA token diperlukan'),
 });
 
+// ========== LOGIN SCHEMA ==========
 export const loginSchema = z.object({
   email: z.string()
     .email('Format email tidak valid')
@@ -230,4 +232,25 @@ export const paginationSchema = z.object({
     .transform(Number)
     .pipe(z.number().int().min(1).max(100))
     .default('10'),
+});
+
+export const postIdParamSchema = z.object({
+  postId: z.string()
+    .transform((val) => {
+      const parsed = parseInt(val);
+      if (isNaN(parsed)) throw new Error('Post ID harus berupa angka');
+      return parsed;
+    })
+    .pipe(z.number().int().positive('Post ID harus positif')),
+});
+
+// Schema untuk comment ID (jika ada)
+export const commentIdSchema = z.object({
+  id: z.string()
+    .transform((val) => {
+      const parsed = parseInt(val);
+      if (isNaN(parsed)) throw new Error('ID harus berupa angka');
+      return parsed;
+    })
+    .pipe(z.number().int().positive('ID harus positif')),
 });

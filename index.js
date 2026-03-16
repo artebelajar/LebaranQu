@@ -17,42 +17,96 @@ import notificationsApi from "./src/api/notifications.js";
 import achievementsApi from "./src/api/achievements.js";
 import leaderboardApi from "./src/api/leaderboard.js";
 
-dotenv.config();
+// dotenv.config();
 
 const app = new Hono();
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-// ========== SECURITY HEADERS ==========
+// ========== SECURITY HEADERS UNTUK RECAPTCHA ==========
 app.use('*', secureHeaders({
   contentSecurityPolicy: {
     defaultSrc: ["'self'"],
+    
+    // Script sources
     scriptSrc: [
       "'self'", 
       "'unsafe-inline'", 
-      "https://cdn.tailwindcss.com", 
+      "'unsafe-eval'",
+      "https://cdn.tailwindcss.com",
       "https://cdnjs.cloudflare.com",
       "https://www.google.com",
-      "https://www.gstatic.com"
+      "https://www.gstatic.com",
+      "https://www.google.com/recaptcha/",
+      "https://www.gstatic.com/recaptcha/",
+      "https://recaptcha.google.com/recaptcha/"
     ],
+    
+    // Style sources
     styleSrc: [
       "'self'", 
       "'unsafe-inline'", 
       "https://fonts.googleapis.com",
-      "https://cdnjs.cloudflare.com"  // <-- TAMBAHKAN INI
+      "https://cdnjs.cloudflare.com"
     ],
+    
+    // Font sources
     fontSrc: [
       "'self'", 
       "https://fonts.gstatic.com",
-      "https://cdnjs.cloudflare.com"  // <-- TAMBAHKAN INI
+      "https://cdnjs.cloudflare.com",
+      "data:"
     ],
+    
+    // Image sources
     imgSrc: [
       "'self'", 
       "data:", 
       "https://media.istockphoto.com",
-      "https://cdnjs.cloudflare.com"  // <-- TAMBAHKAN INI
+      "https://cdnjs.cloudflare.com",
+      "https://www.gstatic.com",
+      "https://www.google.com"
     ],
-    connectSrc: ["'self'", "ws:", "wss:"],
+    
+    // CONNECT SOURCES - INI YANG PALING PENTING UNTUK FETCH API
+    connectSrc: [
+      "'self'", 
+      "ws:", 
+      "wss:",
+      "https://www.google.com",
+      "https://www.google.com/recaptcha/",
+      "https://www.gstatic.com",
+      "https://www.gstatic.com/recaptcha/",
+      "https://recaptcha.google.com",
+      "https://recaptcha.google.com/recaptcha/",
+      "https://*.google.com",
+      "https://*.gstatic.com"
+    ],
+    
+    // Frame sources
+    frameSrc: [
+      "'self'", 
+      "https://www.google.com",
+      "https://www.google.com/recaptcha/",
+      "https://recaptcha.google.com",
+      "https://recaptcha.google.com/recaptcha/"
+    ],
+    
+    // Child sources
+    childSrc: [
+      "'self'", 
+      "https://www.google.com",
+      "https://recaptcha.google.com"
+    ],
+    
+    // Form actions
+    formAction: ["'self'"],
+    
+    // Frame ancestors
+    frameAncestors: ["'self'"],
   },
+  crossOriginEmbedderPolicy: false,
+  crossOriginOpenerPolicy: false,
+  crossOriginResourcePolicy: false,
 }));
 
 // ========== MIDDLEWARE ==========
@@ -98,34 +152,46 @@ app.route("/api/notifications", notificationsApi);
 app.route("/api/achievements", achievementsApi);
 app.route("/api/leaderboard", leaderboardApi);
 
-// ========== SSE ENDPOINT ==========
+// ========== SSE ENDPOINT - VERSI YANG BENAR ==========
 app.get("/events", async (c) => {
   const userId = c.req.query('userId');
   
   if (!userId) {
-    return c.text('User ID required', 400);
+    return c.json({ error: "User ID diperlukan" }, 400);
   }
   
+  console.log(`📡 SSE connection requested for user ${userId}`);
+  
+  // Set headers untuk SSE
   c.header('Content-Type', 'text/event-stream');
   c.header('Cache-Control', 'no-cache');
   c.header('Connection', 'keep-alive');
+  c.header('X-Accel-Buffering', 'no'); // Untuk nginx
   
-  const stream = c.res.body.getWriter();
-  const encoder = new TextEncoder();
-  
-  stream.write(encoder.encode(`data: ${JSON.stringify({ type: 'connected', userId })}\n\n`));
-  
-  const pingInterval = setInterval(() => {
-    stream.write(encoder.encode(`: ping\n\n`));
-  }, 30000);
-  
-  c.req.raw.signal.addEventListener('abort', () => {
-    clearInterval(pingInterval);
-    stream.close();
-    console.log(`📡 SSE connection closed for user ${userId}`);
+  // Buat stream manual
+  const stream = new ReadableStream({
+    start(controller) {
+      // Kirim koneksi berhasil
+      controller.enqueue(`data: ${JSON.stringify({ type: 'connected', userId })}\n\n`);
+      
+      // Ping setiap 30 detik
+      const pingInterval = setInterval(() => {
+        try {
+          controller.enqueue(`: ping\n\n`);
+        } catch (e) {
+          clearInterval(pingInterval);
+        }
+      }, 30000);
+      
+      // Cleanup saat koneksi ditutup
+      c.req.raw.signal.addEventListener('abort', () => {
+        clearInterval(pingInterval);
+        console.log(`📡 SSE connection closed for user ${userId}`);
+      });
+    }
   });
   
-  return c.body(stream);
+  return c.body(stream, 200);
 });
 
 // ========== STATIC FILES ==========

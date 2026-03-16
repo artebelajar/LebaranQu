@@ -4,7 +4,7 @@
 
 // Gunakan var untuk variabel global
 var API_BASE = "/api";
-var POSTS_PER_PAGE = 5;
+var POSTS_PER_PAGE = 10;
 var MAX_RECONNECT_ATTEMPTS = 5;
 var HEARTBEAT_INTERVAL = 120000; // 2 menit
 var TYPING_TIMEOUT = 3000; // 3 detik

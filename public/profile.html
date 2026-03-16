@@ -2,6 +2,26 @@
 <html lang="id">
   <head>
     <meta charset="UTF-8" />
+    <!-- Optimasi Mobile -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#10b981" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+
+    <!-- Preload critical resources -->
+    <link rel="preload" href="https://cdn.tailwindcss.com" as="script" />
+    <link
+      rel="preload"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      as="style"
+    />
+
+    <!-- Optimasi font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
@@ -1414,14 +1434,14 @@
     <script src="js/profile/profile-badges.js"></script>
     <script src="js/profile/profile.js"></script>
 
-        <script>
+    <script>
       // ===================================================
       // FUNGSI-FUNGSI TAMBAHAN UNTUK PROFILE
       // ===================================================
 
       // Variabel untuk notifikasi mobile dan desktop
       // PASTIKAN INI HANYA DIDEKLARASIKAN SEKALI!
-      if (typeof window.mobileNotifications === 'undefined') {
+      if (typeof window.mobileNotifications === "undefined") {
         window.mobileNotifications = [];
         window.mobileUnreadCount = 0;
         window.desktopNotifications = [];
@@ -1564,7 +1584,9 @@
         window.mobileNotifications = window.mobileNotifications.map((n) =>
           n.id === notificationId ? { ...n, isRead: true } : n,
         );
-        window.mobileUnreadCount = window.mobileNotifications.filter((n) => !n.isRead).length;
+        window.mobileUnreadCount = window.mobileNotifications.filter(
+          (n) => !n.isRead,
+        ).length;
         renderMobileNotifications();
         updateNotificationBadges();
 
@@ -1734,31 +1756,34 @@
           isRead: true,
         }));
         window.mobileUnreadCount = 0;
-        
+
         window.desktopNotifications = window.desktopNotifications.map((n) => ({
           ...n,
           isRead: true,
         }));
         window.desktopUnreadCount = 0;
-        
+
         renderMobileNotifications();
         renderDesktopNotifications();
         updateNotificationBadges();
-        
+
         // Tutup dropdown jika terbuka
-        document.getElementById("notificationDropdown")?.classList.add("hidden");
+        document
+          .getElementById("notificationDropdown")
+          ?.classList.add("hidden");
       }
 
       // Update badge notifikasi
       function updateNotificationBadges() {
         const mobileBadge = document.getElementById("mobileNotifBadge");
         const desktopBadge = document.getElementById("notificationBadge");
-        
-        const totalUnread = window.mobileUnreadCount + window.desktopUnreadCount;
+
+        const totalUnread =
+          window.mobileUnreadCount + window.desktopUnreadCount;
 
         if (totalUnread > 0) {
           const badgeText = totalUnread > 99 ? "99+" : totalUnread;
-          
+
           if (mobileBadge) {
             mobileBadge.textContent = badgeText;
             mobileBadge.classList.remove("hidden");
@@ -1842,17 +1867,17 @@
       window.getProfileId = function () {
         const urlParams = new URLSearchParams(window.location.search);
         const id = urlParams.get("id");
-        console.log("Raw profile ID from URL:", id);
+        // console.log("Raw profile ID from URL:", id);
 
         // Jika tidak ada parameter id, tampilkan profile sendiri
         if (!id) {
-          console.log("No profile ID in URL, showing own profile");
+          // console.log("No profile ID in URL, showing own profile");
           return currentUser?.id;
         }
 
         // Konversi ke number
         const parsedId = parseInt(id);
-        console.log("Parsed profile ID:", parsedId);
+        // console.log("Parsed profile ID:", parsedId);
 
         // Validasi
         if (isNaN(parsedId)) {
@@ -1868,11 +1893,11 @@
         const urlParams = new URLSearchParams(window.location.search);
         const profileId = urlParams.get("id");
 
-        console.log("Checking ownership:", {
-          hasCurrentUser: !!currentUser,
-          currentUserId: currentUser?.id,
-          profileId: profileId,
-        });
+        // console.log("Checking ownership:", {
+        //   hasCurrentUser: !!currentUser,
+        //   currentUserId: currentUser?.id,
+        //   profileId: profileId,
+        // });
 
         if (!currentUser) {
           console.error("currentUser not found");
@@ -1886,7 +1911,7 @@
           window.isOwnProfile = true;
         }
 
-        console.log("Is own profile:", window.isOwnProfile);
+        // console.log("Is own profile:", window.isOwnProfile);
         return window.isOwnProfile;
       };
 
@@ -1912,7 +1937,7 @@
       const originalLoadProfile = window.loadProfile;
       window.loadProfile = async function () {
         try {
-          console.log("Loading profile with fixed getProfileId...");
+          // console.log("Loading profile with fixed getProfileId...");
 
           document.getElementById("loadingState").classList.remove("hidden");
           document.getElementById("profileContent").classList.add("hidden");
@@ -1920,11 +1945,11 @@
 
           // Dapatkan ID dengan fungsi yang sudah di-override
           const userIdToLoad = window.getProfileId();
-          console.log("Loading profile for user ID:", userIdToLoad);
+          // console.log("Loading profile for user ID:", userIdToLoad);
 
           if (!userIdToLoad || isNaN(userIdToLoad)) {
             // Coba redirect ke profile sendiri
-            console.log("Invalid ID, redirecting to own profile");
+            // console.log("Invalid ID, redirecting to own profile");
             if (currentUser) {
               window.location.href = `/profile.html?id=${currentUser.id}`;
               return;
@@ -1942,7 +1967,7 @@
           }
 
           window.profileUser = await userRes.json();
-          console.log("User data loaded:", profileUser);
+          // console.log("User data loaded:", profileUser);
 
           // Update UI dasar
           if (typeof window.updateProfileUI === "function") {
@@ -1997,7 +2022,7 @@
 
       // ========== INISIALISASI ==========
       function initProfileWithFix() {
-        console.log("Initializing profile page with fixes...");
+        // console.log("Initializing profile page with fixes...");
 
         // Cek session
         if (typeof checkSession === "function") {
@@ -2031,8 +2056,6 @@
         return div.innerHTML;
       }
 
-      
-
       // Export ke window
       window.toggleNotificationSheet = toggleNotificationSheet;
       window.hideNotificationSheet = hideNotificationSheet;
@@ -2051,6 +2074,93 @@
       } else {
         initProfileWithFix();
       }
+
+      // ========== AUTO-HIDE BOTTOM NAVBAR SAAT SCROLL (MOBILE ONLY) ==========
+      (function initScrollHideNav() {
+        // Cek apakah ini mobile (lebar layar < 768px)
+        const isMobile = window.innerWidth < 768;
+        if (!isMobile) return;
+
+        const bottomNav = document.querySelector(".bottom-nav");
+        if (!bottomNav) return;
+
+        let lastScrollTop = 0;
+        let scrollThreshold = 10; // Minimal scroll distance untuk trigger
+        let isNavVisible = true;
+        let hideTimeout = null;
+
+        // Sembunyikan navbar saat scroll ke bawah, munculkan saat scroll ke atas
+        window.addEventListener(
+          "scroll",
+          function () {
+            const scrollTop =
+              window.pageYOffset || document.documentElement.scrollTop;
+
+            // Hitung selisih scroll
+            const scrollDiff = Math.abs(scrollTop - lastScrollTop);
+
+            // Hanya proses jika scroll melebihi threshold
+            if (scrollDiff > scrollThreshold) {
+              if (scrollTop > lastScrollTop && scrollTop > 100) {
+                // Scroll ke bawah - sembunyikan navbar
+                if (isNavVisible) {
+                  bottomNav.style.transform = "translateY(100%)";
+                  bottomNav.style.transition = "transform 0.3s ease";
+                  isNavVisible = false;
+                }
+              } else {
+                // Scroll ke atas - tampilkan navbar
+                if (!isNavVisible) {
+                  bottomNav.style.transform = "translateY(0)";
+                  isNavVisible = true;
+                }
+              }
+
+              lastScrollTop = scrollTop;
+            }
+          },
+          { passive: true },
+        );
+
+        // Tampilkan navbar saat user menyentuh bagian bawah layar (untuk navigasi)
+        bottomNav.addEventListener(
+          "touchstart",
+          function () {
+            if (!isNavVisible) {
+              bottomNav.style.transform = "translateY(0)";
+              isNavVisible = true;
+
+              // Reset setelah beberapa detik
+              if (hideTimeout) clearTimeout(hideTimeout);
+              hideTimeout = setTimeout(() => {
+                const currentScroll =
+                  window.pageYOffset || document.documentElement.scrollTop;
+                if (currentScroll > 100 && isNavVisible) {
+                  bottomNav.style.transform = "translateY(100%)";
+                  isNavVisible = false;
+                }
+              }, 2000);
+            }
+          },
+          { passive: true },
+        );
+
+        // Tampilkan navbar saat scroll mencapai top
+        window.addEventListener(
+          "scroll",
+          function () {
+            const scrollTop =
+              window.pageYOffset || document.documentElement.scrollTop;
+            if (scrollTop < 10 && !isNavVisible) {
+              bottomNav.style.transform = "translateY(0)";
+              isNavVisible = true;
+            }
+          },
+          { passive: true },
+        );
+
+        // console.log("📱 Auto-hide bottom navbar initialized for mobile");
+      })();
     </script>
   </body>
 </html>

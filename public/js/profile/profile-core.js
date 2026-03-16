@@ -11,7 +11,7 @@ async function loadProfile() {
 
     const userIdToLoad = getProfileId();
 
-    console.log("Loading profile for user ID:", userIdToLoad);
+    // console.log("Loading profile for user ID:", userIdToLoad);
 
     if (!userIdToLoad || isNaN(userIdToLoad)) {
       throw new Error("ID user tidak valid");
@@ -26,7 +26,7 @@ async function loadProfile() {
     }
 
     profileUser = await userRes.json();
-    console.log("User data:", profileUser);
+    // console.log("User data:", profileUser);
 
     // Update UI dasar
     updateProfileUI();
@@ -196,7 +196,7 @@ async function refreshRank() {
 // ========== LOAD PROFILE DATA ==========
 async function loadProfile() {
   try {
-    console.log("Loading profile...");
+    // console.log("Loading profile...");
     
     document.getElementById("loadingState").classList.remove("hidden");
     document.getElementById("profileContent").classList.add("hidden");
@@ -208,7 +208,7 @@ async function loadProfile() {
     }
     
     const userIdToLoad = getProfileId();
-    console.log("Loading profile for user ID:", userIdToLoad);
+    // console.log("Loading profile for user ID:", userIdToLoad);
 
     if (!userIdToLoad || isNaN(userIdToLoad)) {
       throw new Error("ID user tidak valid");
@@ -223,7 +223,7 @@ async function loadProfile() {
     }
 
     window.profileUser = await userRes.json();
-    console.log("User data:", profileUser);
+    // console.log("User data:", profileUser);
 
     // Update UI dasar
     updateProfileUI();

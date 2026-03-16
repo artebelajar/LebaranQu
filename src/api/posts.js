@@ -21,39 +21,62 @@ import { validateRequest, validateParams } from "../utils/validate.js";
 
 const app = new Hono();
 
-// ========== GET ALL POSTS (TANPA PAGINATION) ==========
+// ========== GET ALL POSTS DENGAN OPTIMASI ==========
 app.get("/", async (c) => {
   try {
     const sekolah = c.req.query("sekolah");
+    const page = parseInt(c.req.query("page") || "1");
+    const limit = parseInt(c.req.query("limit") || "10");
+    const offset = (page - 1) * limit;
     
+    // Hanya ambil data yang diperlukan
     let query = db
       .select({
         id: posts.id,
         judul: posts.judul,
-        konten: posts.konten,
-        gambar: posts.gambar,
+        konten: sql`SUBSTRING(${posts.konten}, 1, 200)`, // Hanya 200 karakter pertama
         likeCount: posts.likeCount,
         viewCount: posts.viewCount,
         createdAt: posts.createdAt,
         user: {
           id: users_26.id,
           namaLengkap: users_26.namaLengkap,
-          asalSekolah: users_26.asalSekolah,
-          title: users_26.title,
           fotoProfil: users_26.fotoProfil,
-          lastActive: users_26.lastActive,
+          asalSekolah: users_26.asalSekolah,
         },
       })
       .from(posts)
       .leftJoin(users_26, eq(posts.userId, users_26.id))
-      .orderBy(desc(posts.createdAt));
+      .orderBy(desc(posts.createdAt))
+      .limit(limit)
+      .offset(offset);
 
     if (sekolah && sekolah !== "all") {
       query = query.where(eq(users_26.asalSekolah, sekolah));
     }
 
-    const postsData = await query;
-    return c.json(postsData);
+    // Hitung total untuk pagination
+    const countQuery = db
+      .select({ count: sql`count(*)` })
+      .from(posts)
+      .leftJoin(users_26, eq(posts.userId, users_26.id));
+
+    if (sekolah && sekolah !== "all") {
+      countQuery.where(eq(users_26.asalSekolah, sekolah));
+    }
+
+    const [postsData, [totalResult]] = await Promise.all([
+      query,
+      countQuery
+    ]);
+
+    return c.json({
+      data: postsData,
+      total: parseInt(totalResult.count),
+      page,
+      limit,
+      totalPages: Math.ceil(parseInt(totalResult.count) / limit)
+    });
     
   } catch (error) {
     console.error("❌ Get posts error:", error);
@@ -231,88 +254,142 @@ app.post("/", async (c) => {
   }
 });
 
-// ========== GET COMMENTS ==========
+// ========== GET COMMENTS - VERSI DIPERBAIKI ==========
 app.get("/:postId/comments", async (c) => {
   const startTime = Date.now();
   
   try {
-    // VALIDASI PARAM DENGAN ZOD
-    const validation = validateParams(c, postIdSchema);
-    if (!validation.success) {
-      return c.json({ error: validation.error.message, details: validation.error.details }, 400);
-    }
+    const postIdParam = c.req.param("postId");
+    console.log(`📝 Fetching comments for post ${postIdParam}`);
     
-    const { id: postId } = validation.data;
+    // Validasi manual dulu
+    const postId = parseInt(postIdParam);
+    if (isNaN(postId) || postId <= 0) {
+      return c.json({ error: "Post ID tidak valid" }, 400);
+    }
 
-    console.log(`📝 Fetching comments for post ${postId}`);
+    // Cek apakah post exists
+    const [post] = await db
+      .select({ id: posts.id })
+      .from(posts)
+      .where(eq(posts.id, postId))
+      .limit(1);
 
+    if (!post) {
+      return c.json({ error: "Postingan tidak ditemukan" }, 404);
+    }
+
+    // Ambil comments dengan query sederhana
     const postComments = await db
       .select({
         id: comments.id,
         text: comments.text,
         createdAt: comments.createdAt,
-        user: {
-          id: users_26.id,
-          namaLengkap: users_26.namaLengkap,
-          fotoProfil: users_26.fotoProfil,
-        },
+        userId: comments.userId,
       })
       .from(comments)
-      .leftJoin(users_26, eq(comments.userId, users_26.id))
       .where(eq(comments.postId, postId))
       .orderBy(desc(comments.createdAt))
       .limit(50);
 
-    console.log(`💬 Comments loaded in ${Date.now() - startTime}ms - ${postComments.length} comments`);
-    return c.json(postComments);
+    // Ambil data user untuk setiap comment (manual join)
+    const commentsWithUser = await Promise.all(
+      postComments.map(async (comment) => {
+        const [user] = await db
+          .select({
+            id: users_26.id,
+            namaLengkap: users_26.namaLengkap,
+            fotoProfil: users_26.fotoProfil,
+          })
+          .from(users_26)
+          .where(eq(users_26.id, comment.userId))
+          .limit(1);
+
+        return {
+          id: comment.id,
+          text: comment.text,
+          createdAt: comment.createdAt,
+          user: user || {
+            id: comment.userId,
+            namaLengkap: 'Unknown User',
+            fotoProfil: '/images/default-avatar.png'
+          }
+        };
+      })
+    );
+
+    console.log(`💬 Comments loaded in ${Date.now() - startTime}ms - ${commentsWithUser.length} comments`);
+    return c.json(commentsWithUser);
     
   } catch (error) {
     console.error("❌ Get comments error:", error);
-    return c.json([], 500);
+    return c.json({ error: error.message }, 500);
   }
 });
 
-// ========== ADD COMMENT ==========
+// ========== ADD COMMENT - VERSI DIPERBAIKI ==========
 app.post("/:postId/comments", async (c) => {
   const startTime = Date.now();
   
   try {
-    // VALIDASI PARAM DENGAN ZOD
-    const paramsValidation = validateParams(c, postIdSchema);
-    if (!paramsValidation.success) {
-      return c.json({ error: paramsValidation.error.message, details: paramsValidation.error.details }, 400);
-    }
+    // Ambil parameter dari URL
+    const postIdParam = c.req.param("postId");
+    console.log("Adding comment to post:", postIdParam);
     
-    // VALIDASI BODY DENGAN ZOD
-    const bodyValidation = await validateRequest(c, createCommentSchema);
-    if (!bodyValidation.success) {
-      return c.json({ error: bodyValidation.error.message, details: bodyValidation.error.details }, 400);
+    // Validasi manual dulu (sebagai fallback)
+    const postId = parseInt(postIdParam);
+    if (isNaN(postId) || postId <= 0) {
+      return c.json({ error: "Post ID tidak valid" }, 400);
     }
-    
-    const { id: postId } = paramsValidation.data;
-    const body = bodyValidation.data;
 
+    // Parse body
+    const body = await c.req.json();
+    console.log("Comment body:", body);
+
+    // Validasi body
+    if (!body.userId || !body.text) {
+      return c.json({ error: "User ID dan text harus diisi" }, 400);
+    }
+
+    if (typeof body.userId !== 'number' || body.userId <= 0) {
+      return c.json({ error: "User ID harus berupa angka positif" }, 400);
+    }
+
+    if (typeof body.text !== 'string' || body.text.trim().length === 0) {
+      return c.json({ error: "Komentar tidak boleh kosong" }, 400);
+    }
+
+    if (body.text.length > 1000) {
+      return c.json({ error: "Komentar terlalu panjang (maks 1000 karakter)" }, 400);
+    }
+
+    // Cek apakah post exists
     const [post] = await db
       .select()
       .from(posts)
       .where(eq(posts.id, postId))
       .limit(1);
 
-    if (!post) return c.json({ error: "Postingan tidak ditemukan" }, 404);
+    if (!post) {
+      return c.json({ error: "Postingan tidak ditemukan" }, 404);
+    }
 
+    // Update last active user
     await db.update(users_26)
       .set({ lastActive: new Date() })
       .where(eq(users_26.id, body.userId));
 
+    // Insert comment
     const [newComment] = await db
       .insert(comments)
       .values({
-        postId,
+        postId: postId,
         userId: body.userId,
         text: body.text.trim(),
       })
       .returning();
 
+    // Ambil data user
     const [user] = await db
       .select({
         id: users_26.id,
@@ -328,7 +405,7 @@ app.post("/:postId/comments", async (c) => {
       user: user
     };
 
-    // HITUNG JUMLAH KOMENTAR USER
+    // Hitung jumlah komentar user
     const [commentCount] = await db
       .select({ count: sql`count(*)` })
       .from(comments)

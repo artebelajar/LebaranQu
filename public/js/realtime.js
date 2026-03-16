@@ -5,7 +5,7 @@
 // ========== HANDLE REAL-TIME UPDATES ==========
 function handleRealtimeUpdate(data) {
   if (data.type === 'pong') {
-    console.log('🏓 Pong received');
+    // console.log('🏓 Pong received');
     return;
   }
   
@@ -39,7 +39,7 @@ function handleRealtimeUpdate(data) {
       break;
       
     case 'connected':
-      console.log('✅ SSE Connected');
+      // console.log('✅ SSE Connected');
       break;
       
     default:

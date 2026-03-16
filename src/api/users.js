@@ -131,17 +131,23 @@ app.post("/login", async (c) => {
   }
 });
 
-// POST /api/users/register - Register
+// ========== REGISTER - VERSI DIPERBAIKI ==========
 app.post("/register", async (c) => {
   try {
     // VALIDASI DENGAN ZOD
     const validation = await validateRequest(c, registerSchema);
     if (!validation.success) {
-      return c.json({ error: validation.error.message, details: validation.error.details }, 400);
+      console.error('Validation error:', validation.error);
+      return c.json({ 
+        error: validation.error.message || "Validasi gagal", 
+        details: validation.error.details || [] 
+      }, 400);
     }
     
     const body = validation.data;
+    console.log('Register attempt for email:', body.email);
 
+    // Verifikasi reCAPTCHA
     const isValid = await verifyRecaptcha(body.recaptchaToken);
     if (!isValid) {
       return c.json({ error: "Verifikasi reCAPTCHA gagal" }, 400);
@@ -190,6 +196,7 @@ app.post("/register", async (c) => {
       user: userWithoutPassword,
       token: token,
     }, 201);
+    
   } catch (error) {
     console.error("❌ Register error:", error);
     return c.json({ error: error.message }, 500);

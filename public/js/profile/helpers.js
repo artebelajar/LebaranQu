@@ -26,11 +26,11 @@ function checkOwnership() {
     window.isOwnProfile = true;
   }
 
-  console.log("Profile access:", {
-    currentUserId: currentUser.id,
-    profileId: profileId || "own",
-    isOwnProfile: window.isOwnProfile,
-  });
+  // console.log("Profile access:", {
+  //   currentUserId: currentUser.id,
+  //   profileId: profileId || "own",
+  //   isOwnProfile: window.isOwnProfile,
+  // });
   
   return window.isOwnProfile;
 }

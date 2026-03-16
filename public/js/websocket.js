@@ -11,12 +11,12 @@ function connectWebSocket() {
   if (!currentUser) return;
   
   const wsUrl = `ws://${window.location.host}/ws?userId=${currentUser.id}`;
-  console.log('🔌 Connecting WebSocket...');
+  // console.log('🔌 Connecting WebSocket...');
   
   ws = new WebSocket(wsUrl);
   
   ws.onopen = () => {
-    console.log('🔌 WebSocket connected');
+    // console.log('🔌 WebSocket connected');
     reconnectAttempts = 0;
     
     // Send ping every 30 seconds
@@ -30,7 +30,7 @@ function connectWebSocket() {
   ws.onmessage = (event) => {
     try {
       const data = JSON.parse(event.data);
-      console.log('📨 WebSocket message:', data);
+      // console.log('📨 WebSocket message:', data);
       if (window.handleRealtimeUpdate) {
         window.handleRealtimeUpdate(data);
       }
@@ -40,14 +40,14 @@ function connectWebSocket() {
   };
   
   ws.onclose = () => {
-    console.log('🔌 WebSocket disconnected');
+    // console.log('🔌 WebSocket disconnected');
     if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
       reconnectAttempts++;
       const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000);
-      console.log(`🔄 Reconnecting in ${delay/1000}s... (attempt ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})`);
+      // console.log(`🔄 Reconnecting in ${delay/1000}s... (attempt ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})`);
       setTimeout(connectWebSocket, delay);
     } else {
-      console.log('❌ Max reconnection attempts reached, falling back to SSE');
+      // console.log('❌ Max reconnection attempts reached, falling back to SSE');
       connectSSE();
     }
   };
@@ -66,12 +66,12 @@ function connectSSE() {
   }
   
   const sseUrl = `/events?userId=${currentUser.id}`;
-  console.log('📡 Connecting SSE...');
+  // console.log('📡 Connecting SSE...');
   
   sseSource = new EventSource(sseUrl);
   
   sseSource.onopen = () => {
-    console.log('📡 SSE connected');
+    // console.log('📡 SSE connected');
     reconnectAttempts = 0;
   };
   
@@ -79,7 +79,7 @@ function connectSSE() {
     try {
       if (event.data && !event.data.startsWith(':')) {
         const data = JSON.parse(event.data);
-        console.log('📡 SSE message:', data);
+        // console.log('📡 SSE message:', data);
         if (window.handleRealtimeUpdate) {
           window.handleRealtimeUpdate(data);
         }
@@ -93,12 +93,12 @@ function connectSSE() {
     console.error('SSE error:', error);
     
     if (sseSource.readyState === EventSource.CLOSED) {
-      console.log('📡 SSE closed');
+      // console.log('📡 SSE closed');
       
       if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
         reconnectAttempts++;
         const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000);
-        console.log(`🔄 Reconnecting SSE in ${delay/1000}s... (attempt ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})`);
+        // console.log(`🔄 Reconnecting SSE in ${delay/1000}s... (attempt ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})`);
         setTimeout(connectSSE, delay);
       }
     }

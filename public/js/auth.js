@@ -14,13 +14,13 @@ function checkSession() {
   const savedUser = localStorage.getItem("currentUser");
   const token = localStorage.getItem("userToken");
 
-  console.log("Checking session...", {
-    savedUser: !!savedUser,
-    token: !!token,
-  });
+  // console.log("Checking session...", {
+  //   savedUser: !!savedUser,
+  //   token: !!token,
+  // });
 
   if (!savedUser || !token) {
-    console.log("No session found, redirecting to auth...");
+    // console.log("No session found, redirecting to auth...");
     window.location.href = "/login.html";
     return false;
   }
@@ -28,7 +28,7 @@ function checkSession() {
   try {
     currentUser = JSON.parse(savedUser);
     isAdmin = currentUser.role === "admin" || currentUser.isAdmin === true;
-    console.log("User loaded:", currentUser.namaLengkap, "isAdmin:", isAdmin);
+    // console.log("User loaded:", currentUser.namaLengkap, "isAdmin:", isAdmin);
     
     loadUserLikes();
     return true;
@@ -45,7 +45,7 @@ function loadUserLikes() {
     const savedLikes = localStorage.getItem(`userLikes_${currentUser.id}`);
     if (savedLikes) {
       userLikes = new Set(JSON.parse(savedLikes));
-      console.log("Loaded user likes:", Array.from(userLikes));
+      // console.log("Loaded user likes:", Array.from(userLikes));
     }
   } catch (e) {
     console.error("Error loading user likes:", e);

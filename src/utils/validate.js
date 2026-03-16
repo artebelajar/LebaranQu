@@ -18,16 +18,21 @@ export async function validateRequest(c, schema) {
       data = c.req.query();
     }
     
+    console.log('Validating request data:', data); // Debug
+    
     // Validasi dengan Zod
     const validated = await schema.parseAsync(data);
     return { success: true, data: validated };
     
   } catch (error) {
+    console.error('Validate request error:', error);
+    
     if (error instanceof ZodError) {
-      const errors = error.errors.map(err => ({
+      // Pastikan error.errors ada sebelum dipanggil .map()
+      const errors = error.errors ? error.errors.map(err => ({
         field: err.path.join('.'),
         message: err.message
-      }));
+      })) : [];
       
       return {
         success: false,
@@ -38,11 +43,12 @@ export async function validateRequest(c, schema) {
       };
     }
     
+    // Jika error bukan ZodError
     return {
       success: false,
       error: {
-        message: 'Terjadi kesalahan saat validasi',
-        details: error.message
+        message: error.message || 'Terjadi kesalahan saat validasi',
+        details: []
       }
     };
   }
@@ -51,9 +57,8 @@ export async function validateRequest(c, schema) {
 export function validateParams(c, schema) {
   try {
     const params = c.req.param();
-    console.log('Validating params:', params); // Debug
+    console.log('Validating params:', params);
     
-    // Validasi dengan Zod
     const validated = schema.parse(params);
     return { success: true, data: validated };
     
@@ -61,10 +66,10 @@ export function validateParams(c, schema) {
     console.error('Validate params error:', error);
     
     if (error instanceof ZodError) {
-      const errors = error.errors.map(err => ({
+      const errors = error.errors ? error.errors.map(err => ({
         field: err.path.join('.'),
         message: err.message
-      }));
+      })) : [];
       
       return {
         success: false,
@@ -78,7 +83,8 @@ export function validateParams(c, schema) {
     return { 
       success: false, 
       error: { 
-        message: error.message || 'Parameter tidak valid' 
+        message: error.message || 'Parameter tidak valid',
+        details: []
       } 
     };
   }
@@ -87,7 +93,7 @@ export function validateParams(c, schema) {
 export function validateQuery(c, schema) {
   try {
     const query = c.req.query();
-    console.log('Validating query:', query); // Debug
+    console.log('Validating query:', query);
     
     const validated = schema.parse(query);
     return { success: true, data: validated };
@@ -96,10 +102,10 @@ export function validateQuery(c, schema) {
     console.error('Validate query error:', error);
     
     if (error instanceof ZodError) {
-      const errors = error.errors.map(err => ({
+      const errors = error.errors ? error.errors.map(err => ({
         field: err.path.join('.'),
         message: err.message
-      }));
+      })) : [];
       
       return {
         success: false,
@@ -109,10 +115,12 @@ export function validateQuery(c, schema) {
         }
       };
     }
+    
     return { 
       success: false, 
       error: { 
-        message: error.message || 'Query tidak valid' 
+        message: error.message || 'Query tidak valid',
+        details: []
       } 
     };
   }

@@ -231,7 +231,7 @@ async function loadDesktopNotifications() {
   `;
 
   try {
-    console.log("Loading desktop notifications for user:", currentUser.id);
+    // console.log("Loading desktop notifications for user:", currentUser.id);
     
     const response = await fetch(
       `${API_BASE}/notifications?userId=${currentUser.id}&limit=10`,
@@ -247,7 +247,7 @@ async function loadDesktopNotifications() {
     }
 
     const data = await response.json();
-    console.log("Desktop notifications loaded:", data);
+    // console.log("Desktop notifications loaded:", data);
     
     desktopNotifications = data.notifications || [];
     desktopUnreadCount = data.unreadCount || 0;

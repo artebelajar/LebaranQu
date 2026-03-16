@@ -15,7 +15,7 @@ async function loadOnlineStatus(userIds) {
   
   const uniqueUserIds = [...new Set(validUserIds)];
   
-  console.log('Loading online status for users:', uniqueUserIds);
+  // console.log('Loading online status for users:', uniqueUserIds);
   
   try {
     const response = await fetch(`${API_BASE}/users/online-status`, {
@@ -34,7 +34,7 @@ async function loadOnlineStatus(userIds) {
     }
 
     const data = await response.json();
-    console.log('Online status data:', data);
+    // console.log('Online status data:', data);
     
     onlineStatus = { ...onlineStatus, ...data };
     updateOnlineStatusUI();
@@ -94,7 +94,7 @@ function startHeartbeat() {
       });
 
       if (response.ok) {
-        console.log("💓 Heartbeat sent");
+        // console.log("💓 Heartbeat sent");
       } else {
         console.error("Heartbeat failed:", response.status);
       }
@@ -111,7 +111,7 @@ function startHeartbeat() {
   })
     .then((response) => {
       if (response.ok) {
-        console.log("💓 Initial heartbeat sent");
+        // console.log("💓 Initial heartbeat sent");
       }
     })
     .catch((error) => console.error("Initial heartbeat error:", error));

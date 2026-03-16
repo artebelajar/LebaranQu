@@ -2,6 +2,26 @@
 <html lang="id">
   <head>
     <meta charset="UTF-8" />
+    <!-- Optimasi Mobile -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#10b981" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+
+    <!-- Preload critical resources -->
+    <link rel="preload" href="https://cdn.tailwindcss.com" as="script" />
+    <link
+      rel="preload"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      as="style"
+    />
+
+    <!-- Optimasi font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
@@ -1345,10 +1365,10 @@
         if (Math.abs(swipeDistance) > minSwipeDistance) {
           if (swipeDistance > 0) {
             // Swipe kanan - navigasi ke halaman sebelumnya
-            console.log("Swipe kanan");
+            // console.log("Swipe kanan");
           } else {
             // Swipe kiri - navigasi ke halaman berikutnya
-            console.log("Swipe kiri");
+            // console.log("Swipe kiri");
           }
         }
       }

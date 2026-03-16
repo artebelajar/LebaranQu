@@ -28,7 +28,7 @@ if (typeof window.leaderboardInitialized === 'undefined') {
       
       const sekolah = document.getElementById("leaderboardFilter")?.value || "all";
       
-      console.log(`Loading ${category} leaderboard for sekolah: ${sekolah}`);
+      // console.log(`Loading ${category} leaderboard for sekolah: ${sekolah}`);
       
       const response = await fetch(`${API_BASE}/leaderboard/${category}?sekolah=${sekolah}`);
       
@@ -37,7 +37,7 @@ if (typeof window.leaderboardInitialized === 'undefined') {
       }
 
       window.leaderboardData = await response.json();
-      console.log(`Loaded ${window.leaderboardData.length} entries for ${category} leaderboard`);
+      // console.log(`Loaded ${window.leaderboardData.length} entries for ${category} leaderboard`);
       
       renderLeaderboard();
       updateActiveCategoryButton(category);
@@ -228,5 +228,5 @@ if (typeof window.leaderboardInitialized === 'undefined') {
   // Tandai sudah diinisialisasi
   window.leaderboardInitialized = true;
   
-  console.log("✅ Leaderboard module initialized");
+  // console.log("✅ Leaderboard module initialized");
 }

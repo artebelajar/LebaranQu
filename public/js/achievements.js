@@ -11,7 +11,7 @@ if (typeof userAchievements === 'undefined') {
 // ========== LOAD USER ACHIEVEMENTS ==========
 async function loadUserAchievements(userId) {
   try {
-    console.log("Loading achievements for user:", userId);
+    // console.log("Loading achievements for user:", userId);
     
     const response = await fetch(`${API_BASE}/achievements/user/${userId}`);
     
@@ -22,7 +22,7 @@ async function loadUserAchievements(userId) {
     }
     
     userAchievements = await response.json();
-    console.log(`Loaded ${userAchievements.length} achievements for user ${userId}`);
+    // console.log(`Loaded ${userAchievements.length} achievements for user ${userId}`);
     
     return userAchievements;
   } catch (error) {
@@ -34,7 +34,7 @@ async function loadUserAchievements(userId) {
 // ========== LOAD ACHIEVEMENT STATS ==========
 async function loadAchievementStats(userId) {
   try {
-    console.log("Loading achievement stats for user:", userId);
+    // console.log("Loading achievement stats for user:", userId);
     
     const response = await fetch(`${API_BASE}/achievements/stats/${userId}`);
     
@@ -45,7 +45,7 @@ async function loadAchievementStats(userId) {
     }
     
     achievementStats = await response.json();
-    console.log("Achievement stats:", achievementStats);
+    // console.log("Achievement stats:", achievementStats);
     
     return achievementStats;
   } catch (error) {

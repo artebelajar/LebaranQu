@@ -2,7 +2,7 @@ import postgres from "postgres";
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 
-dotenv.config();
+// dotenv.config();
 
 const sql = postgres(process.env.DATABASE_URL);
 
@@ -188,38 +188,79 @@ async function setupDatabase() {
     console.log("✅ Tabel user_achievements created");
 
     // ============= 5. CREATE INDEXES =============
-    console.log("🔨 Membuat indexes...");
+    console.log("🔨 Membuat INDEXES untuk performa maksimal...");
     
-    // Index untuk posts
+    // ===== INDEX UNTUK USERS TABLE =====
+    console.log("   📌 Index users...");
+    await sql`CREATE INDEX IF NOT EXISTS idx_users_email ON users_26(email);`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_users_token ON users_26(token_akses);`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_users_school ON users_26(asal_sekolah);`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_users_last_active ON users_26(last_active DESC);`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_users_created_at ON users_26(created_at DESC);`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_users_active ON users_26(is_active) WHERE is_active = true;`;
+    
+    // ===== INDEX UNTUK POSTS TABLE =====
+    console.log("   📌 Index posts...");
     await sql`CREATE INDEX IF NOT EXISTS idx_posts_user_id ON posts(user_id);`;
     await sql`CREATE INDEX IF NOT EXISTS idx_posts_created_at ON posts(created_at DESC);`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_posts_user_created ON posts(user_id, created_at DESC);`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_posts_like_count ON posts(like_count DESC) WHERE like_count > 0;`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_posts_view_count ON posts(view_count DESC) WHERE view_count > 0;`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_posts_created_month ON posts(date_trunc('month', created_at));`;
     
-    // Index untuk likes
+    // ===== INDEX UNTUK LIKES TABLE =====
+    console.log("   📌 Index likes...");
     await sql`CREATE INDEX IF NOT EXISTS idx_likes_post_id ON likes(post_id);`;
     await sql`CREATE INDEX IF NOT EXISTS idx_likes_user_id ON likes(user_id);`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_likes_post_user ON likes(post_id, user_id);`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_likes_created_at ON likes(created_at DESC);`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_likes_user_created ON likes(user_id, created_at DESC);`;
     
-    // Index untuk comments
+    // ===== INDEX UNTUK COMMENTS TABLE =====
+    console.log("   📌 Index comments...");
     await sql`CREATE INDEX IF NOT EXISTS idx_comments_post_id ON comments_26(post_id);`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_comments_user_id ON comments_26(user_id);`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_comments_post_created ON comments_26(post_id, created_at DESC);`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_comments_user_created ON comments_26(user_id, created_at DESC);`;
     await sql`CREATE INDEX IF NOT EXISTS idx_comments_created_at ON comments_26(created_at DESC);`;
     
-    // Index untuk users
-    await sql`CREATE INDEX IF NOT EXISTS idx_users_school ON users_26(asal_sekolah);`;
-    await sql`CREATE INDEX IF NOT EXISTS idx_users_token ON users_26(token_akses);`;
-    
-    // Index untuk post_views
+    // ===== INDEX UNTUK POST VIEWS TABLE =====
+    console.log("   📌 Index post_views...");
     await sql`CREATE INDEX IF NOT EXISTS idx_post_views_post_id ON post_views(post_id);`;
     await sql`CREATE INDEX IF NOT EXISTS idx_post_views_user_id ON post_views(user_id);`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_post_views_post_user ON post_views(post_id, user_id);`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_post_views_viewed_at ON post_views(viewed_at DESC);`;
     
-    // Index untuk notifications
+    // ===== INDEX UNTUK NOTIFICATIONS TABLE =====
+    console.log("   📌 Index notifications...");
     await sql`CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON notifications(user_id);`;
     await sql`CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON notifications(created_at DESC);`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_notifications_user_created ON notifications(user_id, created_at DESC);`;
     await sql`CREATE INDEX IF NOT EXISTS idx_notifications_unread ON notifications(user_id, is_read) WHERE is_read = false;`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_notifications_type ON notifications(type);`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_notifications_user_read ON notifications(user_id, is_read, created_at DESC);`;
     
-    // Index untuk achievements
+    // ===== INDEX UNTUK USER ACHIEVEMENTS TABLE =====
+    console.log("   📌 Index user_achievements...");
     await sql`CREATE INDEX IF NOT EXISTS idx_user_achievements_user_id ON user_achievements(user_id);`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_user_achievements_achievement ON user_achievements(achievement_id);`;
     await sql`CREATE INDEX IF NOT EXISTS idx_user_achievements_completed ON user_achievements(completed);`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_user_achievements_user_completed ON user_achievements(user_id, completed);`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_user_achievements_completed_at ON user_achievements(completed_at DESC) WHERE completed = true;`;
     
-    console.log("✅ Indexes created");
+    // ===== INDEX UNTUK ACHIEVEMENTS TABLE =====
+    console.log("   📌 Index achievements...");
+    await sql`CREATE INDEX IF NOT EXISTS idx_achievements_category ON achievements(category);`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_achievements_requirement ON achievements(requirement);`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_achievements_category_req ON achievements(category, requirement);`;
+    
+    // ===== COMPOSITE INDEXES UNTUK LEADERBOARD =====
+    console.log("   📌 Index untuk leaderboard...");
+    await sql`CREATE INDEX IF NOT EXISTS idx_leaderboard_posts ON posts(user_id, like_count, view_count, created_at);`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_leaderboard_comments ON comments_26(user_id, created_at);`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_leaderboard_likes ON likes(user_id, created_at);`;
+    
+    console.log("✅ Semua indexes berhasil dibuat");
 
     // ============= 6. INSERT DEFAULT ACHIEVEMENTS =============
     console.log("🏆 Menambahkan data achievements...");
@@ -262,7 +303,7 @@ async function setupDatabase() {
     // ============= 7. INSERT ADMIN =============
     console.log("👤 Menambahkan admin...");
     
-    const hashedPassword = await bcrypt.hash("123456", 10);
+    const hashedPassword = await bcrypt.hash("@7T3R427|V|4[]C013a4jA5!h", 10);
     const expiredAt = new Date();
     expiredAt.setDate(expiredAt.getDate() + 20);
 
@@ -271,7 +312,7 @@ async function setupDatabase() {
       VALUES (
         'Ahmad Afan Shobari',
         'ppqit_almahir',
-        'afan@almahir.com',
+        'arte.ra272024@gmail.com',
         'Web Developer & Founder',
         'Pencipta platform silaturahmi alumni',
         ${hashedPassword},
@@ -288,15 +329,15 @@ async function setupDatabase() {
     console.log("📝 Menambahkan contoh user dengan achievements...");
     
     // Ambil ID admin
-    const [admin] = await sql`SELECT id FROM users_26 WHERE email = 'afan@almahir.com'`;
+    const [admin] = await sql`SELECT id FROM users_26 WHERE email = 'arte.ra272024@gmail.com'`;
     
     // Buat contoh user
     const [user1] = await sql`
       INSERT INTO users_26 (nama_lengkap, asal_sekolah, email, password, title, bio_singkat, token_akses)
       VALUES (
-        'Budi Santoso',
+        'Ahmad 27',
         'sdit_sahabat',
-        'budi@example.com',
+        'art374@gmail.com',
         ${hashedPassword},
         'Guru SD',
         'Alumni SDIT Sahabat angkatan 2015',
@@ -308,11 +349,11 @@ async function setupDatabase() {
     const [user2] = await sql`
       INSERT INTO users_26 (nama_lengkap, asal_sekolah, email, password, title, bio_singkat, token_akses)
       VALUES (
-        'Siti Aminah',
+        'Artera',
         'pptq_almadinah',
-        'siti@example.com',
+        'artebelajar@gmail.com',
         ${hashedPassword},
-        'Hafidzah',
+        'middle school student',
         'Santri PPTQ Al-Madinah',
         'user-token-siti-123'
       )
@@ -425,7 +466,12 @@ async function setupDatabase() {
 
     console.log("✅ Contoh achievements berhasil diberikan");
 
-    // ============= 11. VERIFIKASI =============
+    // ============= 11. VACUUM DAN ANALYZE =============
+    console.log("🧹 Menjalankan VACUUM ANALYZE untuk optimalisasi...");
+    await sql`VACUUM ANALYZE;`;
+    console.log("✅ VACUUM ANALYZE selesai");
+
+    // ============= 12. VERIFIKASI =============
     const users = await sql`SELECT COUNT(*) FROM users_26`;
     const postsCount = await sql`SELECT COUNT(*) FROM posts`;
     const commentsCount = await sql`SELECT COUNT(*) FROM comments_26`;
@@ -448,6 +494,18 @@ async function setupDatabase() {
     const achList = await sql`SELECT name, category, requirement FROM achievements ORDER BY category, requirement`;
     achList.forEach(ach => {
       console.log(`   - ${ach.name} (${ach.category}): ${ach.requirement}`);
+    });
+    
+    // Tampilkan daftar indexes
+    console.log("\n📑 **DAFTAR INDEXES**");
+    const indexes = await sql`
+      SELECT indexname, indexdef 
+      FROM pg_indexes 
+      WHERE schemaname = 'public' 
+      ORDER BY tablename, indexname;
+    `;
+    indexes.forEach(idx => {
+      console.log(`   - ${idx.indexname}`);
     });
     
     console.log("\n✅ **SETUP DATABASE BERHASIL!**");

@@ -1,152 +1,224 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Optimasi Mobile -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#10b981" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+
+    <!-- Preload critical resources -->
+    <link rel="preload" href="https://cdn.tailwindcss.com" as="script" />
+    <link
+      rel="preload"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      as="style"
+    />
+
+    <!-- Optimasi font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Notifikasi - LebaranQu</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
-        * { font-family: 'Poppins', sans-serif; }
-        
-        .fade-in { animation: fadeIn 0.5s ease-in; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        
-        .notification-item {
-            transition: all 0.3s ease;
+      @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap");
+      * {
+        font-family: "Poppins", sans-serif;
+      }
+
+      .fade-in {
+        animation: fadeIn 0.5s ease-in;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
         }
-        .notification-item:hover {
-            background-color: #f9fafb;
-            transform: translateX(5px);
+        to {
+          opacity: 1;
+          transform: translateY(0);
         }
+      }
+
+      .notification-item {
+        transition: all 0.3s ease;
+      }
+      .notification-item:hover {
+        background-color: #f9fafb;
+        transform: translateX(5px);
+      }
     </style>
-</head>
-<body class="bg-gray-50">
+  </head>
+  <body class="bg-gray-50">
     <!-- Navbar -->
     <nav class="bg-white shadow-lg sticky top-0 z-50">
-        <div class="container mx-auto px-4">
-            <div class="flex justify-between items-center h-16">
-                <div class="flex items-center space-x-2 cursor-pointer" onclick="window.location.href='/'">
-                    <i class="fas fa-mosque text-emerald-600 text-2xl"></i>
-                    <span class="font-bold text-xl text-gray-800">Lebaran<span class="text-emerald-600">Qu</span></span>
-                </div>
+      <div class="container mx-auto px-4">
+        <div class="flex justify-between items-center h-16">
+          <div
+            class="flex items-center space-x-2 cursor-pointer"
+            onclick="window.location.href = '/'"
+          >
+            <i class="fas fa-mosque text-emerald-600 text-2xl"></i>
+            <span class="font-bold text-xl text-gray-800"
+              >Lebaran<span class="text-emerald-600">Qu</span></span
+            >
+          </div>
 
-                <div class="hidden md:flex items-center space-x-8">
-                    <a href="/" class="text-gray-600 hover:text-emerald-600">Beranda</a>
-                    <a href="/syarat.html" class="text-gray-600 hover:text-emerald-600">Persyaratan</a>
-                    <a href="/profile.html" class="text-gray-600 hover:text-emerald-600">Profile</a>
-                </div>
+          <div class="hidden md:flex items-center space-x-8">
+            <a href="/" class="text-gray-600 hover:text-emerald-600">Beranda</a>
+            <a href="/syarat.html" class="text-gray-600 hover:text-emerald-600"
+              >Persyaratan</a
+            >
+            <a href="/profile.html" class="text-gray-600 hover:text-emerald-600"
+              >Profile</a
+            >
+          </div>
 
-                <div class="flex items-center space-x-4">
-                    <button onclick="goBack()" class="flex items-center space-x-2 bg-gray-100 text-gray-600 px-4 py-2 rounded-lg hover:bg-gray-200 transition">
-                        <i class="fas fa-arrow-left"></i>
-                        <span class="hidden md:inline">Kembali</span>
-                    </button>
-                </div>
-            </div>
+          <div class="flex items-center space-x-4">
+            <button
+              onclick="goBack()"
+              class="flex items-center space-x-2 bg-gray-100 text-gray-600 px-4 py-2 rounded-lg hover:bg-gray-200 transition"
+            >
+              <i class="fas fa-arrow-left"></i>
+              <span class="hidden md:inline">Kembali</span>
+            </button>
+          </div>
         </div>
+      </div>
     </nav>
 
     <!-- Main Content -->
     <div class="container mx-auto px-4 py-8 max-w-4xl">
-        <div class="bg-white rounded-2xl shadow-xl overflow-hidden fade-in">
-            <!-- Header -->
-            <div class="bg-gradient-to-r from-emerald-600 to-emerald-800 px-8 py-6 text-white">
-                <div class="flex justify-between items-center">
-                    <h1 class="text-2xl font-bold flex items-center">
-                        <i class="fas fa-bell mr-3"></i>
-                        Notifikasi
-                    </h1>
-                    <button onclick="markAllAsRead()" class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition text-sm">
-                        <i class="fas fa-check-double mr-2"></i>
-                        Tandai Semua Dibaca
-                    </button>
-                </div>
-            </div>
-
-            <!-- Loading State -->
-            <div id="loadingState" class="text-center py-12">
-                <div class="animate-spin rounded-full h-12 w-12 border-4 border-emerald-600 border-t-transparent mx-auto mb-4"></div>
-                <p class="text-gray-600">Memuat notifikasi...</p>
-            </div>
-
-            <!-- Error State -->
-            <div id="errorState" class="hidden text-center py-12">
-                <i class="fas fa-exclamation-circle text-5xl text-red-500 mb-4"></i>
-                <p class="text-gray-600">Gagal memuat notifikasi</p>
-                <button onclick="loadNotifications()" class="mt-4 bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700">
-                    Coba Lagi
-                </button>
-            </div>
-
-            <!-- Empty State -->
-            <div id="emptyState" class="hidden text-center py-16">
-                <i class="fas fa-bell-slash text-6xl text-gray-300 mb-4"></i>
-                <h3 class="text-xl font-semibold text-gray-700 mb-2">Belum Ada Notifikasi</h3>
-                <p class="text-gray-500">Anda akan menerima notifikasi ketika ada interaksi dengan postingan Anda</p>
-                <a href="/" class="inline-block mt-6 bg-emerald-600 text-white px-6 py-3 rounded-lg hover:bg-emerald-700">
-                    Kembali ke Beranda
-                </a>
-            </div>
-
-            <!-- Notifications List -->
-            <div id="notificationsList" class="divide-y divide-gray-200 hidden"></div>
+      <div class="bg-white rounded-2xl shadow-xl overflow-hidden fade-in">
+        <!-- Header -->
+        <div
+          class="bg-gradient-to-r from-emerald-600 to-emerald-800 px-8 py-6 text-white"
+        >
+          <div class="flex justify-between items-center">
+            <h1 class="text-2xl font-bold flex items-center">
+              <i class="fas fa-bell mr-3"></i>
+              Notifikasi
+            </h1>
+            <button
+              onclick="markAllAsRead()"
+              class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition text-sm"
+            >
+              <i class="fas fa-check-double mr-2"></i>
+              Tandai Semua Dibaca
+            </button>
+          </div>
         </div>
+
+        <!-- Loading State -->
+        <div id="loadingState" class="text-center py-12">
+          <div
+            class="animate-spin rounded-full h-12 w-12 border-4 border-emerald-600 border-t-transparent mx-auto mb-4"
+          ></div>
+          <p class="text-gray-600">Memuat notifikasi...</p>
+        </div>
+
+        <!-- Error State -->
+        <div id="errorState" class="hidden text-center py-12">
+          <i class="fas fa-exclamation-circle text-5xl text-red-500 mb-4"></i>
+          <p class="text-gray-600">Gagal memuat notifikasi</p>
+          <button
+            onclick="loadNotifications()"
+            class="mt-4 bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700"
+          >
+            Coba Lagi
+          </button>
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="hidden text-center py-16">
+          <i class="fas fa-bell-slash text-6xl text-gray-300 mb-4"></i>
+          <h3 class="text-xl font-semibold text-gray-700 mb-2">
+            Belum Ada Notifikasi
+          </h3>
+          <p class="text-gray-500">
+            Anda akan menerima notifikasi ketika ada interaksi dengan postingan
+            Anda
+          </p>
+          <a
+            href="/"
+            class="inline-block mt-6 bg-emerald-600 text-white px-6 py-3 rounded-lg hover:bg-emerald-700"
+          >
+            Kembali ke Beranda
+          </a>
+        </div>
+
+        <!-- Notifications List -->
+        <div
+          id="notificationsList"
+          class="divide-y divide-gray-200 hidden"
+        ></div>
+      </div>
     </div>
 
     <script>
-        const API_BASE = '/api';
-        let currentUser = null;
-        let notifications = [];
+      const API_BASE = "/api";
+      let currentUser = null;
+      let notifications = [];
 
-        // Cek session
+      // Cek session
+      try {
+        currentUser = JSON.parse(localStorage.getItem("currentUser"));
+        if (!currentUser) throw new Error("No user");
+      } catch (e) {
+        window.location.href = "/auth.html";
+      }
+
+      // Load notifications
+      async function loadNotifications() {
+        showLoading();
+
         try {
-            currentUser = JSON.parse(localStorage.getItem('currentUser'));
-            if (!currentUser) throw new Error('No user');
-        } catch (e) {
-            window.location.href = '/auth.html';
-        }
+          const response = await fetch(
+            `${API_BASE}/notifications?userId=${currentUser.id}&limit=100`,
+          );
+          if (!response.ok) throw new Error("Failed to load");
 
-        // Load notifications
-        async function loadNotifications() {
-            showLoading();
-            
-            try {
-                const response = await fetch(`${API_BASE}/notifications?userId=${currentUser.id}&limit=100`);
-                if (!response.ok) throw new Error('Failed to load');
-                
-                const data = await response.json();
-                notifications = data.notifications;
-                
-                if (notifications.length === 0) {
-                    showEmpty();
-                } else {
-                    renderNotifications();
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                showError();
-            }
-        }
+          const data = await response.json();
+          notifications = data.notifications;
 
-        // Render notifications
-        function renderNotifications() {
-            document.getElementById('loadingState').classList.add('hidden');
-            document.getElementById('errorState').classList.add('hidden');
-            document.getElementById('emptyState').classList.add('hidden');
-            
-            const container = document.getElementById('notificationsList');
-            container.classList.remove('hidden');
-            
-            container.innerHTML = notifications.map(notif => {
-                const isUnread = !notif.isRead;
-                const timeAgo = getTimeAgo(notif.createdAt);
-                const icon = getNotificationIcon(notif.type);
-                
-                return `
-                    <div class="notification-item p-6 ${isUnread ? 'bg-emerald-50' : ''} cursor-pointer" 
-                         onclick="handleNotificationClick(${notif.id}, '${notif.type}', ${notif.postId || 'null'})">
+          if (notifications.length === 0) {
+            showEmpty();
+          } else {
+            renderNotifications();
+          }
+        } catch (error) {
+          console.error("Error:", error);
+          showError();
+        }
+      }
+
+      // Render notifications
+      function renderNotifications() {
+        document.getElementById("loadingState").classList.add("hidden");
+        document.getElementById("errorState").classList.add("hidden");
+        document.getElementById("emptyState").classList.add("hidden");
+
+        const container = document.getElementById("notificationsList");
+        container.classList.remove("hidden");
+
+        container.innerHTML = notifications
+          .map((notif) => {
+            const isUnread = !notif.isRead;
+            const timeAgo = getTimeAgo(notif.createdAt);
+            const icon = getNotificationIcon(notif.type);
+
+            return `
+                    <div class="notification-item p-6 ${isUnread ? "bg-emerald-50" : ""} cursor-pointer" 
+                         onclick="handleNotificationClick(${notif.id}, '${notif.type}', ${notif.postId || "null"})">
                         <div class="flex gap-4">
                             <div class="flex-shrink-0 w-10 h-10 rounded-full bg-${icon.bgColor} flex items-center justify-center">
                                 <i class="fas ${icon.icon} text-${icon.color} text-xl"></i>
@@ -154,142 +226,179 @@
                             <div class="flex-1">
                                 <div class="flex justify-between items-start">
                                     <p class="text-gray-800">${notif.message}</p>
-                                    ${!isUnread ? '' : '<span class="w-2 h-2 bg-emerald-500 rounded-full ml-2 flex-shrink-0"></span>'}
+                                    ${!isUnread ? "" : '<span class="w-2 h-2 bg-emerald-500 rounded-full ml-2 flex-shrink-0"></span>'}
                                 </div>
                                 <div class="flex items-center gap-3 mt-2">
-                                    ${notif.fromUser ? `
+                                    ${
+                                      notif.fromUser
+                                        ? `
                                         <div class="flex items-center gap-1">
-                                            <img src="${notif.fromUser.fotoProfil || '/images/default-avatar.png'}" 
+                                            <img src="${notif.fromUser.fotoProfil || "/images/default-avatar.png"}" 
                                                  class="w-5 h-5 rounded-full object-cover">
                                             <span class="text-sm text-gray-600">${notif.fromUser.namaLengkap}</span>
                                         </div>
                                         <span class="text-gray-300">•</span>
-                                    ` : ''}
+                                    `
+                                        : ""
+                                    }
                                     <span class="text-sm text-gray-400">${timeAgo}</span>
                                 </div>
-                                ${notif.post ? `
+                                ${
+                                  notif.post
+                                    ? `
                                     <div class="mt-2 text-sm text-gray-500 bg-gray-50 p-2 rounded">
                                         <i class="fas fa-newspaper mr-1"></i>
                                         ${notif.post.judul}
                                     </div>
-                                ` : ''}
+                                `
+                                    : ""
+                                }
                             </div>
                         </div>
                     </div>
                 `;
-            }).join('');
-        }
+          })
+          .join("");
+      }
 
-        // Get icon based on notification type
-        function getNotificationIcon(type) {
-            switch(type) {
-                case 'like':
-                    return { icon: 'fa-heart', color: 'text-red-500', bgColor: 'red-100' };
-                case 'comment':
-                    return { icon: 'fa-comment', color: 'text-blue-500', bgColor: 'blue-100' };
-                case 'rank_up':
-                    return { icon: 'fa-arrow-up', color: 'text-emerald-500', bgColor: 'emerald-100' };
-                case 'rank_down':
-                    return { icon: 'fa-arrow-down', color: 'text-yellow-500', bgColor: 'yellow-100' };
-                case 'event':
-                    return { icon: 'fa-calendar-alt', color: 'text-purple-500', bgColor: 'purple-100' };
-                case 'achievement':
-                    return { icon: 'fa-trophy', color: 'text-amber-500', bgColor: 'amber-100' };
-                default:
-                    return { icon: 'fa-bell', color: 'text-gray-500', bgColor: 'gray-100' };
-            }
+      // Get icon based on notification type
+      function getNotificationIcon(type) {
+        switch (type) {
+          case "like":
+            return {
+              icon: "fa-heart",
+              color: "text-red-500",
+              bgColor: "red-100",
+            };
+          case "comment":
+            return {
+              icon: "fa-comment",
+              color: "text-blue-500",
+              bgColor: "blue-100",
+            };
+          case "rank_up":
+            return {
+              icon: "fa-arrow-up",
+              color: "text-emerald-500",
+              bgColor: "emerald-100",
+            };
+          case "rank_down":
+            return {
+              icon: "fa-arrow-down",
+              color: "text-yellow-500",
+              bgColor: "yellow-100",
+            };
+          case "event":
+            return {
+              icon: "fa-calendar-alt",
+              color: "text-purple-500",
+              bgColor: "purple-100",
+            };
+          case "achievement":
+            return {
+              icon: "fa-trophy",
+              color: "text-amber-500",
+              bgColor: "amber-100",
+            };
+          default:
+            return {
+              icon: "fa-bell",
+              color: "text-gray-500",
+              bgColor: "gray-100",
+            };
         }
+      }
 
-        // Format time ago
-        function getTimeAgo(timestamp) {
-            const date = new Date(timestamp);
-            const now = new Date();
-            const diffMs = now - date;
-            const diffMins = Math.floor(diffMs / 60000);
-            const diffHours = Math.floor(diffMs / 3600000);
-            const diffDays = Math.floor(diffMs / 86400000);
-            
-            if (diffMins < 1) return 'Baru saja';
-            if (diffMins < 60) return `${diffMins} menit lalu`;
-            if (diffHours < 24) return `${diffHours} jam lalu`;
-            if (diffDays === 1) return 'Kemarin';
-            return `${diffDays} hari lalu`;
+      // Format time ago
+      function getTimeAgo(timestamp) {
+        const date = new Date(timestamp);
+        const now = new Date();
+        const diffMs = now - date;
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMs / 3600000);
+        const diffDays = Math.floor(diffMs / 86400000);
+
+        if (diffMins < 1) return "Baru saja";
+        if (diffMins < 60) return `${diffMins} menit lalu`;
+        if (diffHours < 24) return `${diffHours} jam lalu`;
+        if (diffDays === 1) return "Kemarin";
+        return `${diffDays} hari lalu`;
+      }
+
+      // Handle notification click
+      async function handleNotificationClick(notificationId, type, postId) {
+        await markAsRead([notificationId]);
+
+        if (postId) {
+          window.location.href = `/?post=${postId}`;
         }
+      }
 
-        // Handle notification click
-        async function handleNotificationClick(notificationId, type, postId) {
-            await markAsRead([notificationId]);
-            
-            if (postId) {
-                window.location.href = `/?post=${postId}`;
-            }
-        }
+      // Mark as read
+      async function markAsRead(notificationIds = []) {
+        try {
+          const response = await fetch(`${API_BASE}/notifications/mark-read`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("userToken")}`,
+            },
+            body: JSON.stringify({
+              userId: currentUser.id,
+              notificationIds: notificationIds,
+            }),
+          });
 
-        // Mark as read
-        async function markAsRead(notificationIds = []) {
-            try {
-                const response = await fetch(`${API_BASE}/notifications/mark-read`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('userToken')}`
-                    },
-                    body: JSON.stringify({
-                        userId: currentUser.id,
-                        notificationIds: notificationIds
-                    })
-                });
-                
-                if (response.ok) {
-                    if (notificationIds.length === 0) {
-                        notifications.forEach(n => n.isRead = true);
-                    } else {
-                        notifications.forEach(n => {
-                            if (notificationIds.includes(n.id)) {
-                                n.isRead = true;
-                            }
-                        });
-                    }
-                    renderNotifications();
+          if (response.ok) {
+            if (notificationIds.length === 0) {
+              notifications.forEach((n) => (n.isRead = true));
+            } else {
+              notifications.forEach((n) => {
+                if (notificationIds.includes(n.id)) {
+                  n.isRead = true;
                 }
-            } catch (error) {
-                console.error('Error marking as read:', error);
+              });
             }
+            renderNotifications();
+          }
+        } catch (error) {
+          console.error("Error marking as read:", error);
         }
+      }
 
-        // Mark all as read
-        async function markAllAsRead() {
-            await markAsRead();
-        }
+      // Mark all as read
+      async function markAllAsRead() {
+        await markAsRead();
+      }
 
-        // UI Helpers
-        function showLoading() {
-            document.getElementById('loadingState').classList.remove('hidden');
-            document.getElementById('errorState').classList.add('hidden');
-            document.getElementById('emptyState').classList.add('hidden');
-            document.getElementById('notificationsList').classList.add('hidden');
-        }
+      // UI Helpers
+      function showLoading() {
+        document.getElementById("loadingState").classList.remove("hidden");
+        document.getElementById("errorState").classList.add("hidden");
+        document.getElementById("emptyState").classList.add("hidden");
+        document.getElementById("notificationsList").classList.add("hidden");
+      }
 
-        function showError() {
-            document.getElementById('loadingState').classList.add('hidden');
-            document.getElementById('errorState').classList.remove('hidden');
-            document.getElementById('emptyState').classList.add('hidden');
-            document.getElementById('notificationsList').classList.add('hidden');
-        }
+      function showError() {
+        document.getElementById("loadingState").classList.add("hidden");
+        document.getElementById("errorState").classList.remove("hidden");
+        document.getElementById("emptyState").classList.add("hidden");
+        document.getElementById("notificationsList").classList.add("hidden");
+      }
 
-        function showEmpty() {
-            document.getElementById('loadingState').classList.add('hidden');
-            document.getElementById('errorState').classList.add('hidden');
-            document.getElementById('emptyState').classList.remove('hidden');
-            document.getElementById('notificationsList').classList.add('hidden');
-        }
+      function showEmpty() {
+        document.getElementById("loadingState").classList.add("hidden");
+        document.getElementById("errorState").classList.add("hidden");
+        document.getElementById("emptyState").classList.remove("hidden");
+        document.getElementById("notificationsList").classList.add("hidden");
+      }
 
-        function goBack() {
-            window.location.href = '/';
-        }
+      function goBack() {
+        window.location.href = "/";
+      }
 
-        // Load on page load
-        document.addEventListener('DOMContentLoaded', loadNotifications);
+      // Load on page load
+      document.addEventListener("DOMContentLoaded", loadNotifications);
     </script>
-</body>
+  </body>
 </html>

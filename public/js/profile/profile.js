@@ -4,7 +4,7 @@
 
 // ========== INISIALISASI ==========
 function initProfile() {
-  console.log("Initializing profile page...");
+  // console.log("Initializing profile page...");
   
   // Cek session dulu
   if (typeof checkSession === 'function') {
