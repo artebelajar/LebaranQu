@@ -8,7 +8,6 @@ import { rateLimiter } from 'hono-rate-limiter';
 import dotenv from "dotenv";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
-import fs from "fs";
 
 // Import routes
 import usersApi from "./src/api/users.js";
@@ -17,16 +16,15 @@ import notificationsApi from "./src/api/notifications.js";
 import achievementsApi from "./src/api/achievements.js";
 import leaderboardApi from "./src/api/leaderboard.js";
 
-// dotenv.config();
+dotenv.config();
 
 const app = new Hono();
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-// ========== SECURITY HEADERS UNTUK SUPABASE ==========
+// ========== SECURITY HEADERS ==========
 app.use('*', secureHeaders({
   contentSecurityPolicy: {
     defaultSrc: ["'self'"],
-    
     scriptSrc: [
       "'self'", 
       "'unsafe-inline'", 
@@ -34,26 +32,20 @@ app.use('*', secureHeaders({
       "https://cdn.tailwindcss.com",
       "https://cdnjs.cloudflare.com",
       "https://www.google.com",
-      "https://www.gstatic.com",
-      "https://www.google.com/recaptcha/",
-      "https://www.gstatic.com/recaptcha/",
-      "https://recaptcha.google.com/recaptcha/"
+      "https://www.gstatic.com"
     ],
-    
     styleSrc: [
       "'self'", 
       "'unsafe-inline'", 
       "https://fonts.googleapis.com",
       "https://cdnjs.cloudflare.com"
     ],
-    
     fontSrc: [
       "'self'", 
       "https://fonts.gstatic.com",
       "https://cdnjs.cloudflare.com",
       "data:"
     ],
-    
     imgSrc: [
       "'self'", 
       "data:", 
@@ -61,39 +53,17 @@ app.use('*', secureHeaders({
       "https://cdnjs.cloudflare.com",
       "https://www.gstatic.com",
       "https://www.google.com",
-      "https://*.supabase.co",
-      "https://supabase.co"
+      "https://*.supabase.co"
     ],
-    
     connectSrc: [
       "'self'", 
       "ws:", 
       "wss:",
       "https://www.google.com",
-      "https://www.google.com/recaptcha/",
       "https://www.gstatic.com",
-      "https://www.gstatic.com/recaptcha/",
-      "https://recaptcha.google.com",
-      "https://recaptcha.google.com/recaptcha/",
       "https://*.supabase.co"
     ],
-    
-    frameSrc: [
-      "'self'", 
-      "https://www.google.com",
-      "https://www.google.com/recaptcha/",
-      "https://recaptcha.google.com",
-      "https://recaptcha.google.com/recaptcha/"
-    ],
-    
-    childSrc: [
-      "'self'", 
-      "https://www.google.com",
-      "https://recaptcha.google.com"
-    ],
-    
-    formAction: ["'self'"],
-    frameAncestors: ["'self'"],
+    frameSrc: ["'self'", "https://www.google.com", "https://recaptcha.google.com"],
   },
   crossOriginEmbedderPolicy: false,
   crossOriginOpenerPolicy: false,
@@ -124,13 +94,6 @@ const limiter = rateLimiter({
   skip: (c) => {
     const path = c.req.path;
     return path.includes('/api/users/login') || path.includes('/api/users/register');
-  },
-  handler: (c) => {
-    return c.json({ 
-      error: 'Terlalu banyak permintaan', 
-      message: 'Silakan coba lagi nanti',
-      retryAfter: 60 
-    }, 429);
   }
 });
 
@@ -177,44 +140,15 @@ app.get("/events", async (c) => {
 // ========== STATIC FILES ==========
 app.use("/*", serveStatic({ root: join(__dirname, "public") }));
 
-// Fallback untuk file upload (hanya untuk development, di production pakai Supabase)
-app.get('/uploads/*', async (c) => {
-  try {
-    const filePath = join(__dirname, 'public', c.req.path);
-    if (!fs.existsSync(filePath)) return c.text('File not found', 404);
-    
-    const file = fs.readFileSync(filePath);
-    const ext = filePath.split('.').pop().toLowerCase();
-    const contentTypes = {
-      jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png',
-      gif: 'image/gif', webp: 'image/webp'
-    };
-    
-    return c.body(file, 200, { 
-      'Content-Type': contentTypes[ext] || 'application/octet-stream',
-      'Cache-Control': 'public, max-age=31536000'
-    });
-  } catch (error) {
-    return c.text('File not found', 404);
-  }
-});
-
 // 404 handler
 app.notFound((c) => {
-  return c.json({ 
-    error: "Not Found",
-    message: "Endpoint tidak ditemukan"
-  }, 404);
+  return c.json({ error: "Not Found", message: "Endpoint tidak ditemukan" }, 404);
 });
 
 // Error handler
 app.onError((err, c) => {
   console.error('❌ Error:', err);
-  return c.json({ 
-    error: process.env.NODE_ENV === 'production' 
-      ? 'Terjadi kesalahan internal' 
-      : err.message 
-  }, 500);
+  return c.json({ error: err.message }, 500);
 });
 
 // Test endpoint untuk cek koneksi Supabase
@@ -231,8 +165,6 @@ app.get('/api/storage-test', async (c) => {
 // ========== START SERVER ==========
 const port = process.env.PORT || 6006;
 
-// 🔴 TIDAK ADA LAGI KODE MEMBUAT FOLDER UPLOADS
-
 const server = serve({
   fetch: app.fetch,
   port,
@@ -245,12 +177,12 @@ const server = serve({
     const { StorageService } = await import('./src/utils/storage.js');
     const test = await StorageService.testConnection();
     if (test.success) {
-      console.log(`✅ Supabase Storage connected. Buckets:`, test.buckets?.map(b => b.name));
+      console.log(`✅ Supabase Storage connected`);
     } else {
       console.warn(`⚠️ Supabase Storage warning:`, test.error);
     }
   } catch (error) {
-    console.warn(`⚠️ Could not test Supabase:`, error.message);
+    console.warn(`⚠️ Could not test Supabase`);
   }
   
   // Inisialisasi WebSocket
@@ -259,7 +191,6 @@ const server = serve({
     initWebSocket(server);
     console.log(`🔌 WebSocket server running at ws://localhost:${info.port}/ws`);
   } catch (wsError) {
-    console.error('❌ WebSocket initialization failed:', wsError);
     console.log('📡 Falling back to SSE only');
   }
 });
