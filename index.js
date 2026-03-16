@@ -109,17 +109,11 @@ app.route("/api/leaderboard", leaderboardApi);
 // ========== SSE ENDPOINT - PASTIKAN INI ADA ==========
 app.get("/events", async (c) => {
   const userId = c.req.query('userId');
-  
-  if (!userId) {
-    return c.json({ error: "User ID diperlukan" }, 400);
-  }
-  
-  console.log(`📡 SSE connection requested for user ${userId}`);
+  if (!userId) return c.json({ error: "User ID diperlukan" }, 400);
   
   c.header('Content-Type', 'text/event-stream');
   c.header('Cache-Control', 'no-cache');
   c.header('Connection', 'keep-alive');
-  c.header('Access-Control-Allow-Origin', '*');
   
   const { readable, writable } = new TransformStream();
   const writer = writable.getWriter();

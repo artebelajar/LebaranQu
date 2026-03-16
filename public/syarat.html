@@ -790,7 +790,7 @@
       </div>
     </div>
 
-    <!-- Bottom Navigation untuk Mobile - Sama persis dengan index -->
+    <!-- Bottom Navigation untuk Mobile - Perbaiki bagian profile -->
     <div class="bottom-nav md:hidden">
       <div
         class="nav-item"
@@ -801,7 +801,7 @@
         <span>Beranda</span>
       </div>
       <div
-        class="nav-item active"
+        class="nav-item"
         data-page="syarat"
         onclick="window.location.href = '/syarat.html'"
       >
@@ -826,6 +826,7 @@
         <span>Notif</span>
         <span id="mobileNotifBadge" class="notification-badge hidden">0</span>
       </div>
+      <!-- PERBAIKAN INI: Tambahkan currentUser?.id -->
       <div class="nav-item" data-page="profile" onclick="goToProfile()">
         <i class="fas fa-user"></i>
         <span>Profile</span>
@@ -992,13 +993,25 @@
       }
 
       // Fungsi go to profile
-      function goToProfile() {
-        if (currentUser) {
+      // ========== GO TO PROFILE FUNCTION ==========
+      function goToProfile(userId) {
+        // Jika userId diberikan, langsung ke profile dengan ID tersebut
+        if (userId) {
+          window.location.href = `/profile.html?id=${userId}`;
+          return;
+        }
+
+        // Jika tidak ada userId, cek currentUser
+        if (currentUser && currentUser.id) {
           window.location.href = `/profile.html?id=${currentUser.id}`;
         } else {
+          // Fallback ke profile tanpa ID (akan redirect ke login jika perlu)
           window.location.href = "/profile.html";
         }
       }
+
+      // Export ke window
+      window.goToProfile = goToProfile;
 
       // ========== FUNGSI NOTIFIKASI ==========
 

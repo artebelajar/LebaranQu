@@ -957,7 +957,7 @@
       </div>
     </div>
 
-    <!-- Bottom Navigation untuk Mobile - Sama persis dengan index dan syarat -->
+    <!-- Bottom Navigation untuk Mobile - Perbaiki bagian profile -->
     <div class="bottom-nav md:hidden">
       <div
         class="nav-item"
@@ -993,11 +993,8 @@
         <span>Notif</span>
         <span id="mobileNotifBadge" class="notification-badge hidden">0</span>
       </div>
-      <div
-        class="nav-item active"
-        data-page="profile"
-        onclick="window.location.href = '/profile.html'"
-      >
+      <!-- PERBAIKAN INI: Tambahkan currentUser?.id -->
+      <div class="nav-item" data-page="profile" onclick="goToProfile()">
         <i class="fas fa-user"></i>
         <span>Profile</span>
       </div>
@@ -1864,28 +1861,30 @@
       // ========== FUNGSI PROFILE ==========
 
       // Override fungsi getProfileId dari helpers.js
+      // ========== GET PROFILE ID ==========
       window.getProfileId = function () {
         const urlParams = new URLSearchParams(window.location.search);
         const id = urlParams.get("id");
-        // console.log("Raw profile ID from URL:", id);
+        console.log("Raw profile ID from URL:", id);
 
-        // Jika tidak ada parameter id, tampilkan profile sendiri
-        if (!id) {
-          // console.log("No profile ID in URL, showing own profile");
-          return currentUser?.id;
+        // Jika ada parameter id, gunakan itu
+        if (id) {
+          const parsedId = parseInt(id);
+          if (!isNaN(parsedId)) {
+            console.log("Using ID from URL:", parsedId);
+            return parsedId;
+          }
         }
 
-        // Konversi ke number
-        const parsedId = parseInt(id);
-        // console.log("Parsed profile ID:", parsedId);
-
-        // Validasi
-        if (isNaN(parsedId)) {
-          console.error("Invalid profile ID in URL:", id);
-          return null;
+        // Jika tidak ada parameter id, gunakan currentUser
+        if (currentUser && currentUser.id) {
+          console.log("No ID in URL, using current user:", currentUser.id);
+          return currentUser.id;
         }
 
-        return parsedId;
+        // Jika tidak ada currentUser, return null (akan redirect ke login)
+        console.log("No user logged in");
+        return null;
       };
 
       // Override checkOwnership untuk handle error lebih baik
@@ -1935,27 +1934,31 @@
 
       // Override loadProfile untuk handle error lebih baik
       const originalLoadProfile = window.loadProfile;
+      // ========== LOAD PROFILE ==========
       window.loadProfile = async function () {
         try {
-          // console.log("Loading profile with fixed getProfileId...");
+          console.log("Loading profile...");
 
           document.getElementById("loadingState").classList.remove("hidden");
           document.getElementById("profileContent").classList.add("hidden");
           document.getElementById("errorState").classList.add("hidden");
 
-          // Dapatkan ID dengan fungsi yang sudah di-override
+          // Dapatkan ID dengan fungsi yang sudah diperbaiki
           const userIdToLoad = window.getProfileId();
-          // console.log("Loading profile for user ID:", userIdToLoad);
+          console.log("Loading profile for user ID:", userIdToLoad);
 
           if (!userIdToLoad || isNaN(userIdToLoad)) {
-            // Coba redirect ke profile sendiri
-            // console.log("Invalid ID, redirecting to own profile");
-            if (currentUser) {
-              window.location.href = `/profile.html?id=${currentUser.id}`;
+            // Jika tidak ada ID dan tidak login, redirect ke login
+            if (!currentUser) {
+              console.log("No user logged in, redirecting to login");
+              window.location.href = "/login.html";
               return;
-            } else {
-              throw new Error("ID user tidak valid dan tidak ada user login");
             }
+
+            // Jika ada currentUser tapi ID tidak valid, gunakan currentUser.id
+            console.log("Invalid ID, using current user:", currentUser.id);
+            window.location.href = `/profile.html?id=${currentUser.id}`;
+            return;
           }
 
           const userRes = await fetch(`${API_BASE}/users/${userIdToLoad}`);
@@ -1967,7 +1970,7 @@
           }
 
           window.profileUser = await userRes.json();
-          // console.log("User data loaded:", profileUser);
+          console.log("User data loaded:", profileUser);
 
           // Update UI dasar
           if (typeof window.updateProfileUI === "function") {
@@ -2017,9 +2020,20 @@
           document.getElementById("loadingState").classList.add("hidden");
           document.getElementById("errorState").classList.remove("hidden");
           document.getElementById("errorMessage").textContent = error.message;
+
+          // Tambahkan tombol untuk kembali ke home
+          const errorState = document.getElementById("errorState");
+          if (errorState) {
+            const homeButton = document.createElement("button");
+            homeButton.className =
+              "mt-4 bg-gray-600 text-white px-6 py-3 rounded-xl hover:bg-gray-700 transition block mx-auto";
+            homeButton.innerHTML =
+              '<i class="fas fa-home mr-2"></i>Kembali ke Beranda';
+            homeButton.onclick = () => (window.location.href = "/");
+            errorState.querySelector(".bg-red-50")?.appendChild(homeButton);
+          }
         }
       };
-
       // ========== LOAD PROFILE DENGAN ERROR HANDLING LEBIH BAIK ==========
       window.loadProfile = async function () {
         try {
@@ -2175,7 +2189,7 @@
 
       // ========== INISIALISASI ==========
       function initProfileWithFix() {
-        // console.log("Initializing profile page with fixes...");
+        console.log("Initializing profile page with fixes...");
 
         // Cek session
         if (typeof checkSession === "function") {
@@ -2186,6 +2200,17 @@
         if (typeof window.checkOwnership === "function") {
           window.checkOwnership();
         }
+
+        // Setup goToProfile function
+        window.goToProfile = function (userId) {
+          if (userId) {
+            window.location.href = `/profile.html?id=${userId}`;
+          } else if (currentUser) {
+            window.location.href = `/profile.html?id=${currentUser.id}`;
+          } else {
+            window.location.href = "/login.html";
+          }
+        };
 
         // Load profile dengan fungsi baru
         if (typeof window.loadProfile === "function") {
@@ -2199,6 +2224,13 @@
         if (currentUser) {
           loadMobileNotifications();
         }
+      }
+
+      // Mulai dengan fungsi baru
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initProfileWithFix);
+      } else {
+        initProfileWithFix();
       }
 
       // Escape HTML untuk keamanan

@@ -27,7 +27,7 @@ function cleanup() {
 
 // ========== INIT DASHBOARD ==========
 function initDashboard() {
-  // console.log("Initializing dashboard...");
+  console.log("Initializing dashboard...");
 
   // Cek elemen penting
   const postDetailSidebar = document.getElementById("postDetailSidebar");
@@ -53,7 +53,7 @@ function initDashboard() {
     window.LeaderboardModule.renderButtons();
   }
   
-  // Try WebSocket first
+  // Try WebSocket first (sudah handle protocol di websocket.js)
   try {
     if (typeof connectWebSocket === 'function') connectWebSocket();
   } catch (error) {
@@ -76,7 +76,7 @@ function initDashboard() {
       if (loadingState) loadingState.classList.add("hidden");
       if (mainContent) mainContent.classList.remove("hidden");
       if (userInfo) userInfo.classList.remove("hidden");
-      // console.log("Dashboard ready");
+      console.log("Dashboard ready");
       
       if (typeof initLeaderboardFilters === 'function') {
         initLeaderboardFilters();
