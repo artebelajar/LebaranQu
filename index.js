@@ -8,6 +8,7 @@ import { rateLimiter } from 'hono-rate-limiter';
 import dotenv from "dotenv";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
+import postgres from "postgres";
 
 // Import routes
 import usersApi from "./src/api/users.js";
@@ -20,6 +21,13 @@ dotenv.config();
 
 const app = new Hono();
 const __dirname = dirname(fileURLToPath(import.meta.url));
+
+// Database connection
+const sql = postgres(process.env.DATABASE_URL, {
+  max: 10,
+  idle_timeout: 30,
+  connect_timeout: 10,
+});
 
 // ========== SECURITY HEADERS ==========
 app.use('*', secureHeaders({
@@ -94,8 +102,8 @@ app.route("/api/notifications", notificationsApi);
 app.route("/api/achievements", achievementsApi);
 app.route("/api/leaderboard", leaderboardApi);
 
-// ========== SSE ENDPOINT (Server-Sent Events) ==========
-app.get("/events", async (c) => {
+// ========== SSE ENDPOINT ==========
+app.get("/events", (c) => {
   const userId = c.req.query('userId');
   
   if (!userId) {
@@ -104,19 +112,15 @@ app.get("/events", async (c) => {
   
   console.log(`📡 SSE connection requested for user ${userId}`);
   
-  // Set headers untuk SSE
   c.header('Content-Type', 'text/event-stream');
   c.header('Cache-Control', 'no-cache');
   c.header('Connection', 'keep-alive');
   c.header('Access-Control-Allow-Origin', '*');
   
-  // Buat stream
   const stream = new ReadableStream({
     start(controller) {
-      // Kirim pesan koneksi berhasil
       controller.enqueue(`data: ${JSON.stringify({ type: 'connected', userId })}\n\n`);
       
-      // Kirim ping setiap 30 detik
       const pingInterval = setInterval(() => {
         try {
           controller.enqueue(`: ping\n\n`);
@@ -125,7 +129,6 @@ app.get("/events", async (c) => {
         }
       }, 30000);
       
-      // Bersihkan interval saat koneksi ditutup
       c.req.raw.signal.addEventListener('abort', () => {
         clearInterval(pingInterval);
         console.log(`📡 SSE connection closed for user ${userId}`);
@@ -139,9 +142,18 @@ app.get("/events", async (c) => {
 // ========== STATIC FILES ==========
 app.use("/*", serveStatic({ root: join(__dirname, "public") }));
 
+// ========== HEALTH CHECK ==========
+app.get('/health', (c) => {
+  return c.json({ 
+    status: 'ok', 
+    time: new Date().toISOString(),
+    env: process.env.NODE_ENV || 'development'
+  });
+});
+
 // ========== 404 HANDLER ==========
 app.notFound((c) => {
-  return c.json({ error: "Not Found" }, 404);
+  return c.json({ error: "Not Found", message: "Endpoint tidak ditemukan" }, 404);
 });
 
 // ========== ERROR HANDLER ==========
@@ -150,38 +162,14 @@ app.onError((err, c) => {
   return c.json({ error: err.message }, 500);
 });
 
-// ========== HEALTH CHECK ==========
-app.get('/health', (c) => c.json({ status: 'ok', time: new Date() }));
-
 // ========== START SERVER ==========
 const port = process.env.PORT || 6006;
 
-const server = serve({
+serve({
   fetch: app.fetch,
   port,
-}, async (info) => {
+}, (info) => {
   console.log(`🚀 Server running at http://localhost:${info.port}`);
-  console.log(`📁 Using Supabase Storage for uploads`);
-  
-  // Inisialisasi WebSocket - PASTIKAN INI DIPANGGIL
-  try {
-    const { initWebSocket } = await import('./src/utils/websocket.js');
-    const wss = initWebSocket(server);
-    if (wss) {
-      console.log(`🔌 WebSocket server running at ws://localhost:${info.port}/ws`);
-      console.log(`🔒 For HTTPS: wss://${process.env.VERCEL_URL || 'yourdomain.com'}/ws`);
-    } else {
-      console.error('❌ Failed to initialize WebSocket server');
-    }
-  } catch (error) {
-    console.error('❌ WebSocket initialization error:', error);
-  }
-  
-  // Test koneksi database
-  try {
-    await sql`SELECT 1`;
-    console.log('✅ Database connected');
-  } catch (dbError) {
-    console.error('❌ Database connection failed:', dbError.message);
-  }
+  console.log(`📡 SSE endpoint available at /events`);
+  console.log(`🔍 Health check at /health`);
 });
