@@ -441,7 +441,7 @@ app.post("/online-status", async (c) => {
   }
 });
 
-// ========== UPLOAD PHOTO - VERSI SUPABASE ==========
+// ========== UPLOAD PHOTO - VERSI SUPABASE SAJA (TANPA FILESYSTEM) ==========
 app.post("/:id/upload-photo", async (c) => {
   try {
     // Validasi params
@@ -491,7 +491,7 @@ app.post("/:id/upload-photo", async (c) => {
     }
 
     try {
-      // Upload ke Supabase Storage
+      // Upload ke Supabase Storage (TIDAK MENYIMPAN KE FILESYSTEM LOKAL)
       const { url, path } = await StorageService.uploadProfilePhoto(file, id);
       
       console.log('Upload successful:', url);
@@ -503,7 +503,7 @@ app.post("/:id/upload-photo", async (c) => {
         });
       }
       
-      // Update database
+      // Update database dengan URL dari Supabase
       const [updatedUser] = await db.update(users_26)
         .set({
           fotoProfil: url,
@@ -517,7 +517,7 @@ app.post("/:id/upload-photo", async (c) => {
       const { password, ...userWithoutPassword } = updatedUser;
       
       return c.json({
-        message: "Foto profil berhasil diupload",
+        message: "Foto profil berhasil diupload ke Supabase",
         user: userWithoutPassword
       });
       
