@@ -14,21 +14,25 @@ function checkSession() {
   const savedUser = localStorage.getItem("currentUser");
   const token = localStorage.getItem("userToken");
 
-  // console.log("Checking session...", {
-  //   savedUser: !!savedUser,
-  //   token: !!token,
-  // });
+  console.log("Checking session...", {
+    savedUser: !!savedUser,
+    token: !!token,
+  });
 
   if (!savedUser || !token) {
-    // console.log("No session found, redirecting to auth...");
+    console.log("No session found, redirecting to auth...");
     window.location.href = "/login.html";
     return false;
   }
 
   try {
-    currentUser = JSON.parse(savedUser);
-    isAdmin = currentUser.role === "admin" || currentUser.isAdmin === true;
-    // console.log("User loaded:", currentUser.namaLengkap, "isAdmin:", isAdmin);
+    // Parse user dan simpan ke window
+    const user = JSON.parse(savedUser);
+    window.currentUser = user;  // PASTIKAN INI ADA
+    currentUser = user;         // Untuk kompatibilitas
+    isAdmin = user.role === "admin" || user.isAdmin === true;
+    
+    console.log("User loaded:", user.namaLengkap, "ID:", user.id);
     
     loadUserLikes();
     return true;

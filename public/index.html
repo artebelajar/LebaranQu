@@ -1464,20 +1464,23 @@
         }, 1000);
       }
 
-      // Go to profile
+      // ========== GO TO PROFILE FUNCTION ==========
       function goToProfile(userId) {
+        console.log("goToProfile called with userId:", userId);
+        console.log("window.currentUser:", window.currentUser);
+
         // Jika userId diberikan, langsung ke profile dengan ID tersebut
         if (userId) {
           window.location.href = `/profile.html?id=${userId}`;
           return;
         }
 
-        // Jika tidak ada userId, cek currentUser
-        if (currentUser && currentUser.id) {
-          window.location.href = `/profile.html?id=${currentUser.id}`;
+        // Jika tidak ada userId, cek window.currentUser
+        if (window.currentUser && window.currentUser.id) {
+          window.location.href = `/profile.html?id=${window.currentUser.id}`;
         } else {
-          // Fallback ke profile tanpa ID (akan redirect ke login jika perlu)
-          window.location.href = "/profile.html";
+          console.log("No current user found, redirecting to login");
+          window.location.href = "/login.html";
         }
       }
 
