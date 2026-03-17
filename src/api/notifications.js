@@ -134,4 +134,32 @@ app.delete("/clear", async (c) => {
   }
 });
 
+// ========== MARK ALL NOTIFICATIONS AS READ ==========
+app.post("/mark-all-read", async (c) => {
+  try {
+    const { userId } = await c.req.json();
+
+    if (!userId) {
+      return c.json({ error: "User ID diperlukan" }, 400);
+    }
+
+    // Update semua notifikasi user menjadi read
+    await db
+      .update(notifications)
+      .set({ isRead: true })
+      .where(and(
+        eq(notifications.userId, userId),
+        eq(notifications.isRead, false)
+      ));
+
+    return c.json({ 
+      success: true,
+      message: "Semua notifikasi telah ditandai dibaca"
+    });
+  } catch (error) {
+    console.error("Mark all read error:", error);
+    return c.json({ error: error.message }, 500);
+  }
+});
+
 export default app;

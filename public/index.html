@@ -1685,6 +1685,69 @@
         }
       }
 
+      // ========== MARK ALL AS READ ==========
+      async function markAllNotificationsRead() {
+        if (!window.currentUser) return;
+
+        try {
+          // Gunakan endpoint yang benar
+          const response = await fetch(
+            `${API_BASE}/notifications/mark-all-read`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${localStorage.getItem("userToken")}`,
+              },
+              body: JSON.stringify({ userId: window.currentUser.id }),
+            },
+          );
+
+          if (response.ok) {
+            // Update semua notifikasi di frontend
+            if (window.mobileNotifications) {
+              window.mobileNotifications = window.mobileNotifications.map(
+                (n) => ({
+                  ...n,
+                  isRead: true,
+                }),
+              );
+              window.mobileUnreadCount = 0;
+            }
+
+            if (window.desktopNotifications) {
+              window.desktopNotifications = window.desktopNotifications.map(
+                (n) => ({
+                  ...n,
+                  isRead: true,
+                }),
+              );
+              window.desktopUnreadCount = 0;
+            }
+
+            // Render ulang
+            if (typeof renderMobileNotifications === "function") {
+              renderMobileNotifications();
+            }
+            if (typeof renderDesktopNotifications === "function") {
+              renderDesktopNotifications();
+            }
+
+            // Update badge
+            updateNotificationBadges();
+
+            // Tutup dropdown
+            const dropdown = document.getElementById("notificationDropdown");
+            if (dropdown) dropdown.classList.add("hidden");
+
+            showToast("Semua notifikasi telah dibaca", "success");
+          }
+        } catch (error) {
+          console.error("Error marking all notifications as read:", error);
+          showToast("Gagal menandai notifikasi", "error");
+        }
+      }
+
       async function markAllMobileNotificationsRead() {
         await markNotificationRead();
         await loadMobileNotifications();
