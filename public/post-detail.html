@@ -30,7 +30,7 @@
     />
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap");
-      
+
       * {
         font-family: "Poppins", sans-serif;
         -webkit-tap-highlight-color: transparent;
@@ -67,7 +67,9 @@
         bottom: 20px;
         right: 16px;
         z-index: 50;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        box-shadow:
+          0 4px 6px -1px rgba(0, 0, 0, 0.1),
+          0 2px 4px -1px rgba(0, 0, 0, 0.06);
         transition: all 0.2s ease;
       }
 
@@ -119,6 +121,46 @@
       ::-webkit-scrollbar-thumb {
         background: #10b981;
         border-radius: 2px;
+      }
+
+      /* Animasi Loading */
+      @keyframes spin {
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .animate-spin {
+        animation: spin 1s linear infinite;
+      }
+
+      button:disabled {
+        cursor: not-allowed;
+        opacity: 0.7;
+      }
+
+      /* Loading skeleton untuk post */
+      .post-skeleton {
+        background: linear-gradient(
+          90deg,
+          #f0f0f0 25%,
+          #e0e0e0 50%,
+          #f0f0f0 75%
+        );
+        background-size: 200% 100%;
+        animation: loading 1.5s infinite;
+      }
+
+      @keyframes loading {
+        0% {
+          background-position: 200% 0;
+        }
+        100% {
+          background-position: -200% 0;
+        }
       }
     </style>
   </head>
@@ -241,7 +283,7 @@
           <button
             id="likeButton"
             onclick="handleLike()"
-            class="flex items-center gap-2 text-gray-500 active:scale-95 transition"
+            class="flex items-center gap-2 text-gray-500 active:scale-95 transition like-button"
           >
             <i id="likeIcon" class="fas fa-heart text-2xl"></i>
             <span id="likeCount" class="font-semibold">0</span>
@@ -300,6 +342,7 @@
               <button
                 onclick="addComment()"
                 class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 active:scale-95 transition comment-submit-btn"
+                id="commentSubmitBtn"
               >
                 <i class="fas fa-paper-plane"></i>
               </button>
@@ -322,25 +365,34 @@
       <i class="fas fa-arrow-up"></i>
     </button>
 
+    <script src="js/loading.js"></script>
     <!-- Tambahkan script untuk auto-hide scroll button saat di atas -->
     <script>
+      // ========== LOADING STATES ==========
+      // Inisialisasi loading states jika belum ada
+      if (!window.loadingStates) {
+        window.loadingStates = {};
+      }
+
+      // HAPUS BAGIAN CLASS BUTTON LOADER DI SINI!
+
       // Fungsi untuk hide/show scroll button
       function toggleScrollButton() {
-        const scrollBtn = document.querySelector('.scroll-top-btn');
+        const scrollBtn = document.querySelector(".scroll-top-btn");
         if (!scrollBtn) return;
-        
+
         if (window.scrollY > 300) {
-          scrollBtn.style.display = 'flex';
+          scrollBtn.style.display = "flex";
         } else {
-          scrollBtn.style.display = 'none';
+          scrollBtn.style.display = "none";
         }
       }
 
       // Listen untuk scroll event
-      window.addEventListener('scroll', toggleScrollButton);
-      
+      window.addEventListener("scroll", toggleScrollButton);
+
       // Panggil sekali untuk inisialisasi
-      document.addEventListener('DOMContentLoaded', toggleScrollButton);
+      document.addEventListener("DOMContentLoaded", toggleScrollButton);
 
       const API_BASE = "/api";
       let currentUser = null;
@@ -465,20 +517,20 @@
             list.innerHTML = comments
               .map(
                 (comment) => `
-                        <div class="flex gap-2 comment-item p-2 rounded-lg hover:bg-gray-50 active:bg-gray-100 transition">
-                            <img src="${comment.user?.fotoProfil || "/images/default-avatar.png"}" 
-                                 class="w-6 h-6 rounded-full object-cover cursor-pointer flex-shrink-0"
-                                 onclick="goToProfile(${comment.user?.id})">
-                            <div class="flex-1 min-w-0">
-                                <div class="flex items-center gap-2 flex-wrap">
-                                    <span class="font-medium text-xs cursor-pointer hover:text-emerald-600"
-                                          onclick="goToProfile(${comment.user?.id})">${comment.user?.namaLengkap || "Unknown"}</span>
-                                    <span class="text-xs text-gray-400">${formatTime(comment.createdAt)}</span>
-                                </div>
-                                <p class="text-sm text-gray-700 break-words">${comment.text}</p>
+                    <div class="flex gap-2 comment-item p-2 rounded-lg hover:bg-gray-50 active:bg-gray-100 transition">
+                        <img src="${comment.user?.fotoProfil || "/images/default-avatar.png"}" 
+                             class="w-6 h-6 rounded-full object-cover cursor-pointer flex-shrink-0"
+                             onclick="goToProfile(${comment.user?.id})">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="font-medium text-xs cursor-pointer hover:text-emerald-600"
+                                      onclick="goToProfile(${comment.user?.id})">${comment.user?.namaLengkap || "Unknown"}</span>
+                                <span class="text-xs text-gray-400">${formatTime(comment.createdAt)}</span>
                             </div>
+                            <p class="text-sm text-gray-700 break-words">${comment.text}</p>
                         </div>
-                    `,
+                    </div>
+                `,
               )
               .join("");
           }
@@ -487,14 +539,37 @@
         }
       }
 
-      // Add comment
+      // ========== ADD COMMENT DENGAN LOADING ==========
       async function addComment() {
         const input = document.getElementById("commentInput");
-        const text = input.value.trim();
+        const submitBtn = document.getElementById("commentSubmitBtn");
 
-        if (!text) return;
+        if (!input) {
+          console.error("Comment input not found!");
+          showToast("Terjadi kesalahan teknis", "error");
+          return;
+        }
+
+        const text = input.value.trim();
+        if (!text) {
+          showToast("Komentar tidak boleh kosong", "warning");
+          return;
+        }
+
+        // CEK DOUBLE SUBMIT
+        const commentKey = `comment_${currentPostId}`;
+        if (window.loadingStates && window.loadingStates[commentKey]) {
+          showToast("Komentar sedang diproses...", "info");
+          return;
+        }
+
+        // Gunakan window.ButtonLoader (dari loading.js)
+        const loader = new window.ButtonLoader(submitBtn);
 
         try {
+          window.loadingStates[commentKey] = true;
+          loader.start("Mengirim...");
+
           const res = await fetch(
             `${API_BASE}/posts/${currentPostId}/comments`,
             {
@@ -512,18 +587,40 @@
 
           if (res.ok) {
             input.value = "";
+            loader.success("Terkirim!");
             await loadComments();
+            showToast("Komentar berhasil ditambahkan", "success");
+          } else {
+            const errorData = await res.json();
+            loader.error(errorData.error || "Gagal");
+            showToast(errorData.error || "Gagal menambahkan komentar", "error");
           }
         } catch (error) {
           console.error("Error adding comment:", error);
-          alert("Gagal menambahkan komentar");
+          loader.error("Error");
+          showToast("Terjadi kesalahan koneksi", "error");
+        } finally {
+          window.loadingStates[commentKey] = false;
         }
       }
 
-      // Handle like
+      // ========== HANDLE LIKE DENGAN LOADING ==========
       async function handleLike() {
+        const likeKey = `like_${currentPostId}`;
+        if (window.loadingStates && window.loadingStates[likeKey]) {
+          return;
+        }
+
+        const likeButton = document.getElementById("likeButton");
+
+        // Disable button selama proses
+        likeButton.style.pointerEvents = "none";
+        likeButton.style.opacity = "0.7";
+        window.loadingStates[likeKey] = true;
+
         const savedLikes = localStorage.getItem(`userLikes_${currentUser.id}`);
         let likes = savedLikes ? new Set(JSON.parse(savedLikes)) : new Set();
+        const wasLiked = isLiked;
 
         // Optimistic update
         if (isLiked) {
@@ -542,7 +639,7 @@
         );
 
         try {
-          await fetch(`${API_BASE}/posts/${currentPostId}/like`, {
+          const res = await fetch(`${API_BASE}/posts/${currentPostId}/like`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -550,8 +647,42 @@
             },
             body: JSON.stringify({ userId: currentUser.id }),
           });
+
+          if (!res.ok) {
+            // Rollback on error
+            throw new Error("Gagal like postingan");
+          }
+
+          const responseData = await res.json();
+          if (responseData.likeCount !== undefined) {
+            currentPost.likeCount = responseData.likeCount;
+            document.getElementById("likeCount").textContent =
+              responseData.likeCount;
+          }
         } catch (error) {
           console.error("Error liking post:", error);
+
+          // Rollback
+          if (wasLiked) {
+            likes.add(currentPost.id);
+            currentPost.likeCount = (currentPost.likeCount || 0) + 1;
+          } else {
+            likes.delete(currentPost.id);
+            currentPost.likeCount = (currentPost.likeCount || 0) - 1;
+          }
+          isLiked = wasLiked;
+          updateLikeButton();
+          localStorage.setItem(
+            `userLikes_${currentUser.id}`,
+            JSON.stringify(Array.from(likes)),
+          );
+
+          showToast("Gagal menyukai postingan", "error");
+        } finally {
+          // RESET LOADING STATE
+          window.loadingStates[likeKey] = false;
+          likeButton.style.pointerEvents = "";
+          likeButton.style.opacity = "1";
         }
       }
 
@@ -635,6 +766,62 @@
           ppqit_almahir: "bg-purple-100 text-purple-800",
         };
         return colors[sekolah] || "bg-gray-100 text-gray-800";
+      }
+
+      // Toast notification function
+      function showToast(message, type = "success") {
+        // Cek apakah sudah ada toast container
+        let toast = document.getElementById("toast");
+
+        if (!toast) {
+          toast = document.createElement("div");
+          toast.id = "toast";
+          toast.className =
+            "fixed bottom-20 right-4 bg-white border-l-4 shadow-lg rounded-lg p-4 max-w-sm z-50 hidden";
+          toast.innerHTML = `
+        <div class="flex items-center">
+          <div id="toastIcon" class="mr-3"></div>
+          <p id="toastMessage" class="text-sm"></p>
+        </div>
+      `;
+          document.body.appendChild(toast);
+        }
+
+        const toastMessage = document.getElementById("toastMessage");
+        const toastIcon = document.getElementById("toastIcon");
+
+        toastMessage.textContent = message;
+
+        toast.classList.remove(
+          "border-red-500",
+          "border-emerald-500",
+          "border-blue-500",
+          "border-yellow-500",
+        );
+
+        if (type === "success") {
+          toast.classList.add("border-emerald-500");
+          toastIcon.innerHTML =
+            '<i class="fas fa-check-circle text-emerald-500 text-xl"></i>';
+        } else if (type === "error") {
+          toast.classList.add("border-red-500");
+          toastIcon.innerHTML =
+            '<i class="fas fa-exclamation-circle text-red-500 text-xl"></i>';
+        } else if (type === "info") {
+          toast.classList.add("border-blue-500");
+          toastIcon.innerHTML =
+            '<i class="fas fa-info-circle text-blue-500 text-xl"></i>';
+        } else if (type === "warning") {
+          toast.classList.add("border-yellow-500");
+          toastIcon.innerHTML =
+            '<i class="fas fa-exclamation-triangle text-yellow-500 text-xl"></i>';
+        }
+
+        toast.classList.remove("hidden");
+
+        setTimeout(() => {
+          toast.classList.add("hidden");
+        }, 3000);
       }
 
       // Load on page load

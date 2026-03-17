@@ -750,64 +750,89 @@ app.post("/:id/view", async (c) => {
   const startTime = Date.now();
 
   try {
-    // VALIDASI PARAM DENGAN ZOD
-    const paramsValidation = validateParams(c, postIdSchema);
-    if (!paramsValidation.success) {
-      return c.json({ error: paramsValidation.error.message, details: paramsValidation.error.details }, 400);
-    }
-    
-    // VALIDASI BODY DENGAN ZOD
-    const bodyValidation = await validateRequest(c, viewSchema);
-    if (!bodyValidation.success) {
-      return c.json({ error: bodyValidation.error.message, details: bodyValidation.error.details }, 400);
-    }
-    
-    const { id: postId } = paramsValidation.data;
-    const { userId } = bodyValidation.data;
+    const postId = parseInt(c.req.param("id"));
+    let userId;
 
-    // Update lastActive user yang view
+    // Parse body dengan aman
+    try {
+      const body = await c.req.json();
+      userId = body?.userId;
+    } catch (e) {
+      // Jika bukan JSON, coba dari query string
+      userId = c.req.query('userId');
+    }
+
+    if (isNaN(postId) || postId <= 0) {
+      return c.json({ error: "Post ID tidak valid" }, 400);
+    }
+
+    if (!userId || isNaN(parseInt(userId))) {
+      return c.json({ error: "User ID diperlukan" }, 400);
+    }
+
+    userId = parseInt(userId);
+
+    // Update lastActive user
     await db
       .update(users_26)
       .set({ lastActive: new Date() })
       .where(eq(users_26.id, userId));
 
-    // Cek di database
+    // Cek view di database
     const existingView = await db
       .select()
       .from(postViews)
-      .where(and(eq(postViews.postId, postId), eq(postViews.userId, userId)))
+      .where(and(
+        eq(postViews.postId, postId),
+        eq(postViews.userId, userId)
+      ))
       .limit(1);
 
     let viewCount;
 
     if (existingView.length === 0) {
-      await db.insert(postViews).values({ postId, userId });
+      // Insert view baru
+      await db.insert(postViews).values({ 
+        postId, 
+        userId,
+        viewedAt: new Date()
+      });
 
+      // Update view count di posts
       const [updatedPost] = await db
         .update(posts)
-        .set({ viewCount: sql`${posts.viewCount} + 1` })
+        .set({ 
+          viewCount: sql`${posts.viewCount} + 1`,
+          updatedAt: new Date()
+        })
         .where(eq(posts.id, postId))
         .returning({ viewCount: posts.viewCount });
 
       viewCount = updatedPost.viewCount;
     } else {
+      // Sudah pernah view, ambil count sekarang
       const [currentPost] = await db
         .select({ viewCount: posts.viewCount })
         .from(posts)
         .where(eq(posts.id, postId))
         .limit(1);
 
-      viewCount = currentPost.viewCount;
+      viewCount = currentPost?.viewCount || 0;
     }
 
-    console.log(`👁️ View tracked in ${Date.now() - startTime}ms`);
+    console.log(`👁️ View tracked for post ${postId} by user ${userId} in ${Date.now() - startTime}ms`);
+    
     return c.json({
       viewed: existingView.length === 0,
       viewCount,
     });
+    
   } catch (error) {
     console.error("❌ Track view error:", error);
-    return c.json({ error: error.message }, 500);
+    return c.json({ 
+      error: "Gagal mencatat view",
+      message: error.message 
+    }, 500);
   }
 });
 

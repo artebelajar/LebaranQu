@@ -659,6 +659,46 @@
           padding-right: 2rem;
         }
       }
+
+      /* Tambahkan di bagian style setiap halaman */
+      @keyframes spin {
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .animate-spin {
+        animation: spin 1s linear infinite;
+      }
+
+      button:disabled {
+        cursor: not-allowed;
+        opacity: 0.7;
+      }
+
+      /* Loading skeleton untuk post */
+      .post-skeleton {
+        background: linear-gradient(
+          90deg,
+          #f0f0f0 25%,
+          #e0e0e0 50%,
+          #f0f0f0 75%
+        );
+        background-size: 200% 100%;
+        animation: loading 1.5s infinite;
+      }
+
+      @keyframes loading {
+        0% {
+          background-position: 200% 0;
+        }
+        100% {
+          background-position: -200% 0;
+        }
+      }
     </style>
   </head>
   <body>
@@ -1714,11 +1754,11 @@
     <!-- Scripts -->
     <script src="js/config.js"></script>
     <script src="js/utils.js"></script>
+    <script src="js/loading.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/realtime.js"></script>
     <script src="js/leaderboard.js"></script>
     <script src="js/online-status.js"></script>
-    <script src="js/typing.js"></script>
     <script src="js/share.js"></script>
     <script src="js/posts.js"></script>
     <script src="js/comments.js"></script>

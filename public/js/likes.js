@@ -12,10 +12,19 @@ function findPostElements(postId) {
   return { postElement, likeButton, likeIcon, likeCountSpan };
 }
 
+
 // ========== HANDLE LIKE ==========
 async function handleLike(postId) {
   if (!currentUser) {
-    alert("Silakan login terlebih dahulu");
+    showToast("Silakan login terlebih dahulu", "error");
+    setTimeout(() => window.location.href = "/login.html", 1500);
+    return;
+  }
+
+  // CEK DOUBLE LIKE
+  const likeKey = `like_${postId}`;
+  if (window.loadingStates[likeKey]) {
+    console.log("⏳ Like already being processed");
     return;
   }
 
@@ -30,7 +39,14 @@ async function handleLike(postId) {
   const currentCount = parseInt(likeCountSpan.textContent);
   const newCount = isCurrentlyLiked ? currentCount - 1 : currentCount + 1;
 
-  // Optimistic update
+  // SET LOADING STATE
+  window.loadingStates[likeKey] = true;
+  
+  // Disable button selama proses
+  likeButton.style.pointerEvents = 'none';
+  likeButton.style.opacity = '0.7';
+
+  // Optimistic update (UI langsung berubah)
   if (isCurrentlyLiked) {
     userLikes.delete(postId);
     likeButton.classList.remove("text-red-500");
@@ -60,40 +76,22 @@ async function handleLike(postId) {
 
     if (!res.ok) {
       // Rollback on error
-      if (isCurrentlyLiked) {
-        userLikes.add(postId);
-        likeButton.classList.remove("text-gray-500", "hover:text-red-500");
-        likeButton.classList.add("text-red-500");
-        if (likeIcon) likeIcon.classList.add("text-red-500");
-        likeCountSpan.textContent = currentCount;
-      } else {
-        userLikes.delete(postId);
-        likeButton.classList.remove("text-red-500");
-        likeButton.classList.add("text-gray-500", "hover:text-red-500");
-        if (likeIcon) likeIcon.classList.remove("text-red-500");
-        likeCountSpan.textContent = currentCount;
-      }
-      saveUserLikes();
-      alert(responseData.error || "Gagal like postingan");
-    } else {
-      if (responseData.likeCount !== undefined) {
-        likeCountSpan.textContent = responseData.likeCount;
-      }
-      const postIndex = allPosts.findIndex((p) => p.id === postId);
-      if (postIndex !== -1) {
-        allPosts[postIndex].likeCount = responseData.likeCount || newCount;
-      }
-      if (selectedPostId === postId) {
-        renderPostDetail(postId);
-      }
+      throw new Error(responseData.error || "Gagal like postingan");
     }
+    
+    // Update dengan data dari server
+    if (responseData.likeCount !== undefined) {
+      likeCountSpan.textContent = responseData.likeCount;
+    }
+    
   } catch (error) {
     console.error("Error in like request:", error);
-    // Rollback
+    
+    // Rollback UI
     if (isCurrentlyLiked) {
       userLikes.add(postId);
-      likeButton.classList.remove("text-gray-500", "hover:text-red-500");
       likeButton.classList.add("text-red-500");
+      likeButton.classList.remove("text-gray-500", "hover:text-red-500");
       if (likeIcon) likeIcon.classList.add("text-red-500");
       likeCountSpan.textContent = currentCount;
     } else {
@@ -104,10 +102,12 @@ async function handleLike(postId) {
       likeCountSpan.textContent = currentCount;
     }
     saveUserLikes();
-    alert("Terjadi kesalahan koneksi");
-  }
-  
-  if (window.loadLeaderboard) {
-    await window.loadLeaderboard();
+    
+    showToast(error.message || "Terjadi kesalahan", "error");
+  } finally {
+    // RESET LOADING STATE
+    window.loadingStates[likeKey] = false;
+    likeButton.style.pointerEvents = '';
+    likeButton.style.opacity = '1';
   }
 }

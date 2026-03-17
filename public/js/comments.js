@@ -7,15 +7,12 @@ let commentsVisible = {};
 // ========== LOAD COMMENTS ==========
 async function loadComments(postId) {
   try {
-    // console.log(`📝 Loading comments for post ${postId}`);
-    
     const response = await fetch(`${API_BASE}/posts/${postId}/comments`);
     
     if (!response.ok) {
       const errorText = await response.text();
       console.error('Comments response:', response.status, response.statusText, errorText);
       
-      // Coba parse error message
       let errorMessage = `Failed to load comments: ${response.status}`;
       try {
         const errorData = JSON.parse(errorText);
@@ -34,7 +31,6 @@ async function loadComments(postId) {
   } catch (error) {
     console.error("Error loading comments:", error);
     
-    // Return empty array with error indicator
     return { 
       error: true, 
       message: error.message,
@@ -47,11 +43,9 @@ async function loadComments(postId) {
 async function renderPostDetail(postId) {
   // Hanya render jika bukan mobile
   if (window.innerWidth < 768) {
-    // console.log("Mobile detected, skipping sidebar render");
     return;
   }
   
-  // Cek apakah allPosts tersedia
   if (typeof allPosts === 'undefined') {
     console.error("allPosts is not defined");
     return;
@@ -74,10 +68,8 @@ async function renderPostDetail(postId) {
     return;
   }
 
-  // Escape post untuk JSON di atribut onclick
   const postJSON = JSON.stringify(post).replace(/"/g, '&quot;');
 
-  // Tampilkan error jika comments gagal dimuat
   const commentsHtml = comments.error 
     ? `<div class="text-center py-4 text-red-500">
         <i class="fas fa-exclamation-circle mr-1"></i>
@@ -104,111 +96,6 @@ async function renderPostDetail(postId) {
 
   detailContent.innerHTML = `
     <div class="space-y-4">
-      <!-- Header, konten post, dll (sama seperti sebelumnya) -->
-      <!-- ... -->
-      
-      <!-- Comments Section -->
-      <div class="space-y-4 mt-4">
-        <div class="flex gap-2">
-          <img src="${currentUser?.fotoProfil || '/images/default-avatar.png'}" 
-               class="w-6 h-6 md:w-8 md:h-8 rounded-full object-cover flex-shrink-0">
-          <div class="flex-1 flex gap-2">
-            <input type="text" id="newCommentInput" 
-                   placeholder="Tulis komentar..." 
-                   class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm">
-            <button onclick="addComment(${post.id})" 
-                    class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition text-sm whitespace-nowrap">
-              <i class="fas fa-paper-plane"></i>
-            </button>
-          </div>
-        </div>
-        <div id="commentsList" class="space-y-3 max-h-60 overflow-y-auto pr-1">
-          ${commentsHtml}
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-// ========== ADD COMMENT ==========
-async function addComment(postId) {
-  const input = document.getElementById("newCommentInput");
-  if (!input) {
-    console.error("Comment input not found");
-    return;
-  }
-  
-  const commentText = input.value.trim();
-  if (!commentText) return;
-
-  try {
-    const response = await fetch(`${API_BASE}/posts/${postId}/comments`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${localStorage.getItem("userToken")}`,
-      },
-      body: JSON.stringify({ userId: currentUser.id, text: commentText }),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      alert(error.error || "Gagal menambahkan komentar");
-      return;
-    }
-
-    input.value = "";
-    await renderPostDetail(postId);
-  } catch (error) {
-    console.error("Error adding comment:", error);
-    alert("Terjadi kesalahan");
-  }
-}
-
-// ========== TOGGLE COMMENTS ==========
-function toggleComments(postId) {
-  commentsVisible[postId] = !commentsVisible[postId];
-  renderPostDetail(postId);
-}
-
-// ========== RENDER POST DETAIL ==========
-async function renderPostDetail(postId) {
-  // Hanya render jika bukan mobile
-  if (window.innerWidth < 768) {
-    // console.log("Mobile detected, skipping sidebar render");
-    return;
-  }
-  // Cek apakah allPosts tersedia
-  if (typeof allPosts === 'undefined') {
-    console.error("allPosts is not defined");
-    return;
-  }
-  
-  const post = allPosts.find((p) => p.id === postId);
-  if (!post) {
-    console.error(`Post with id ${postId} not found`);
-    return;
-  }
-
-  const isLiked = userLikes ? userLikes.has(post.id) : false;
-  const showComments = commentsVisible[postId] || false;
-  const comments = await loadComments(postId);
-  const commentCount = comments.length;
-  const isOnline = onlineStatus && onlineStatus[post.user?.id] ? onlineStatus[post.user.id].online : false;
-
-  // Cek apakah elemen detailContent ada
-  const detailContent = document.getElementById("postDetailContent");
-  if (!detailContent) {
-    console.error("Element #postDetailContent not found in DOM");
-    return;
-  }
-
-  // Escape post untuk JSON di atribut onclick
-  const postJSON = JSON.stringify(post).replace(/"/g, '&quot;');
-
-  detailContent.innerHTML = `
-    <div class="space-y-4">
-      <!-- Header -->
       <div class="flex items-start gap-3 pb-4 border-b">
         <div class="relative">
           <img src="${post.user?.fotoProfil || "/images/default-avatar.png"}" 
@@ -241,7 +128,6 @@ async function renderPostDetail(postId) {
       <div class="text-sm md:text-base text-gray-700 leading-relaxed whitespace-pre-line">${post.konten}</div>
       ${post.gambar ? `<div class="mt-4"><img src="${post.gambar}" class="w-full rounded-lg max-h-96 object-cover"></div>` : ""}
       
-      <!-- Stats bar -->
       <div class="flex flex-col md:flex-row items-start md:items-center justify-between py-3 border-y gap-3">
         <div class="flex items-center space-x-4">
           <button onclick="handleLike(${post.id})" 
@@ -254,7 +140,6 @@ async function renderPostDetail(postId) {
           </span>
         </div>
         
-        <!-- Share Buttons -->
         <div class="flex items-center space-x-3">
           <button onclick="shareToWhatsApp('${postJSON}')" 
                   class="text-green-600 hover:text-green-700 transition text-lg md:text-xl" title="Share ke WhatsApp">
@@ -275,62 +160,167 @@ async function renderPostDetail(postId) {
         </div>
       </div>
       
-      <!-- Typing Indicator -->
-      <div id="typingIndicator" class="hidden text-sm text-gray-500 italic">
-        <i class="fas fa-pencil-alt mr-1"></i> Seseorang sedang mengetik...
-      </div>
-      
-      <!-- Comments Toggle -->
-      <div class="flex justify-end">
-        <button onclick="toggleComments(${post.id})" 
-                class="flex items-center space-x-2 text-gray-500 hover:text-emerald-600 transition text-sm">
-          <i class="fas fa-comments mr-1"></i>
-          <span>${commentCount} Komentar</span>
-          <i class="fas ${showComments ? "fa-chevron-up" : "fa-chevron-down"} ml-1"></i>
-        </button>
-      </div>
-      
-      ${showComments ? `
-        <div class="space-y-4 mt-4">
-          <div class="flex gap-2">
-            <img src="${currentUser?.fotoProfil || "/images/default-avatar.png"}" 
-                 class="w-6 h-6 md:w-8 md:h-8 rounded-full object-cover flex-shrink-0">
-            <div class="flex-1 flex gap-2">
-              <input type="text" id="newCommentInput" 
-                     placeholder="Tulis komentar..." 
-                     class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm"
-                     onkeyup="if(this.value.trim()) sendTypingStatus(${post.id}, true)"
-                     onblur="sendTypingStatus(${post.id}, false)">
-              <button onclick="addComment(${post.id})" 
-                      class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition text-sm whitespace-nowrap">
-                <i class="fas fa-paper-plane"></i>
-              </button>
-            </div>
-          </div>
-          <div id="commentsList" class="space-y-3 max-h-60 overflow-y-auto pr-1">
-            ${commentCount === 0 
-              ? '<p class="text-center text-gray-500 py-4 text-sm">Belum ada komentar. Jadilah yang pertama!</p>'
-              : comments.map(comment => `
-                <div class="flex gap-2 comment-item p-2 rounded-lg">
-                  <img src="${comment.user?.fotoProfil || "/images/default-avatar.png"}" 
-                       class="w-5 h-5 md:w-6 md:h-6 rounded-full object-cover flex-shrink-0 cursor-pointer hover:opacity-80"
-                       onclick="goToProfile(${comment.user?.id})">
-                  <div class="flex-1">
-                    <div class="flex items-center gap-2 flex-wrap">
-                      <span class="font-medium text-xs md:text-sm cursor-pointer hover:text-emerald-600"
-                            onclick="goToProfile(${comment.user?.id})">${comment.user?.namaLengkap || "Unknown"}</span>
-                      <span class="text-xs text-gray-400">${formatTime(comment.createdAt)}</span>
-                    </div>
-                    <p class="text-xs md:text-sm text-gray-700">${comment.text}</p>
-                  </div>
-                </div>
-              `).join('')
-            }
+      <div class="space-y-4 mt-4">
+        <div class="flex gap-2">
+          <img src="${currentUser?.fotoProfil || "/images/default-avatar.png"}" 
+               class="w-6 h-6 md:w-8 md:h-8 rounded-full object-cover flex-shrink-0">
+          <div class="flex-1 flex gap-2">
+            <input type="text" id="newCommentInput" 
+                   placeholder="Tulis komentar..." 
+                   class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm">
+            <button onclick="addComment(${post.id})" 
+                    class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition text-sm whitespace-nowrap">
+              <i class="fas fa-paper-plane"></i>
+            </button>
           </div>
         </div>
-      ` : ''}
+        <div id="commentsList" class="space-y-3 max-h-60 overflow-y-auto pr-1">
+          ${commentsHtml}
+        </div>
+      </div>
     </div>
   `;
+}
+
+// ========== ADD COMMENT ==========
+async function addComment(postId) {
+  const input = document.getElementById("commentInput") || 
+                document.getElementById("newCommentInput");
+  
+  if (!input) {
+    console.error("Comment input not found!");
+    showToast("Terjadi kesalahan teknis", "error");
+    return;
+  }
+  
+  const text = input.value.trim();
+  if (!text) {
+    showToast("Komentar tidak boleh kosong", "warning");
+    return;
+  }
+
+  const commentKey = `comment_${postId}`;
+  if (window.loadingStates && window.loadingStates[commentKey]) {
+    showToast("Komentar sedang diproses...", "info");
+    return;
+  }
+
+  const submitButton = document.querySelector('button[onclick*="addComment"]');
+  const loader = submitButton ? new window.ButtonLoader(submitButton) : null;
+
+  try {
+    if (window.loadingStates) window.loadingStates[commentKey] = true;
+    if (loader) loader.start("Mengirim...");
+
+    const res = await fetch(`${API_BASE}/posts/${postId}/comments`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("userToken")}`,
+      },
+      body: JSON.stringify({
+        userId: currentUser.id,
+        text: text,
+      }),
+    });
+
+    if (res.ok) {
+      input.value = "";
+      if (loader) loader.success("Terkirim!");
+      
+      // RENDER ULANG MENGGUNAKAN FUNGSI YANG ADA
+      if (typeof renderPostDetail === 'function') {
+        await renderPostDetail(postId);
+      } else {
+        // Fallback: update manual
+        const comments = await loadComments(postId);
+        const list = document.getElementById("commentsList");
+        if (list) {
+          if (comments.length === 0) {
+            list.innerHTML = '<p class="text-center text-gray-500 py-4">Belum ada komentar</p>';
+          } else {
+            list.innerHTML = comments.map(comment => `
+              <div class="flex gap-2 comment-item p-2 rounded-lg">
+                <img src="${comment.user?.fotoProfil || "/images/default-avatar.png"}" 
+                     class="w-6 h-6 rounded-full object-cover cursor-pointer"
+                     onclick="goToProfile(${comment.user?.id})">
+                <div class="flex-1">
+                  <div class="flex items-center gap-2">
+                    <span class="font-medium text-xs cursor-pointer hover:text-emerald-600"
+                          onclick="goToProfile(${comment.user?.id})">${comment.user?.namaLengkap}</span>
+                    <span class="text-xs text-gray-400">${formatTime(comment.createdAt)}</span>
+                  </div>
+                  <p class="text-sm text-gray-700">${escapeHtml(comment.text)}</p>
+                </div>
+              </div>
+            `).join('');
+          }
+        }
+      }
+      
+      showToast("Komentar berhasil ditambahkan", "success");
+    } else {
+      const errorData = await res.json();
+      if (loader) loader.error(errorData.error || "Gagal");
+      showToast(errorData.error || "Gagal menambahkan komentar", "error");
+    }
+  } catch (error) {
+    console.error("Error adding comment:", error);
+    if (loader) loader.error("Error");
+    showToast("Terjadi kesalahan koneksi", "error");
+  } finally {
+    if (window.loadingStates) window.loadingStates[commentKey] = false;
+  }
+}
+
+// ========== UPDATE COMMENTS UI ==========
+async function updateCommentsUI(postId, comments) {
+  // Cek apakah di halaman post-detail atau di sidebar
+  const isPostDetailPage = window.location.pathname.includes('post-detail.html');
+  
+  if (isPostDetailPage) {
+    // Di halaman post-detail.html
+    const list = document.getElementById("commentsList");
+    if (!list) return;
+    
+    if (comments.length === 0) {
+      list.innerHTML = '<p class="text-center text-gray-500 py-4">Belum ada komentar</p>';
+    } else {
+      list.innerHTML = comments.map(comment => `
+        <div class="flex gap-2 comment-item p-2 rounded-lg hover:bg-gray-50 active:bg-gray-100 transition">
+          <img src="${comment.user?.fotoProfil || "/images/default-avatar.png"}" 
+               class="w-6 h-6 rounded-full object-cover cursor-pointer flex-shrink-0"
+               onclick="goToProfile(${comment.user?.id})">
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="font-medium text-xs cursor-pointer hover:text-emerald-600"
+                    onclick="goToProfile(${comment.user?.id})">${comment.user?.namaLengkap || "Unknown"}</span>
+              <span class="text-xs text-gray-400">${formatTime(comment.createdAt)}</span>
+            </div>
+            <p class="text-sm text-gray-700 break-words">${escapeHtml(comment.text)}</p>
+          </div>
+        </div>
+      `).join('');
+    }
+    
+    // Update jumlah komentar
+    const commentCountSpan = document.getElementById("commentCount");
+    if (commentCountSpan) {
+      commentCountSpan.textContent = `(${comments.length})`;
+    }
+    
+  } else {
+    // Di sidebar index.html
+    if (typeof renderPostDetail === 'function') {
+      await renderPostDetail(postId);
+    }
+  }
+}
+
+// ========== TOGGLE COMMENTS ==========
+function toggleComments(postId) {
+  commentsVisible[postId] = !commentsVisible[postId];
+  renderPostDetail(postId);
 }
 
 // Export fungsi ke window
