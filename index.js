@@ -94,38 +94,63 @@ app.route("/api/notifications", notificationsApi);
 app.route("/api/achievements", achievementsApi);
 app.route("/api/leaderboard", leaderboardApi);
 
-// ========== SIMPLE SSE ENDPOINT ==========
+// ========== SSE ENDPOINT ==========
 app.get("/events", (c) => {
   const userId = c.req.query('userId');
   
   console.log(`📡 SSE request received for userId: ${userId}`);
   
   if (!userId) {
-    return c.text('Event stream berjalan', 200);
+    return c.json({ error: "User ID diperlukan" }, 400);
   }
   
+  // Set headers yang benar untuk SSE
   c.header('Content-Type', 'text/event-stream');
   c.header('Cache-Control', 'no-cache');
   c.header('Connection', 'keep-alive');
   c.header('Access-Control-Allow-Origin', '*');
   
-  return c.text(`data: ${JSON.stringify({ type: 'connected', userId })}\n\n`);
+  // Buat stream dengan format SSE yang benar
+  const stream = new ReadableStream({
+    start(controller) {
+      // Kirim pesan koneksi berhasil
+      controller.enqueue(`data: ${JSON.stringify({ type: 'connected', userId })}\n\n`);
+      
+      // Kirim ping setiap 30 detik
+      const pingInterval = setInterval(() => {
+        try {
+          controller.enqueue(`: ping\n\n`);
+        } catch (e) {
+          clearInterval(pingInterval);
+        }
+      }, 30000);
+      
+      // Bersihkan interval saat koneksi ditutup
+      c.req.raw.signal.addEventListener('abort', () => {
+        clearInterval(pingInterval);
+        console.log(`📡 SSE connection closed for user ${userId}`);
+      });
+    }
+  });
+  
+  // Return sebagai response body
+  return c.body(stream, 200);
 });
 
-// ========== TEST ENDPOINT ==========
+// Test endpoint sederhana (untuk debug)
 app.get("/test", (c) => {
   return c.text("Server is running!");
 });
 
-// ========== HEALTH CHECK ==========
+// Health check
 app.get("/health", (c) => {
   return c.json({ 
     status: 'ok', 
     time: new Date().toISOString(),
-    env: process.env.NODE_ENV || 'development',
     message: 'Server is healthy'
   });
 });
+
 
 // ========== STATIC FILES ==========
 app.use("/*", serveStatic({ root: join(__dirname, "public") }));
