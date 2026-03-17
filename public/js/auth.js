@@ -12,23 +12,14 @@ function checkSession() {
   const savedUser = localStorage.getItem("currentUser");
   const token = localStorage.getItem("userToken");
 
-  console.log("Checking session...", {
-    savedUser: !!savedUser,
-    token: !!token,
-  });
-
   if (!savedUser || !token) {
-    console.log("No session found, redirecting to auth...");
     window.location.href = "/login.html";
     return false;
   }
 
   try {
-    // Parse user
     const user = JSON.parse(savedUser);
-    console.log("User parsed:", user);
-    
-    // Simpan ke window DAN ke variabel lokal
+    // PASTIKAN INI ADA!
     window.currentUser = user;
     currentUser = user;
     isAdmin = user.role === "admin" || user.isAdmin === true;

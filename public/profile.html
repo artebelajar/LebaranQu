@@ -1860,60 +1860,70 @@
 
       // ========== FUNGSI PROFILE ==========
 
-      // Override fungsi getProfileId dari helpers.js
       // ========== GET PROFILE ID ==========
       window.getProfileId = function () {
         const urlParams = new URLSearchParams(window.location.search);
         const id = urlParams.get("id");
-        console.log("Raw profile ID from URL:", id);
 
-        // Jika ada parameter id, gunakan itu
-        if (id) {
+        console.log("🔍 Checking profile access:", {
+          hasIdParam: !!id,
+          idValue: id,
+          hasCurrentUser: !!window.currentUser,
+        });
+
+        // Jika ada parameter id, berarti lihat profile orang lain
+        if (id && id !== "undefined" && id !== "null") {
           const parsedId = parseInt(id);
-          if (!isNaN(parsedId)) {
-            console.log("Using ID from URL:", parsedId);
+          if (!isNaN(parsedId) && parsedId > 0) {
+            console.log("👤 Viewing OTHER user profile, ID:", parsedId);
             return parsedId;
           }
         }
 
-        // Jika tidak ada parameter id, gunakan currentUser
-        if (currentUser && currentUser.id) {
-          console.log("No ID in URL, using current user:", currentUser.id);
-          return currentUser.id;
+        // TIDAK ADA parameter id - profile sendiri
+        if (window.currentUser && window.currentUser.id) {
+          console.log("👤 Viewing OWN profile, ID:", window.currentUser.id);
+          return window.currentUser.id;
         }
 
-        // Jika tidak ada currentUser, return null (akan redirect ke login)
-        console.log("No user logged in");
-        return null;
-      };
+        // Fallback - coba dari localStorage
+        try {
+          const savedUser = localStorage.getItem("currentUser");
+          if (savedUser) {
+            const user = JSON.parse(savedUser);
+            console.log("👤 Using user from localStorage, ID:", user.id);
+            return user.id;
+          }
+        } catch (e) {
+          console.error("Error parsing saved user:", e);
+        }
 
-      // Override checkOwnership untuk handle error lebih baik
+        console.log("❌ No user found, redirecting to login");
+        window.location.href = "/login.html";
+        return null;
+      }; // Override checkOwnership untuk handle error lebih baik
+      // ========== CEK OWNERSHIP ==========
       window.checkOwnership = function () {
         const urlParams = new URLSearchParams(window.location.search);
         const profileId = urlParams.get("id");
 
-        // console.log("Checking ownership:", {
-        //   hasCurrentUser: !!currentUser,
-        //   currentUserId: currentUser?.id,
-        //   profileId: profileId,
-        // });
+        // Jika tidak ada parameter id, berarti ini profile sendiri
+        if (!profileId || profileId === "undefined" || profileId === "null") {
+          window.isOwnProfile = true;
+          console.log("👑 Own profile (no ID parameter)");
+          return true;
+        }
 
-        if (!currentUser) {
-          console.error("currentUser not found");
+        // Ada parameter id, cek apakah sama dengan current user
+        if (!window.currentUser) {
           window.isOwnProfile = false;
           return false;
         }
 
-        if (profileId) {
-          window.isOwnProfile = parseInt(profileId) === currentUser.id;
-        } else {
-          window.isOwnProfile = true;
-        }
-
-        // console.log("Is own profile:", window.isOwnProfile);
+        window.isOwnProfile = parseInt(profileId) === window.currentUser.id;
+        console.log("👑 Is own profile:", window.isOwnProfile);
         return window.isOwnProfile;
       };
-
       // Override setupUI setelah profile dimuat
       const originalSetupProfileUI = window.setupProfileUI;
       window.setupProfileUI = function () {
