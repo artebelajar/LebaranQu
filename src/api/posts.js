@@ -468,37 +468,38 @@ app.post("/:id/like", async (c) => {
   const startTime = Date.now();
   
   try {
-    // VALIDASI PARAM DENGAN ZOD
-    const paramsValidation = validateParams(c, postIdSchema);
-    if (!paramsValidation.success) {
-      return c.json({ error: paramsValidation.error.message, details: paramsValidation.error.details }, 400);
-    }
-    
-    // VALIDASI BODY DENGAN ZOD
-    const bodyValidation = await validateRequest(c, likeSchema);
-    if (!bodyValidation.success) {
-      return c.json({ error: bodyValidation.error.message, details: bodyValidation.error.details }, 400);
-    }
-    
-    const { id: postId } = paramsValidation.data;
-    const { userId } = bodyValidation.data;
+    const postId = parseInt(c.req.param("id"));
+    const body = await c.req.json();
+    const userId = body.userId;
 
+    if (isNaN(postId) || !userId) {
+      return c.json({ error: "Data tidak valid" }, 400);
+    }
+
+    // Cek apakah post exists
     const [post] = await db
       .select()
       .from(posts)
       .where(eq(posts.id, postId))
       .limit(1);
 
-    if (!post) return c.json({ error: "Postingan tidak ditemukan" }, 404);
+    if (!post) {
+      return c.json({ error: "Postingan tidak ditemukan" }, 404);
+    }
 
+    // Update last active user
     await db.update(users_26)
       .set({ lastActive: new Date() })
       .where(eq(users_26.id, userId));
 
+    // Cek apakah sudah like sebelumnya
     const existingLike = await db
       .select()
       .from(likes)
-      .where(and(eq(likes.postId, postId), eq(likes.userId, userId)))
+      .where(and(
+        eq(likes.postId, postId),
+        eq(likes.userId, userId)
+      ))
       .limit(1);
 
     let updatedPost;
@@ -507,26 +508,43 @@ app.post("/:id/like", async (c) => {
     if (existingLike.length > 0) {
       // UNLIKE
       await db.delete(likes)
-        .where(and(eq(likes.postId, postId), eq(likes.userId, userId)));
+        .where(and(
+          eq(likes.postId, postId),
+          eq(likes.userId, userId)
+        ));
 
       [updatedPost] = await db
         .update(posts)
-        .set({ likeCount: sql`${posts.likeCount} - 1` })
+        .set({ 
+          likeCount: sql`${posts.likeCount} - 1`,
+          updatedAt: new Date()
+        })
         .where(eq(posts.id, postId))
         .returning();
       
       action = 'unliked';
+      
+      console.log(`👎 User ${userId} unliked post ${postId}`);
     } else {
       // LIKE
-      await db.insert(likes).values({ postId, userId });
+      await db.insert(likes).values({ 
+        postId, 
+        userId,
+        created_at: new Date()
+      });
 
       [updatedPost] = await db
         .update(posts)
-        .set({ likeCount: sql`${posts.likeCount} + 1` })
+        .set({ 
+          likeCount: sql`${posts.likeCount} + 1`,
+          updatedAt: new Date()
+        })
         .where(eq(posts.id, postId))
         .returning();
 
       action = 'liked';
+      
+      console.log(`❤️ User ${userId} liked post ${postId}`);
 
       // HITUNG TOTAL LIKES YANG DITERIMA OLEH PEMILIK POST
       if (post.userId !== userId) {
@@ -543,39 +561,9 @@ app.post("/:id/like", async (c) => {
           console.error("Error checking like achievements:", achError);
         }
       }
-
-      // BROADCAST ke pemilik post
-      const [userData] = await db
-        .select({ namaLengkap: users_26.namaLengkap })
-        .from(users_26)
-        .where(eq(users_26.id, userId))
-        .limit(1);
-
-      try {
-        broadcastToUser(post.userId, {
-          type: 'new_like',
-          postId: postId,
-          userId: userId,
-          userName: userData.namaLengkap,
-          likeCount: updatedPost.likeCount,
-          timestamp: new Date()
-        });
-      } catch (broadcastError) {
-        console.error('Broadcast error:', broadcastError);
-      }
-
-      // Notifikasi
-      db.insert(notifications).values({
-        userId: post.userId,
-        fromUserId: userId,
-        postId: postId,
-        type: 'like',
-        message: `${userData.namaLengkap} menyukai postingan Anda`,
-        data: JSON.stringify({ postId, userId })
-      }).catch(console.error);
     }
 
-    // BROADCAST update like count
+    // BROADCAST UPDATE LIKES KE SEMUA USER (REAL-TIME)
     try {
       broadcastToAll({
         type: 'update_likes',
@@ -587,6 +575,74 @@ app.post("/:id/like", async (c) => {
       });
     } catch (broadcastError) {
       console.error('Broadcast error:', broadcastError);
+    }
+
+    // KIRIM NOTIFIKASI KE PEMILIK POST (JIKA LIKE DAN BUKAN DIRI SENDIRI)
+    if (post.userId !== userId && action === 'liked') {
+      // Ambil data user yang like
+      const [userData] = await db
+        .select({ 
+          id: users_26.id,
+          namaLengkap: users_26.namaLengkap,
+          fotoProfil: users_26.fotoProfil 
+        })
+        .from(users_26)
+        .where(eq(users_26.id, userId))
+        .limit(1);
+
+      // Simpan notifikasi ke database
+      const [notification] = await db
+        .insert(notifications)
+        .values({
+          userId: post.userId,
+          fromUserId: userId,
+          postId: postId,
+          type: 'like',
+          message: `${userData.namaLengkap} menyukai postingan Anda`,
+          data: JSON.stringify({ postId, userId }),
+          createdAt: new Date(),
+          isRead: false
+        })
+        .returning();
+
+      console.log(`🔔 Notification created for user ${post.userId}`);
+
+      // Ambil data notifikasi lengkap untuk dikirim real-time
+      const [notifWithUser] = await db
+        .select({
+          id: notifications.id,
+          type: notifications.type,
+          message: notifications.message,
+          data: notifications.data,
+          createdAt: notifications.createdAt,
+          fromUser: {
+            id: users_26.id,
+            namaLengkap: users_26.namaLengkap,
+            fotoProfil: users_26.fotoProfil
+          },
+          post: {
+            id: posts.id,
+            judul: posts.judul
+          }
+        })
+        .from(notifications)
+        .leftJoin(users_26, eq(notifications.fromUserId, users_26.id))
+        .leftJoin(posts, eq(notifications.postId, posts.id))
+        .where(eq(notifications.id, notification.id))
+        .limit(1);
+
+      // KIRIM NOTIFIKASI REAL-TIME KE PEMILIK POST
+      try {
+        broadcastToUser(post.userId, {
+          type: 'new_notification',
+          notification: notifWithUser,
+          timestamp: new Date()
+        });
+        
+        console.log(`📨 Real-time notification sent to user ${post.userId}`);
+      } catch (notifError) {
+        console.error('Failed to send real-time notification:', notifError);
+      }
     }
 
     const responseTime = Date.now() - startTime;
@@ -603,7 +659,10 @@ app.post("/:id/like", async (c) => {
 
   } catch (error) {
     console.error("❌ Like error:", error);
-    return c.json({ error: "Terjadi kesalahan" }, 500);
+    return c.json({ 
+      error: "Terjadi kesalahan saat memproses like",
+      details: error.message 
+    }, 500);
   }
 });
 

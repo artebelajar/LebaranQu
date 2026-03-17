@@ -132,53 +132,28 @@ function renderFilteredPosts() {
   const postsList = document.getElementById("postsList");
   if (!postsList) return;
 
-  // Hitung index untuk current page
   const startIndex = (currentPage - 1) * POSTS_PER_PAGE;
   const endIndex = Math.min(startIndex + POSTS_PER_PAGE, totalPosts);
   const currentPosts = filteredPosts.slice(startIndex, endIndex);
 
-  // console.log(
-  //   `Rendering posts: page ${currentPage}, showing ${startIndex}-${endIndex} of ${totalPosts}`,
-  // );
-
-  // Kumpulkan user IDs untuk cek status online
-  const userIds = currentPosts
-    .map((p) => p.user?.id)
-    .filter((id) => id && !isNaN(parseInt(id)));
-
-  if (userIds.length > 0) {
-    const uniqueUserIds = [...new Set(userIds)];
-    if (window.loadOnlineStatus) window.loadOnlineStatus(uniqueUserIds);
-  }
-
   if (currentPosts.length === 0) {
-    postsList.innerHTML = `
-      <div class="text-center py-12 bg-white rounded-xl">
-        <i class="fas fa-search text-4xl text-gray-400 mb-3"></i>
-        <p class="text-gray-500">Tidak ada postingan yang cocok dengan filter</p>
-        <button onclick="window.clearAllFilters()" class="mt-4 text-emerald-600 hover:text-emerald-800">
-          <i class="fas fa-times mr-1"></i>Hapus filter
-        </button>
-      </div>
-    `;
+    postsList.innerHTML = `<div class="text-center py-12">...</div>`;
   } else {
-    postsList.innerHTML = currentPosts
-      .map((post) => {
-        const isLiked = userLikes.has(post.id);
-        const isSelected = selectedPostId === post.id;
-        const isOnline = onlineStatus[post.user?.id]?.online || false;
+    postsList.innerHTML = currentPosts.map((post) => {
+      const isLiked = LikeSystem.isLiked(post.id); // PAKAI LikeSystem
+      const isSelected = selectedPostId === post.id;
+      const isOnline = onlineStatus[post.user?.id]?.online || false;
 
-        return `
+      return `
         <div class="bg-white rounded-xl shadow p-6 post-card ${isSelected ? "selected" : ""}" 
              data-post-id="${post.id}">
-          <!-- Konten post (sama seperti sebelumnya) -->
+          <!-- Konten post -->
           <div class="flex items-start justify-between">
             <div class="flex items-center space-x-3 relative">
               <div class="relative" data-user-id="${post.user?.id || ""}">
                 <img src="${post.user?.fotoProfil || "/images/default-avatar.png"}" 
                      class="w-10 h-10 rounded-full object-cover cursor-pointer hover:opacity-80 transition"
-                     onclick="event.stopPropagation(); window.goToProfile(${post.user?.id})"
-                     onerror="this.src='/images/default-avatar.png'">
+                     onclick="event.stopPropagation(); window.goToProfile(${post.user?.id})">
                 <span class="online-status-dot w-2 h-2 ${isOnline ? "bg-green-500" : "bg-gray-400"} rounded-full absolute bottom-0 right-0"></span>
               </div>
               <div>
@@ -195,7 +170,7 @@ function renderFilteredPosts() {
             </span>
           </div>
           <h4 class="font-bold text-xl mt-4 cursor-pointer" onclick="window.selectPost(${post.id})">${post.judul}</h4>
-          <p class="text-gray-600 mt-2 cursor-pointer" onclick="window.selectPost(${post.id})">${post.konten.substring(0, 150)}${post.konten.length > 150 ? "..." : ""}</p>
+          <p class="text-gray-600 mt-2 cursor-pointer" onclick="window.selectPost(${post.id})">${post.konten.substring(0, 150)}...</p>
           ${post.gambar ? `<img src="${post.gambar}" class="mt-4 rounded-lg max-h-64 object-cover cursor-pointer" onclick="window.selectPost(${post.id})">` : ""}
           <div class="flex items-center justify-between mt-4 pt-4 border-t">
             <div class="flex items-center space-x-4">
@@ -209,14 +184,11 @@ function renderFilteredPosts() {
                 <i class="fas fa-eye mr-1"></i> ${post.viewCount || 0}
               </span>
             </div>
-            <span class="text-xs text-gray-400">
-              <i class="fas fa-clock mr-1"></i> ${formatTime(post.createdAt)}
-            </span>
+            <span class="text-xs text-gray-400"><i class="fas fa-clock mr-1"></i> ${formatTime(post.createdAt)}</span>
           </div>
         </div>
       `;
-      })
-      .join("");
+    }).join("");
   }
 }
 

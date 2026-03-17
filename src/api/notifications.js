@@ -1,13 +1,15 @@
+// ===================================================
+// FILE: src/api/notifications.js (BACKEND)
+// ===================================================
+
 import { Hono } from "hono";
 import { db } from "../db/index.js";
 import { notifications, users_26, posts } from "../db/schema.js";
-import { eq, and, desc, sql } from "drizzle-orm";
-import { markReadSchema, userIdSchema } from "../validators/schemas.js";
-import { validateRequest, validateParams } from "../utils/validate.js";
+import { eq, and, desc, sql, inArray } from "drizzle-orm";
 
 const app = new Hono();
 
-// GET /api/notifications - Ambil semua notifikasi user
+// ========== GET NOTIFICATIONS ==========
 app.get("/", async (c) => {
   try {
     const userId = parseInt(c.req.query("userId"));
@@ -42,55 +44,90 @@ app.get("/", async (c) => {
       .orderBy(desc(notifications.createdAt))
       .limit(limit);
 
-    // Hitung jumlah notifikasi belum dibaca
-    const unreadCount = userNotifications.filter(n => !n.isRead).length;
+    // Hitung unread count
+    const [unreadResult] = await db
+      .select({ count: sql`count(*)` })
+      .from(notifications)
+      .where(and(
+        eq(notifications.userId, userId),
+        eq(notifications.isRead, false)
+      ));
 
     return c.json({
       notifications: userNotifications,
-      unreadCount
+      unreadCount: parseInt(unreadResult?.count || '0')
     });
+    
   } catch (error) {
     console.error("Get notifications error:", error);
     return c.json({ error: error.message }, 500);
   }
 });
 
-// POST /api/notifications/mark-read - Tandai notifikasi sebagai dibaca
+// ========== MARK AS READ ==========
 app.post("/mark-read", async (c) => {
   try {
-    // VALIDASI DENGAN ZOD
-    const validation = await validateRequest(c, markReadSchema);
-    if (!validation.success) {
-      return c.json({ error: validation.error.message, details: validation.error.details }, 400);
+    const body = await c.req.json();
+    const { userId, notificationIds } = body;
+
+    console.log('Mark read request:', { userId, notificationIds });
+
+    if (!userId) {
+      return c.json({ error: "User ID diperlukan" }, 400);
     }
+
+    // Pastikan notificationIds adalah array
+    const ids = Array.isArray(notificationIds) ? notificationIds : [];
     
-    const { userId, notificationIds } = validation.data;
-
-    if (notificationIds && notificationIds.length > 0) {
-      // Tandai notifikasi tertentu
+    if (ids.length > 0) {
+      // Validasi bahwa ids adalah array of numbers
+      const validIds = ids.filter(id => !isNaN(parseInt(id))).map(id => parseInt(id));
+      
+      if (validIds.length === 0) {
+        return c.json({ error: "ID notifikasi tidak valid" }, 400);
+      }
+      
+      console.log('Valid IDs:', validIds);
+      
+      // MARK SPECIFIC NOTIFICATIONS - PAKAI inArray
       await db
         .update(notifications)
         .set({ isRead: true })
-        .where(sql`${notifications.id} = ANY(${notificationIds}::int[]) AND ${notifications.userId} = ${userId}`);
+        .where(
+          and(
+            inArray(notifications.id, validIds),
+            eq(notifications.userId, userId)
+          )
+        );
     } else {
-      // Tandai semua notifikasi user sebagai dibaca
+      // MARK ALL AS READ
       await db
         .update(notifications)
         .set({ isRead: true })
-        .where(and(
-          eq(notifications.userId, userId),
-          eq(notifications.isRead, false)
-        ));
+        .where(
+          and(
+            eq(notifications.userId, userId),
+            eq(notifications.isRead, false)
+          )
+        );
     }
 
-    return c.json({ success: true });
+    return c.json({ 
+      success: true, 
+      message: "Notifikasi telah ditandai dibaca",
+      count: ids.length 
+    });
+    
   } catch (error) {
-    console.error("Mark read error:", error);
-    return c.json({ error: error.message }, 500);
+    console.error("❌ Mark read error:", error);
+    return c.json({ 
+      error: error.message,
+      details: "Gagal menandai notifikasi"
+    }, 500);
   }
 });
 
-// GET /api/notifications/unread-count - Hitung notifikasi belum dibaca
+// ========== GET UNREAD COUNT ==========
 app.get("/unread-count", async (c) => {
   try {
     const userId = parseInt(c.req.query("userId"));
@@ -107,14 +144,15 @@ app.get("/unread-count", async (c) => {
         eq(notifications.isRead, false)
       ));
 
-    return c.json({ count: parseInt(result.count) });
+    return c.json({ count: parseInt(result?.count || '0') });
+    
   } catch (error) {
     console.error("Unread count error:", error);
     return c.json({ error: error.message }, 500);
   }
 });
 
-// DELETE /api/notifications/clear - Hapus semua notifikasi (optional)
+// ========== DELETE ALL NOTIFICATIONS ==========
 app.delete("/clear", async (c) => {
   try {
     const userId = parseInt(c.req.query("userId"));
@@ -128,36 +166,9 @@ app.delete("/clear", async (c) => {
       .where(eq(notifications.userId, userId));
 
     return c.json({ success: true });
+    
   } catch (error) {
     console.error("Clear notifications error:", error);
-    return c.json({ error: error.message }, 500);
-  }
-});
-
-// ========== MARK ALL NOTIFICATIONS AS READ ==========
-app.post("/mark-all-read", async (c) => {
-  try {
-    const { userId } = await c.req.json();
-
-    if (!userId) {
-      return c.json({ error: "User ID diperlukan" }, 400);
-    }
-
-    // Update semua notifikasi user menjadi read
-    await db
-      .update(notifications)
-      .set({ isRead: true })
-      .where(and(
-        eq(notifications.userId, userId),
-        eq(notifications.isRead, false)
-      ));
-
-    return c.json({ 
-      success: true,
-      message: "Semua notifikasi telah ditandai dibaca"
-    });
-  } catch (error) {
-    console.error("Mark all read error:", error);
     return c.json({ error: error.message }, 500);
   }
 });
