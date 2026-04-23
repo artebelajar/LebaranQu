@@ -19,15 +19,18 @@ function checkSession() {
 
   try {
     const user = JSON.parse(savedUser);
-    // PASTIKAN INI ADA!
     window.currentUser = user;
     currentUser = user;
     isAdmin = user.role === "admin" || user.isAdmin === true;
     
     console.log("✅ User loaded:", user.namaLengkap, "ID:", user.id);
-    console.log("✅ window.currentUser set:", window.currentUser);
     
-    loadUserLikes();
+    // INISIALISASI LIKESYSTEM
+    if (window.LikeSystem) {
+      window.LikeSystem.init(user.id);
+    }
+    
+    loadUserLikes(); // Untuk kompatibilitas ke belakang
     return true;
   } catch (e) {
     console.error("❌ Error parsing user:", e);

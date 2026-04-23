@@ -188,9 +188,7 @@ function renderFilteredPosts() {
                 <i class="fas fa-comment mr-1"></i> ${post.commentCount || 0}
               </span>
             </div>
-            <span class="text-xs text-gray-400">
-              <i class="fas fa-clock mr-1"></i> ${formatTime(post.createdAt)}
-            </span>
+            <span class="text-xs text-gray-400"><i class="fas fa-clock mr-1"></i> ${formatTime(post.createdAt)}</span>
           </div>
         </div>
       `;

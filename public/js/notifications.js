@@ -1,5 +1,6 @@
 // ===================================================
 // FILE: public/js/notifications.js
+// FILE: public/js/notifications.js
 // ===================================================
 
 let notifications = [];
@@ -81,6 +82,8 @@ async function loadNotifications() {
   try {
     if (!window.currentUser) return;
     
+    if (!window.currentUser) return;
+    
     const response = await fetch(
       `${API_BASE}/notifications?userId=${window.currentUser.id}&limit=20`,
       {
@@ -88,7 +91,14 @@ async function loadNotifications() {
           Authorization: `Bearer ${localStorage.getItem("userToken")}`,
         },
       }
+      `${API_BASE}/notifications?userId=${window.currentUser.id}&limit=20`,
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("userToken")}`,
+        },
+      }
     );
+    
     
     if (!response.ok) throw new Error("Gagal memuat notifikasi");
     
@@ -105,6 +115,7 @@ async function loadNotifications() {
 }
 
 // ========== RENDER NOTIFICATIONS (DESKTOP) ==========
+// ========== RENDER NOTIFICATIONS (DESKTOP) ==========
 function renderNotifications() {
   const notificationList = document.getElementById("notificationList");
   if (!notificationList) return;
@@ -116,9 +127,11 @@ function renderNotifications() {
   
   notificationList.innerHTML = notifications
     .slice(0, 5)
+    .slice(0, 5)
     .map((notif) => {
       const isUnread = !notif.isRead;
       const timeAgo = getTimeAgo(notif.createdAt);
+      const icon = getNotificationIcon(notif.type);
       const icon = getNotificationIcon(notif.type);
       return `
       <div class="p-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition ${isUnread ? "bg-emerald-50" : ""}"
@@ -130,6 +143,7 @@ function renderNotifications() {
           <div class="flex-1">
             <div class="flex justify-between items-start">
               <p class="text-sm text-gray-800">${notif.message}</p>
+              ${isUnread ? '<span class="w-2 h-2 bg-emerald-500 rounded-full ml-1"></span>' : ''}
               ${isUnread ? '<span class="w-2 h-2 bg-emerald-500 rounded-full ml-1"></span>' : ''}
             </div>
             <div class="flex items-center gap-2 mt-1">
@@ -149,6 +163,9 @@ function toggleNotificationDropdown() {
   const dropdown = document.getElementById("notificationDropdown");
   if (dropdown) {
     dropdown.classList.toggle("hidden");
+    if (!dropdown.classList.contains("hidden")) {
+      loadNotifications();
+    }
     if (!dropdown.classList.contains("hidden")) {
       loadNotifications();
     }

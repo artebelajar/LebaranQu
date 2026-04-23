@@ -1,5 +1,5 @@
 // ===================================================
-// FILE: likes.js - Fungsi Terkait Likes
+// FILE: public/js/likes.js
 // ===================================================
 
 // ========== FIND POST ELEMENTS ==========
@@ -12,19 +12,16 @@ function findPostElements(postId) {
   return { postElement, likeButton, likeIcon, likeCountSpan };
 }
 
-
 // ========== HANDLE LIKE ==========
 async function handleLike(postId) {
-  if (!currentUser) {
+  if (!window.currentUser) {
     showToast("Silakan login terlebih dahulu", "error");
     setTimeout(() => window.location.href = "/login.html", 1500);
     return;
   }
 
-  // CEK DOUBLE LIKE
   const likeKey = `like_${postId}`;
-  if (window.loadingStates[likeKey]) {
-    console.log("⏳ Like already being processed");
+  if (window.loadingStates && window.loadingStates[likeKey]) {
     return;
   }
 
@@ -35,32 +32,32 @@ async function handleLike(postId) {
   }
 
   const { likeButton, likeIcon, likeCountSpan } = elements;
-  const isCurrentlyLiked = userLikes.has(postId);
+  const isCurrentlyLiked = window.userLikes ? window.userLikes.has(postId) : false;
   const currentCount = parseInt(likeCountSpan.textContent);
-  const newCount = isCurrentlyLiked ? currentCount - 1 : currentCount + 1;
 
   // SET LOADING STATE
-  window.loadingStates[likeKey] = true;
+  if (window.loadingStates) window.loadingStates[likeKey] = true;
   
   // Disable button selama proses
   likeButton.style.pointerEvents = 'none';
   likeButton.style.opacity = '0.7';
 
-  // Optimistic update (UI langsung berubah)
+  // Optimistic update (langsung ubah UI)
   if (isCurrentlyLiked) {
-    userLikes.delete(postId);
+    if (window.userLikes) window.userLikes.delete(postId);
     likeButton.classList.remove("text-red-500");
     likeButton.classList.add("text-gray-500", "hover:text-red-500");
     if (likeIcon) likeIcon.classList.remove("text-red-500");
-    likeCountSpan.textContent = newCount;
+    likeCountSpan.textContent = currentCount - 1;
   } else {
-    userLikes.add(postId);
+    if (window.userLikes) window.userLikes.add(postId);
     likeButton.classList.remove("text-gray-500", "hover:text-red-500");
     likeButton.classList.add("text-red-500");
     if (likeIcon) likeIcon.classList.add("text-red-500");
-    likeCountSpan.textContent = newCount;
+    likeCountSpan.textContent = currentCount + 1;
   }
-  saveUserLikes();
+  
+  if (window.userLikes) saveUserLikes();
 
   try {
     const res = await fetch(`${API_BASE}/posts/${postId}/like`, {
@@ -69,7 +66,7 @@ async function handleLike(postId) {
         "Content-Type": "application/json",
         Authorization: `Bearer ${localStorage.getItem("userToken")}`,
       },
-      body: JSON.stringify({ userId: currentUser.id }),
+      body: JSON.stringify({ userId: window.currentUser.id }),
     });
 
     const responseData = await res.json();
@@ -79,9 +76,23 @@ async function handleLike(postId) {
       throw new Error(responseData.error || "Gagal like postingan");
     }
     
-    // Update dengan data dari server
-    if (responseData.likeCount !== undefined) {
-      likeCountSpan.textContent = responseData.likeCount;
+    console.log('Like success:', responseData);
+    
+    // ========== RELOAD DATA SEPERTI KOMENTAR ==========
+    // 1. Reload post dari API untuk mendapatkan data terbaru
+    await reloadPostData(postId);
+    
+    // 2. Jika di halaman post-detail, render ulang
+    if (window.location.pathname.includes('post-detail.html')) {
+      if (typeof loadPostDetail === 'function') {
+        await loadPostDetail();
+      }
+    } 
+    // 3. Jika di index dan sidebar terbuka, render ulang sidebar
+    else if (typeof selectedPostId !== 'undefined' && selectedPostId === postId) {
+      if (typeof renderPostDetail === 'function') {
+        await renderPostDetail(postId);
+      }
     }
     
   } catch (error) {
@@ -89,25 +100,80 @@ async function handleLike(postId) {
     
     // Rollback UI
     if (isCurrentlyLiked) {
-      userLikes.add(postId);
+      if (window.userLikes) window.userLikes.add(postId);
       likeButton.classList.add("text-red-500");
       likeButton.classList.remove("text-gray-500", "hover:text-red-500");
       if (likeIcon) likeIcon.classList.add("text-red-500");
       likeCountSpan.textContent = currentCount;
     } else {
-      userLikes.delete(postId);
+      if (window.userLikes) window.userLikes.delete(postId);
       likeButton.classList.remove("text-red-500");
       likeButton.classList.add("text-gray-500", "hover:text-red-500");
       if (likeIcon) likeIcon.classList.remove("text-red-500");
       likeCountSpan.textContent = currentCount;
     }
-    saveUserLikes();
+    if (window.userLikes) saveUserLikes();
     
     showToast(error.message || "Terjadi kesalahan", "error");
   } finally {
     // RESET LOADING STATE
-    window.loadingStates[likeKey] = false;
+    if (window.loadingStates) window.loadingStates[likeKey] = false;
     likeButton.style.pointerEvents = '';
     likeButton.style.opacity = '1';
   }
 }
+
+// ========== RELOAD POST DATA ==========
+async function reloadPostData(postId) {
+  try {
+    const response = await fetch(`${API_BASE}/posts/${postId}`);
+    if (!response.ok) throw new Error('Failed to reload post');
+    
+    const post = await response.json();
+    console.log('Reloaded post data:', post);
+    
+    // Update di allPosts
+    if (typeof allPosts !== 'undefined') {
+      const index = allPosts.findIndex(p => p.id === postId);
+      if (index !== -1) {
+        allPosts[index].likeCount = post.likeCount;
+      }
+    }
+    
+    // Update di filteredPosts
+    if (typeof filteredPosts !== 'undefined') {
+      const index = filteredPosts.findIndex(p => p.id === postId);
+      if (index !== -1) {
+        filteredPosts[index].likeCount = post.likeCount;
+      }
+    }
+    
+    // Update semua elemen dengan postId ini
+    document.querySelectorAll(`[data-post-id="${postId}"] .like-count`).forEach(el => {
+      el.textContent = post.likeCount;
+    });
+    
+    return post;
+  } catch (error) {
+    console.error('Error reloading post:', error);
+  }
+}
+
+// ========== SAVE USER LIKES ==========
+function saveUserLikes() {
+  if (!window.currentUser || !window.userLikes) return;
+  try {
+    localStorage.setItem(
+      `userLikes_${window.currentUser.id}`,
+      JSON.stringify(Array.from(window.userLikes)),
+    );
+  } catch (e) {
+    console.error("Error saving user likes:", e);
+  }
+}
+
+// ========== EXPORT ==========
+window.handleLike = handleLike;
+window.findPostElements = findPostElements;
+window.saveUserLikes = saveUserLikes;
+window.reloadPostData = reloadPostData;

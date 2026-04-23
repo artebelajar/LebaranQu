@@ -29,88 +29,34 @@ function cleanup() {
 function initDashboard() {
   console.log("Initializing dashboard...");
 
-  // Cek elemen penting
-  const postDetailSidebar = document.getElementById("postDetailSidebar");
-  if (!postDetailSidebar) {
-    console.warn("postDetailSidebar element not found");
-  }
-
-  const postDetailContent = document.getElementById("postDetailContent");
-  if (!postDetailContent) {
-    console.warn("postDetailContent element not found");
-  }
-
-   try {
-    if (typeof connectSSE === 'function') {
-      connectSSE();
-    }
-  } catch (error) {
-    console.error('SSE connection failed:', error);
-  }
-
-  document.getElementById("userNameDisplay").textContent = currentUser.namaLengkap;
-  document.getElementById("ucapanNama").textContent = currentUser.namaLengkap;
+  document.getElementById("userNameDisplay").textContent = window.currentUser.namaLengkap;
+  document.getElementById("ucapanNama").textContent = window.currentUser.namaLengkap;
 
   if (typeof setupSearchAndFilters === 'function') setupSearchAndFilters();
   if (typeof setupFilterUI === 'function') setupFilterUI();
   
-  // Render category buttons
-  if (typeof renderCategoryButtons === 'function') {
-    renderCategoryButtons();
-  } else if (window.LeaderboardModule) {
-    window.LeaderboardModule.renderButtons();
-  }
-  
-  // Try WebSocket first (sudah handle protocol di websocket.js)
-  try {
-    if (typeof connectWebSocket === 'function') connectWebSocket();
-  } catch (error) {
-    console.error('WebSocket connection failed, falling back to SSE:', error);
-    if (typeof connectSSE === 'function') connectSSE();
+  // INISIALISASI SSE
+  if (typeof initSSE === 'function') {
+    initSSE();
   }
 
   Promise.all([
     typeof loadSchoolInfo === 'function' ? loadSchoolInfo() : Promise.resolve(),
     typeof loadAllPosts === 'function' ? loadAllPosts() : Promise.resolve(),
-    typeof loadLeaderboard === 'function' ? loadLeaderboard('badge') : 
-      (window.LeaderboardModule ? window.LeaderboardModule.load('badge') : Promise.resolve()),
+    typeof loadLeaderboard === 'function' ? loadLeaderboard('badge') : Promise.resolve(),
     typeof loadNotifications === 'function' ? loadNotifications() : Promise.resolve(),
   ])
     .then(() => {
-      const loadingState = document.getElementById("loadingState");
-      const mainContent = document.getElementById("mainContent");
-      const userInfo = document.getElementById("userInfo");
-      
-      if (loadingState) loadingState.classList.add("hidden");
-      if (mainContent) mainContent.classList.remove("hidden");
-      if (userInfo) userInfo.classList.remove("hidden");
+      document.getElementById("loadingState").classList.add("hidden");
+      document.getElementById("mainContent").classList.remove("hidden");
+      document.getElementById("userInfo").classList.remove("hidden");
       console.log("Dashboard ready");
-      
-      if (typeof initLeaderboardFilters === 'function') {
-        initLeaderboardFilters();
-      } else if (window.LeaderboardModule) {
-        window.LeaderboardModule.initFilters();
-      }
     })
     .catch((error) => {
       console.error("Error loading dashboard:", error);
       showError("Gagal memuat data");
     });
 
-  const leaderboardFilter = document.getElementById("leaderboardFilter");
-  if (leaderboardFilter) {
-    leaderboardFilter.addEventListener("change", () => {
-      if (typeof loadLeaderboard === 'function') {
-        loadLeaderboard(currentLeaderboardCategory || 'badge');
-      } else if (window.LeaderboardModule) {
-        window.LeaderboardModule.load(window.LeaderboardModule.currentCategory || 'badge');
-      }
-    });
-  }
-
-  loadNotifications();
-  
-  // Start heartbeat
   if (typeof startHeartbeat === 'function') startHeartbeat();
 }
 

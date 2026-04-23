@@ -39,156 +39,103 @@ async function loadComments(postId) {
   }
 }
 
-// ========== RENDER POST DETAIL DENGAN ERROR HANDLING ==========
+// ========== RENDER POST DETAIL ==========
 async function renderPostDetail(postId) {
-  // Hanya render jika bukan mobile
-  if (window.innerWidth < 768) {
-    return;
-  }
+  if (window.innerWidth < 768) return;
+  if (typeof allPosts === 'undefined') return;
   
-  if (typeof allPosts === 'undefined') {
-    console.error("allPosts is not defined");
-    return;
-  }
-  
-  const post = allPosts.find((p) => p.id === postId);
-  if (!post) {
-    console.error(`Post with id ${postId} not found`);
-    return;
-  }
+  const post = allPosts.find(p => p.id === postId);
+  if (!post) return;
 
-  const isLiked = userLikes ? userLikes.has(post.id) : false;
+  const isLiked = LikeSystem.isLiked(post.id); // PAKAI LikeSystem
   const comments = await loadComments(postId);
   const commentCount = Array.isArray(comments) ? comments.length : 0;
-  const isOnline = onlineStatus && onlineStatus[post.user?.id] ? onlineStatus[post.user.id].online : false;
+  const isOnline = onlineStatus && onlineStatus[post.user?.id]?.online || false;
 
   const detailContent = document.getElementById("postDetailContent");
-  if (!detailContent) {
-    console.error("Element #postDetailContent not found in DOM");
-    return;
-  }
+  if (!detailContent) return;
 
   const postJSON = JSON.stringify(post).replace(/"/g, '&quot;');
 
-  const commentsHtml = comments.error 
-    ? `<div class="text-center py-4 text-red-500">
-        <i class="fas fa-exclamation-circle mr-1"></i>
-        Gagal memuat komentar: ${comments.message}
-       </div>`
-    : commentCount === 0 
-      ? '<p class="text-center text-gray-500 py-4 text-sm">Belum ada komentar. Jadilah yang pertama!</p>'
-      : comments.map(comment => `
-          <div class="flex gap-2 comment-item p-2 rounded-lg">
-            <img src="${comment.user?.fotoProfil || '/images/default-avatar.png'}" 
-                 class="w-5 h-5 md:w-6 md:h-6 rounded-full object-cover flex-shrink-0 cursor-pointer hover:opacity-80"
-                 onclick="goToProfile(${comment.user?.id})"
-                 onerror="this.src='/images/default-avatar.png'">
-            <div class="flex-1">
-              <div class="flex items-center gap-2 flex-wrap">
-                <span class="font-medium text-xs md:text-sm cursor-pointer hover:text-emerald-600"
-                      onclick="goToProfile(${comment.user?.id})">${comment.user?.namaLengkap || "Unknown"}</span>
-                <span class="text-xs text-gray-400">${formatTime(comment.createdAt)}</span>
-              </div>
-              <p class="text-xs md:text-sm text-gray-700">${escapeHtml(comment.text)}</p>
-            </div>
-          </div>
-        `).join('');
-
   detailContent.innerHTML = `
     <div class="space-y-4">
+      <!-- Author info -->
       <div class="flex items-start gap-3 pb-4 border-b">
         <div class="relative">
           <img src="${post.user?.fotoProfil || "/images/default-avatar.png"}" 
                class="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover cursor-pointer hover:opacity-80 transition"
-               onclick="goToProfile(${post.user?.id})"
-               onerror="this.src='/images/default-avatar.png'">
+               onclick="goToProfile(${post.user?.id})">
           <span class="w-2 h-2 md:w-3 md:h-3 ${isOnline ? "bg-green-500" : "bg-gray-400"} rounded-full absolute bottom-0 right-0 border-2 border-white"></span>
         </div>
         <div class="flex-1">
-          <div class="flex flex-col md:flex-row md:items-center gap-1 md:gap-2">
-            <h3 class="font-semibold text-gray-800 text-sm md:text-base cursor-pointer hover:text-emerald-600 transition"
-                onclick="goToProfile(${post.user?.id})">
-              ${post.user?.namaLengkap || "Unknown"}
-            </h3>
-            <span class="text-xs ${isOnline ? "text-green-500" : "text-gray-400"}">
-              ${isOnline ? "● Online" : "● Offline"}
-            </span>
-          </div>
-          <p class="text-xs text-gray-500">${post.user?.title || "Alumni"}</p>
-          <div class="flex flex-wrap items-center gap-2 mt-1">
-            <span class="px-2 py-0.5 text-xs rounded-full ${getSchoolColor(post.user?.asalSekolah)}">
-              ${getSchoolName(post.user?.asalSekolah)}
-            </span>
-            <span class="text-xs text-gray-400"><i class="fas fa-clock mr-1"></i> ${formatDate(post.createdAt)}</span>
-          </div>
+          <h3 class="font-semibold text-gray-800 cursor-pointer hover:text-emerald-600" onclick="goToProfile(${post.user?.id})">
+            ${post.user?.namaLengkap || "Unknown"}
+          </h3>
+          <span class="text-xs ${isOnline ? "text-green-500" : "text-gray-400"}">${isOnline ? "Online" : "Offline"}</span>
         </div>
       </div>
       
-      <h2 class="text-lg md:text-xl font-bold text-gray-800">${post.judul}</h2>
-      <div class="text-sm md:text-base text-gray-700 leading-relaxed whitespace-pre-line">${post.konten}</div>
-      ${post.gambar ? `<div class="mt-4"><img src="${post.gambar}" class="w-full rounded-lg max-h-96 object-cover"></div>` : ""}
+      <h2 class="text-2xl font-bold text-gray-800">${post.judul}</h2>
+      <div class="text-gray-700">${post.konten}</div>
       
-      <div class="flex flex-col md:flex-row items-start md:items-center justify-between py-3 border-y gap-3">
-        <div class="flex items-center space-x-4">
-          <button onclick="handleLike(${post.id})" 
-                  class="flex items-center space-x-2 transition like-button ${isLiked ? "text-red-500" : "text-gray-500 hover:text-red-500"}">
-            <i class="fas fa-heart text-lg md:text-xl ${isLiked ? "text-red-500" : ""}"></i>
-            <span class="font-semibold like-count">${post.likeCount || 0}</span>
-          </button>
-          <span class="flex items-center text-gray-500 text-sm md:text-base">
-            <i class="fas fa-eye mr-1"></i> ${post.viewCount || 0}
-          </span>
-        </div>
+      <!-- Stats -->
+      <div class="flex items-center gap-4 mt-6 py-4 border-y">
+        <button onclick="handleLike(${post.id})" 
+                class="flex items-center gap-2 text-gray-500 active:scale-95 transition like-button ${isLiked ? "text-red-500" : ""}">
+          <i class="fas fa-heart text-2xl ${isLiked ? "text-red-500" : ""}"></i>
+          <span class="like-count font-semibold">${post.likeCount || 0}</span>
+        </button>
+        <span class="flex items-center gap-2 text-gray-500">
+          <i class="fas fa-eye text-2xl"></i>
+          <span class="font-semibold">${post.viewCount || 0}</span>
+        </span>
+      </div>
+      
+      <!-- Comments -->
+      <div class="mt-6">
+        <h3 class="font-semibold text-gray-700 mb-3">Komentar <span class="text-gray-500">(${commentCount})</span></h3>
         
-        <div class="flex items-center space-x-3">
-          <button onclick="shareToWhatsApp('${postJSON}')" 
-                  class="text-green-600 hover:text-green-700 transition text-lg md:text-xl" title="Share ke WhatsApp">
-            <i class="fab fa-whatsapp"></i>
-          </button>
-          <button onclick="shareToFacebook('${postJSON}')" 
-                  class="text-blue-600 hover:text-blue-700 transition text-lg md:text-xl" title="Share ke Facebook">
-            <i class="fab fa-facebook"></i>
-          </button>
-          <button onclick="shareToTwitter('${postJSON}')" 
-                  class="text-sky-500 hover:text-sky-600 transition text-lg md:text-xl" title="Share ke Twitter">
-            <i class="fab fa-twitter"></i>
-          </button>
-          <button onclick="shareToInstagram('${postJSON}')" 
-                  class="text-pink-600 hover:text-pink-700 transition text-lg md:text-xl" title="Copy link">
-            <i class="fab fa-instagram"></i>
-          </button>
-        </div>
-      </div>
-      
-      <div class="space-y-4 mt-4">
-        <div class="flex gap-2">
-          <img src="${currentUser?.fotoProfil || "/images/default-avatar.png"}" 
-               class="w-6 h-6 md:w-8 md:h-8 rounded-full object-cover flex-shrink-0">
+        <div class="flex gap-2 mb-4">
+          <img src="${currentUser?.fotoProfil || '/images/default-avatar.png'}" class="w-8 h-8 rounded-full object-cover">
           <div class="flex-1 flex gap-2">
-            <input type="text" id="newCommentInput" 
-                   placeholder="Tulis komentar..." 
-                   class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm">
-            <button onclick="addComment(${post.id})" 
-                    class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition text-sm whitespace-nowrap">
+            <input type="text" id="commentInput" placeholder="Tulis komentar..." 
+                   class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500">
+            <button onclick="addComment(${post.id})" class="bg-emerald-600 text-white px-4 py-2 rounded-lg">
               <i class="fas fa-paper-plane"></i>
             </button>
           </div>
         </div>
-        <div id="commentsList" class="space-y-3 max-h-60 overflow-y-auto pr-1">
-          ${commentsHtml}
+        
+        <div id="commentsList" class="space-y-3 max-h-60 overflow-y-auto">
+          ${commentCount === 0 ? '<p class="text-center text-gray-500">Belum ada komentar</p>' : ''}
         </div>
       </div>
     </div>
   `;
+
+  // Load comments
+  if (commentCount > 0) {
+    const list = document.getElementById("commentsList");
+    list.innerHTML = comments.map(comment => `
+      <div class="flex gap-2 comment-item p-2 rounded-lg">
+        <img src="${comment.user?.fotoProfil || '/images/default-avatar.png'}" class="w-6 h-6 rounded-full object-cover cursor-pointer" onclick="goToProfile(${comment.user?.id})">
+        <div class="flex-1">
+          <div class="flex items-center gap-2">
+            <span class="font-medium text-xs cursor-pointer hover:text-emerald-600" onclick="goToProfile(${comment.user?.id})">${comment.user?.namaLengkap}</span>
+            <span class="text-xs text-gray-400">${formatTime(comment.createdAt)}</span>
+          </div>
+          <p class="text-sm text-gray-700">${escapeHtml(comment.text)}</p>
+        </div>
+      </div>
+    `).join('');
+  }
 }
 
 // ========== ADD COMMENT ==========
 async function addComment(postId) {
-  const input = document.getElementById("commentInput") || 
-                document.getElementById("newCommentInput");
+  const input = document.getElementById("commentInput") || document.getElementById("newCommentInput");
   
   if (!input) {
-    console.error("Comment input not found!");
     showToast("Terjadi kesalahan teknis", "error");
     return;
   }
@@ -200,7 +147,7 @@ async function addComment(postId) {
   }
 
   const commentKey = `comment_${postId}`;
-  if (window.loadingStates && window.loadingStates[commentKey]) {
+  if (window.loadingStates?.[commentKey]) {
     showToast("Komentar sedang diproses...", "info");
     return;
   }
@@ -218,43 +165,24 @@ async function addComment(postId) {
         "Content-Type": "application/json",
         Authorization: `Bearer ${localStorage.getItem("userToken")}`,
       },
-      body: JSON.stringify({
-        userId: currentUser.id,
-        text: text,
-      }),
+      body: JSON.stringify({ userId: window.currentUser.id, text: text }),
     });
 
     if (res.ok) {
       input.value = "";
       if (loader) loader.success("Terkirim!");
       
-      // RENDER ULANG MENGGUNAKAN FUNGSI YANG ADA
-      if (typeof renderPostDetail === 'function') {
-        await renderPostDetail(postId);
+      // Reload komentar
+      const comments = await loadComments(postId);
+      
+      // Update UI berdasarkan konteks
+      if (window.location.pathname.includes('post-detail.html')) {
+        // Di halaman post-detail
+        updateCommentsUI(comments);
       } else {
-        // Fallback: update manual
-        const comments = await loadComments(postId);
-        const list = document.getElementById("commentsList");
-        if (list) {
-          if (comments.length === 0) {
-            list.innerHTML = '<p class="text-center text-gray-500 py-4">Belum ada komentar</p>';
-          } else {
-            list.innerHTML = comments.map(comment => `
-              <div class="flex gap-2 comment-item p-2 rounded-lg">
-                <img src="${comment.user?.fotoProfil || "/images/default-avatar.png"}" 
-                     class="w-6 h-6 rounded-full object-cover cursor-pointer"
-                     onclick="goToProfile(${comment.user?.id})">
-                <div class="flex-1">
-                  <div class="flex items-center gap-2">
-                    <span class="font-medium text-xs cursor-pointer hover:text-emerald-600"
-                          onclick="goToProfile(${comment.user?.id})">${comment.user?.namaLengkap}</span>
-                    <span class="text-xs text-gray-400">${formatTime(comment.createdAt)}</span>
-                  </div>
-                  <p class="text-sm text-gray-700">${escapeHtml(comment.text)}</p>
-                </div>
-              </div>
-            `).join('');
-          }
+        // Di index (sidebar)
+        if (typeof renderPostDetail === 'function') {
+          await renderPostDetail(postId);
         }
       }
       

@@ -8,6 +8,7 @@ import { rateLimiter } from 'hono-rate-limiter';
 import dotenv from "dotenv";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
+import { WebSocketServer } from 'ws';
 
 // Import routes
 import usersApi from "./src/api/users.js";
@@ -20,6 +21,91 @@ dotenv.config();
 
 const app = new Hono();
 const __dirname = dirname(fileURLToPath(import.meta.url));
+
+// ========== WEBSOCKET SETUP ==========
+let wss = null;
+const clients = new Map(); // userId -> WebSocket
+
+export function initWebSocket(server) {
+  try {
+    wss = new WebSocketServer({ server, path: '/ws' });
+    
+    console.log(`🔌 WebSocket server initialized`);
+
+    wss.on('connection', (ws, req) => {
+      const url = new URL(req.url, `http://${req.headers.host}`);
+      const userId = parseInt(url.searchParams.get('userId'));
+
+      if (userId) {
+        clients.set(userId, ws);
+        console.log(`👤 User ${userId} connected to WebSocket`);
+
+        broadcastToAll({
+          type: 'user_online',
+          userId: userId,
+          online: true,
+          timestamp: new Date()
+        });
+
+        ws.send(JSON.stringify({
+          type: 'connected',
+          message: 'WebSocket connected successfully',
+          userId
+        }));
+      }
+
+      ws.on('message', (message) => {
+        try {
+          const data = JSON.parse(message.toString());
+          if (data.type === 'ping') {
+            ws.send(JSON.stringify({ type: 'pong', timestamp: Date.now() }));
+          }
+        } catch (error) {
+          console.error('WebSocket message error:', error);
+        }
+      });
+
+      ws.on('close', () => {
+        for (const [id, client] of clients.entries()) {
+          if (client === ws) {
+            clients.delete(id);
+            console.log(`🔴 User ${id} disconnected from WebSocket`);
+
+            broadcastToAll({
+              type: 'user_online',
+              userId: id,
+              online: false,
+              timestamp: new Date()
+            });
+            break;
+          }
+        }
+      });
+    });
+
+    return wss;
+  } catch (error) {
+    console.error('❌ WebSocket server error:', error);
+    return null;
+  }
+}
+
+export function broadcastToUser(userId, data) {
+  const ws = clients.get(userId);
+  if (ws && ws.readyState === 1) {
+    ws.send(JSON.stringify(data));
+    return true;
+  }
+  return false;
+}
+
+export function broadcastToAll(data) {
+  clients.forEach((ws) => {
+    if (ws && ws.readyState === 1) {
+      ws.send(JSON.stringify(data));
+    }
+  });
+}
 
 // ========== SECURITY HEADERS ==========
 app.use('*', secureHeaders({
@@ -94,29 +180,25 @@ app.route("/api/notifications", notificationsApi);
 app.route("/api/achievements", achievementsApi);
 app.route("/api/leaderboard", leaderboardApi);
 
-// ========== SSE ENDPOINT ==========
+// ========== SSE ENDPOINT (FALLBACK) ==========
 app.get("/events", (c) => {
   const userId = c.req.query('userId');
-  
-  console.log(`📡 SSE request received for userId: ${userId}`);
   
   if (!userId) {
     return c.json({ error: "User ID diperlukan" }, 400);
   }
   
-  // Set headers yang benar untuk SSE
+  console.log(`📡 SSE connection requested for user ${userId}`);
+  
   c.header('Content-Type', 'text/event-stream');
   c.header('Cache-Control', 'no-cache');
   c.header('Connection', 'keep-alive');
   c.header('Access-Control-Allow-Origin', '*');
   
-  // Buat stream dengan format SSE yang benar
   const stream = new ReadableStream({
     start(controller) {
-      // Kirim pesan koneksi berhasil
       controller.enqueue(`data: ${JSON.stringify({ type: 'connected', userId })}\n\n`);
       
-      // Kirim ping setiap 30 detik
       const pingInterval = setInterval(() => {
         try {
           controller.enqueue(`: ping\n\n`);
@@ -125,7 +207,6 @@ app.get("/events", (c) => {
         }
       }, 30000);
       
-      // Bersihkan interval saat koneksi ditutup
       c.req.raw.signal.addEventListener('abort', () => {
         clearInterval(pingInterval);
         console.log(`📡 SSE connection closed for user ${userId}`);
@@ -133,24 +214,17 @@ app.get("/events", (c) => {
     }
   });
   
-  // Return sebagai response body
   return c.body(stream, 200);
 });
 
-// Test endpoint sederhana (untuk debug)
-app.get("/test", (c) => {
-  return c.text("Server is running!");
-});
-
-// Health check
-app.get("/health", (c) => {
+// ========== HEALTH CHECK ==========
+app.get('/health', (c) => {
   return c.json({ 
     status: 'ok', 
     time: new Date().toISOString(),
-    message: 'Server is healthy'
+    message: 'Server is running'
   });
 });
-
 
 // ========== STATIC FILES ==========
 app.use("/*", serveStatic({ root: join(__dirname, "public") }));
@@ -169,12 +243,14 @@ app.onError((err, c) => {
 // ========== START SERVER ==========
 const port = process.env.PORT || 6006;
 
-serve({
+const server = serve({
   fetch: app.fetch,
   port,
 }, (info) => {
   console.log(`🚀 Server running at http://localhost:${info.port}`);
   console.log(`📡 SSE endpoint at /events`);
-  console.log(`🔍 Health check at /health`);
-  console.log(`🧪 Test endpoint at /test`);
+  
+  // Inisialisasi WebSocket
+  initWebSocket(server);
+  console.log(`🔌 WebSocket server running at ws://localhost:${info.port}/ws`);
 });
