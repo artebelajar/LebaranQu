@@ -2,128 +2,61 @@
 <html lang="id">
   <head>
     <meta charset="UTF-8" />
-    <!-- Optimasi Mobile -->
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover"
     />
     <meta name="theme-color" content="#10b981" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-
-    <!-- Preload critical resources -->
-    <link rel="preload" href="https://cdn.tailwindcss.com" as="script" />
-    <link
-      rel="preload"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
-      as="style"
-    />
-
-    <!-- Optimasi font -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <meta name="mobile-web-app-capable" content="yes" />
     <title>Detail Post - LebaranQu</title>
+
+    <!-- Tailwind CSS & Font Awesome -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
     />
+
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap");
+      @import url("https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap");
 
       * {
         font-family: "Poppins", sans-serif;
         -webkit-tap-highlight-color: transparent;
       }
 
-      /* Tambahkan padding bottom untuk konten utama agar tidak ketutupan tombol */
-      .content-container {
-        padding-bottom: 80px; /* Memberi ruang untuk tombol kembali ke atas */
-      }
-
-      /* Perbaikan untuk comment input */
-      .comment-input-container {
-        position: relative;
-        width: 100%;
-      }
-
-      /* Pastikan tombol kirim tidak ketutupan */
-      .comment-submit-btn {
-        flex-shrink: 0; /* Mencegah tombol mengecil */
-        white-space: nowrap;
-      }
-
-      /* Perbaikan untuk comments list - pastikan bisa di-scroll dengan baik */
-      #commentsList {
-        max-height: 400px;
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch; /* Smooth scroll di iOS */
-        padding-right: 4px; /* Ruang untuk scrollbar */
-      }
-
-      /* Bottom action button positioning */
-      .scroll-top-btn {
-        position: fixed;
-        bottom: 20px;
-        right: 16px;
-        z-index: 50;
-        box-shadow:
-          0 4px 6px -1px rgba(0, 0, 0, 0.1),
-          0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        transition: all 0.2s ease;
-      }
-
-      .scroll-top-btn:active {
-        transform: scale(0.95);
-      }
-
-      .fade-in {
-        animation: fadeIn 0.3s ease-in;
-      }
-
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-          transform: translateY(20px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-
-      .comment-item {
-        transition: all 0.3s ease;
-      }
-
-      .comment-item:active {
-        background-color: #f9fafb;
-        transform: scale(0.98);
+      body {
+        background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+        min-height: 100vh;
       }
 
       .post-content {
         line-height: 1.8;
+        font-size: 1.05rem;
       }
 
       .post-content p {
         margin-bottom: 1rem;
       }
 
-      /* Custom scrollbar */
-      ::-webkit-scrollbar {
-        width: 4px;
+      .comment-item {
+        transition: all 0.2s ease;
       }
 
-      ::-webkit-scrollbar-track {
-        background: #f1f1f1;
+      .comment-item:hover {
+        background-color: #f9fafb;
+        transform: translateX(4px);
       }
 
-      ::-webkit-scrollbar-thumb {
-        background: #10b981;
-        border-radius: 2px;
+      .like-button {
+        transition: all 0.2s ease;
       }
 
-      /* Animasi Loading */
+      .like-button:active {
+        transform: scale(0.95);
+      }
+
       @keyframes spin {
         from {
           transform: rotate(0deg);
@@ -142,31 +75,181 @@
         opacity: 0.7;
       }
 
-      /* Loading skeleton untuk post */
-      .post-skeleton {
-        background: linear-gradient(
-          90deg,
-          #f0f0f0 25%,
-          #e0e0e0 50%,
-          #f0f0f0 75%
-        );
-        background-size: 200% 100%;
-        animation: loading 1.5s infinite;
+      ::-webkit-scrollbar {
+        width: 6px;
       }
 
-      @keyframes loading {
-        0% {
-          background-position: 200% 0;
+      ::-webkit-scrollbar-track {
+        background: #e5e7eb;
+        border-radius: 3px;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: #10b981;
+        border-radius: 3px;
+      }
+
+      @media (min-width: 768px) {
+        .post-container {
+          max-width: 900px;
+          margin: 0 auto;
         }
-        100% {
-          background-position: -200% 0;
+      }
+
+      .share-menu-container {
+        position: relative;
+      }
+
+      .share-dropdown {
+        position: absolute;
+        bottom: 100%;
+        right: 0;
+        margin-bottom: 8px;
+        min-width: 180px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e5e7eb;
+        z-index: 50;
+        overflow: hidden;
+      }
+
+      .share-dropdown button {
+        width: 100%;
+        padding: 10px 16px;
+        text-align: left;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        transition: background 0.2s ease;
+      }
+
+      .share-dropdown button:hover {
+        background-color: #f9fafb;
+      }
+
+      @media (max-width: 767px) {
+        .share-dropdown {
+          position: fixed;
+          bottom: auto;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          min-width: 250px;
+          border-radius: 16px;
+        }
+
+        .share-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.5);
+          z-index: 45;
         }
       }
     </style>
   </head>
-  <body class="bg-gray-50">
-    <!-- Simple Header -->
-    <div class="bg-white shadow-sm sticky top-0 z-10">
+
+  <body class="min-h-screen">
+    <!-- NAVBAR -->
+    <nav class="bg-white shadow-lg sticky top-0 z-50">
+      <div class="container mx-auto px-4">
+        <div class="flex justify-between items-center h-16">
+          <div class="flex items-center gap-4">
+            <button
+              onclick="goBack()"
+              class="hidden md:flex items-center gap-2 text-gray-600 hover:text-emerald-600 transition"
+            >
+              <i class="fas fa-arrow-left text-xl"></i>
+              <span>Kembali</span>
+            </button>
+
+            <div
+              class="flex items-center gap-2 cursor-pointer"
+              onclick="window.location.href = '/'"
+            >
+              <i class="fas fa-mosque text-emerald-600 text-2xl"></i>
+              <span class="font-bold text-xl text-gray-800"
+                >Lebaran<span class="text-emerald-600">Qu</span></span
+              >
+            </div>
+          </div>
+
+          <div class="hidden md:flex items-center space-x-8">
+            <a href="/" class="text-gray-600 hover:text-emerald-600">Beranda</a>
+            <a href="/syarat.html" class="text-gray-600 hover:text-emerald-600"
+              >Persyaratan</a
+            >
+            <a href="/profile.html" class="text-gray-600 hover:text-emerald-600"
+              >Profile</a
+            >
+          </div>
+
+          <div class="flex items-center space-x-4">
+            <div class="relative">
+              <button
+                onclick="toggleNotificationDropdown()"
+                class="relative p-2 text-gray-600 hover:text-emerald-600 transition"
+              >
+                <i class="fas fa-bell text-xl"></i>
+                <span
+                  id="notificationBadge"
+                  class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center hidden"
+                  >0</span
+                >
+              </button>
+              <div
+                id="notificationDropdown"
+                class="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 hidden z-50"
+              >
+                <div class="p-3 border-b flex justify-between items-center">
+                  <h3 class="font-semibold">Notifikasi</h3>
+                  <button
+                    onclick="markAllNotificationsRead()"
+                    class="text-xs text-emerald-600"
+                  >
+                    Tandai semua dibaca
+                  </button>
+                </div>
+                <div id="notificationList" class="max-h-96 overflow-y-auto">
+                  <div class="p-4 text-center text-gray-500">
+                    <i class="fas fa-spinner fa-spin mb-2"></i>
+                    <p>Memuat...</p>
+                  </div>
+                </div>
+                <div class="p-2 border-t text-center">
+                  <button
+                    onclick="viewAllNotifications()"
+                    class="text-sm text-emerald-600 w-full py-1"
+                  >
+                    Lihat Semua
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div id="userInfo" class="hidden items-center">
+              <span
+                class="text-sm text-gray-600 mr-3"
+                id="userNameDisplay"
+              ></span>
+            </div>
+            <button
+              onclick="logout()"
+              class="flex items-center space-x-2 bg-red-50 text-red-600 px-4 py-2 rounded-lg hover:bg-red-100 transition"
+            >
+              <i class="fas fa-sign-out-alt"></i>
+              <span class="hidden md:inline">Logout</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- HEADER MOBILE -->
+    <div class="md:hidden bg-white shadow-sm sticky top-0 z-40">
       <div class="flex items-center justify-between px-4 py-3">
         <button
           onclick="goBack()"
@@ -176,7 +259,6 @@
         </button>
         <h1 class="text-lg font-semibold text-gray-800">Detail Post</h1>
         <div class="w-10"></div>
-        <!-- Spacer -->
       </div>
     </div>
 
@@ -196,541 +278,493 @@
       id="errorState"
       class="hidden flex flex-col items-center justify-center min-h-[60vh] p-4"
     >
-      <div class="bg-red-50 rounded-2xl p-8 max-w-md text-center">
+      <div class="bg-white rounded-2xl shadow-xl p-8 max-w-md text-center">
         <i class="fas fa-exclamation-circle text-6xl text-red-500 mb-4"></i>
         <h2 class="text-2xl font-bold text-red-700 mb-2">Oops!</h2>
-        <p id="errorMessage" class="text-red-600 mb-6">
+        <p id="errorMessage" class="text-gray-600 mb-6">
           Gagal memuat postingan
         </p>
         <button
           onclick="window.location.reload()"
-          class="bg-red-600 text-white px-6 py-3 rounded-xl hover:bg-red-700 transition w-full"
+          class="bg-emerald-600 text-white px-6 py-3 rounded-xl hover:bg-emerald-700 transition w-full"
         >
           Coba Lagi
         </button>
         <button
           onclick="goBack()"
-          class="mt-4 text-gray-600 hover:text-gray-800 block w-full"
+          class="mt-3 text-gray-500 hover:text-gray-700 w-full"
         >
           Kembali
         </button>
       </div>
     </div>
 
-    <!-- Main Content - Tambahkan class content-container untuk padding bottom -->
-    <div id="mainContent" class="hidden content-container">
-      <!-- Author Info -->
-      <div class="bg-white border-b">
-        <div class="p-4">
-          <div class="flex items-start gap-3">
-            <div class="relative">
+    <!-- Main Content -->
+    <div id="mainContent" class="hidden container mx-auto px-4 py-6">
+      <div class="post-container">
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+          <!-- Author Info -->
+          <div class="p-6 border-b border-gray-100">
+            <div class="flex items-center gap-4">
               <img
                 id="authorFoto"
                 src="/images/default-avatar.png"
-                class="w-14 h-14 rounded-full object-cover border-2 border-emerald-200"
+                class="w-14 h-14 rounded-full object-cover border-2 border-emerald-200 cursor-pointer hover:opacity-80 transition"
                 onclick="goToProfile()"
                 onerror="this.src = '/images/default-avatar.png'"
               />
-              <span
-                id="onlineStatus"
-                class="w-3 h-3 bg-gray-400 rounded-full absolute bottom-0 right-0 border-2 border-white"
-              ></span>
-            </div>
-            <div class="flex-1">
-              <div class="flex items-center gap-2">
-                <h2 id="authorName" class="font-semibold text-gray-800">-</h2>
-                <span id="onlineText" class="text-xs text-gray-400"
-                  >● Offline</span
-                >
-              </div>
-              <p id="authorTitle" class="text-xs text-gray-500">-</p>
-              <div class="flex items-center gap-2 mt-1">
-                <span
-                  id="schoolBadge"
-                  class="px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-800"
-                  >-</span
-                >
-                <span id="postTime" class="text-xs text-gray-400"
-                  ><i class="fas fa-clock mr-1"></i> -</span
-                >
+              <div class="flex-1">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <h2
+                    id="authorName"
+                    class="font-bold text-lg text-gray-800 cursor-pointer hover:text-emerald-600 transition"
+                    onclick="goToProfile()"
+                  >
+                    -
+                  </h2>
+                  <span
+                    id="onlineStatus"
+                    class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500"
+                    >● Offline</span
+                  >
+                </div>
+                <p id="authorTitle" class="text-sm text-gray-500">-</p>
+                <div class="flex items-center gap-2 mt-1">
+                  <span
+                    id="schoolBadge"
+                    class="px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-600"
+                    >-</span
+                  >
+                  <span id="postTime" class="text-xs text-gray-400"
+                    ><i class="fas fa-clock mr-1"></i> -</span
+                  >
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
 
-      <!-- Post Content -->
-      <div class="p-4">
-        <h1 id="postTitle" class="text-2xl font-bold text-gray-800 mb-4">-</h1>
-        <div
-          id="postContent"
-          class="text-gray-700 post-content whitespace-pre-line"
-        >
-          -
-        </div>
-
-        <!-- Post Image -->
-        <div id="postImageContainer" class="mt-4 hidden">
-          <img
-            id="postImage"
-            src=""
-            class="w-full rounded-xl max-h-96 object-cover"
-          />
-        </div>
-
-        <!-- Stats -->
-        <div class="flex items-center gap-4 mt-6 py-4 border-y">
-          <button
-            id="likeButton"
-            onclick="handleLike()"
-            class="flex items-center gap-2 text-gray-500 active:scale-95 transition like-button"
-          >
-            <i id="likeIcon" class="fas fa-heart text-2xl"></i>
-            <span id="likeCount" class="font-semibold">0</span>
-          </button>
-          <span class="flex items-center gap-2 text-gray-500">
-            <i class="fas fa-eye text-2xl"></i>
-            <span id="viewCount" class="font-semibold">0</span>
-          </span>
-        </div>
-
-        <!-- Share Buttons -->
-        <div class="mt-4">
-          <h3 class="font-semibold text-gray-700 mb-3">Bagikan:</h3>
-          <div class="flex gap-3">
-            <button
-              onclick="shareWhatsApp()"
-              class="flex-1 bg-green-500 text-white py-3 rounded-xl hover:bg-green-600 active:scale-95 transition flex items-center justify-center gap-2"
+          <!-- Post Content -->
+          <div class="p-6">
+            <h1
+              id="postTitle"
+              class="text-2xl md:text-3xl font-bold text-gray-800 mb-4"
             >
-              <i class="fab fa-whatsapp text-xl"></i>
-              <span class="text-sm">WhatsApp</span>
-            </button>
-            <button
-              onclick="shareFacebook()"
-              class="flex-1 bg-blue-600 text-white py-3 rounded-xl hover:bg-blue-700 active:scale-95 transition flex items-center justify-center gap-2"
+              -
+            </h1>
+            <div
+              id="postContent"
+              class="post-content text-gray-700 whitespace-pre-line"
             >
-              <i class="fab fa-facebook text-xl"></i>
-              <span class="text-sm">Facebook</span>
-            </button>
+              -
+            </div>
+
+            <div id="postImageContainer" class="mt-6 hidden">
+              <img
+                id="postImage"
+                src=""
+                class="w-full rounded-xl max-h-96 object-cover shadow-md"
+              />
+            </div>
+
+            <!-- Stats Bar -->
+            <div
+              class="flex items-center justify-between mt-6 pt-4 border-t border-gray-100"
+            >
+              <div class="flex items-center gap-6">
+                <button
+                  id="likeButton"
+                  onclick="handleLike()"
+                  class="flex items-center gap-2 text-gray-500 transition like-button"
+                >
+                  <i id="likeIcon" class="fas fa-heart text-2xl"></i>
+                  <span id="likeCount" class="font-semibold">0</span>
+                </button>
+                <span class="flex items-center gap-2 text-gray-500">
+                  <i class="fas fa-eye text-xl"></i>
+                  <span id="viewCount" class="font-semibold">0</span>
+                </span>
+              </div>
+
+              <div class="share-menu-container">
+                <button
+                  onclick="toggleShareMenu()"
+                  id="shareButton"
+                  class="text-gray-500 hover:text-emerald-600 transition p-2 rounded-full hover:bg-gray-100"
+                >
+                  <i class="fas fa-share-alt text-xl"></i>
+                </button>
+
+                <div id="shareMenu" class="share-dropdown hidden">
+                  <button onclick="shareWhatsApp()">
+                    <i class="fab fa-whatsapp text-green-500 text-xl"></i
+                    ><span>WhatsApp</span>
+                  </button>
+                  <button onclick="shareFacebook()">
+                    <i class="fab fa-facebook text-blue-600 text-xl"></i
+                    ><span>Facebook</span>
+                  </button>
+                  <button onclick="shareTwitter()">
+                    <i class="fab fa-twitter text-sky-500 text-xl"></i
+                    ><span>Twitter</span>
+                  </button>
+                  <button onclick="copyLink()">
+                    <i class="fas fa-link text-gray-500 text-xl"></i
+                    ><span>Salin Link</span>
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
         <!-- Comments Section -->
-        <div class="mt-6">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="font-semibold text-gray-700 flex items-center gap-2">
-              <i class="fas fa-comments text-emerald-600"></i>
-              Komentar
-              <span id="commentCount" class="text-sm text-gray-500">(0)</span>
+        <div class="bg-white rounded-2xl shadow-xl mt-6 overflow-hidden">
+          <div class="p-6 border-b border-gray-100">
+            <h3
+              class="text-lg font-semibold text-gray-800 flex items-center gap-2"
+            >
+              <i class="fas fa-comments text-emerald-600"></i> Komentar
+              <span id="commentCount" class="text-sm text-gray-500 font-normal"
+                >(0)</span
+              >
             </h3>
           </div>
 
-          <!-- Comment Input - Perbaiki layout -->
-          <div class="flex gap-2 mb-4 comment-input-container">
-            <img
-              src="/images/default-avatar.png"
-              id="currentUserFoto"
-              class="w-8 h-8 rounded-full object-cover flex-shrink-0"
-            />
-            <div class="flex-1 flex gap-2 min-w-0">
-              <input
-                type="text"
-                id="commentInput"
-                placeholder="Tulis komentar..."
-                class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm min-w-0"
+          <div class="p-6 border-b border-gray-100">
+            <div class="flex gap-3">
+              <img
+                src="/images/default-avatar.png"
+                id="currentUserFoto"
+                class="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                onerror="this.src = '/images/default-avatar.png'"
               />
-              <button
-                onclick="addComment()"
-                class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 active:scale-95 transition comment-submit-btn"
-                id="commentSubmitBtn"
-              >
-                <i class="fas fa-paper-plane"></i>
-              </button>
+              <div class="flex-1 flex gap-2">
+                <input
+                  type="text"
+                  id="commentInput"
+                  placeholder="Tulis komentar..."
+                  class="flex-1 px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none"
+                />
+                <button
+                  onclick="addComment()"
+                  id="commentSubmitBtn"
+                  class="bg-emerald-600 text-white px-5 py-2 rounded-xl hover:bg-emerald-700 transition active:scale-95"
+                >
+                  <i class="fas fa-paper-plane"></i>
+                </button>
+              </div>
             </div>
           </div>
 
-          <!-- Comments List - Pastikan ada max-height dan overflow -->
-          <div id="commentsList" class="space-y-3">
-            <!-- Akan diisi JavaScript -->
+          <div
+            id="commentsList"
+            class="p-6 space-y-4 max-h-[500px] overflow-y-auto"
+          >
+            <p class="text-center text-gray-500 py-8">
+              Belum ada komentar. Jadilah yang pertama!
+            </p>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Bottom Action Button (Kembali ke Atas) - Sesuaikan posisi -->
-    <button
-      onclick="scrollToTop()"
-      class="fixed bottom-4 right-4 bg-emerald-600 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center active:scale-95 transition opacity-80 hover:opacity-100 scroll-top-btn"
+    <div
+      id="shareOverlay"
+      class="share-overlay hidden"
+      onclick="closeShareMenu()"
+    ></div>
+    <div
+      id="toast"
+      class="fixed bottom-4 right-4 bg-white border-l-4 shadow-lg rounded-lg p-4 max-w-sm hidden z-50"
     >
-      <i class="fas fa-arrow-up"></i>
-    </button>
+      <div class="flex items-center gap-3">
+        <div id="toastIcon"></div>
+        <p id="toastMessage" class="text-sm"></p>
+      </div>
+    </div>
 
-    <script src="js/loading.js"></script>
-    <!-- Tambahkan script untuk auto-hide scroll button saat di atas -->
     <script>
-      // ========== LOADING STATES ==========
-      // Inisialisasi loading states jika belum ada
-      if (!window.loadingStates) {
-        window.loadingStates = {};
-      }
-
-      // HAPUS BAGIAN CLASS BUTTON LOADER DI SINI!
-
-      // Fungsi untuk hide/show scroll button
-      function toggleScrollButton() {
-        const scrollBtn = document.querySelector(".scroll-top-btn");
-        if (!scrollBtn) return;
-
-        if (window.scrollY > 300) {
-          scrollBtn.style.display = "flex";
-        } else {
-          scrollBtn.style.display = "none";
-        }
-      }
-
-      // Listen untuk scroll event
-      window.addEventListener("scroll", toggleScrollButton);
-
-      // Panggil sekali untuk inisialisasi
-      document.addEventListener("DOMContentLoaded", toggleScrollButton);
-
+      // ========== KONFIGURASI ==========
       const API_BASE = "/api";
       let currentUser = null;
       let currentPost = null;
       let currentPostId = null;
       let isLiked = false;
-      let commentsVisible = true;
 
-      // Ambil ID dari URL
+      // ========== AMBIL ID DARI URL ==========
       const urlParams = new URLSearchParams(window.location.search);
       currentPostId = urlParams.get("id");
 
-      // Cek session
+      // ========== CEK SESSION ==========
       try {
-        currentUser = JSON.parse(localStorage.getItem("currentUser"));
+        const savedUser = localStorage.getItem("currentUser");
+        if (!savedUser) throw new Error("No user");
+        currentUser = JSON.parse(savedUser);
       } catch (e) {
         window.location.href = "/login.html";
       }
 
-      if (!currentUser) {
-        window.location.href = "/login.html";
+      // Update user info
+      if (currentUser) {
+        const userNameSpan = document.getElementById("userNameDisplay");
+        if (userNameSpan) userNameSpan.textContent = currentUser.namaLengkap;
+        const userInfo = document.getElementById("userInfo");
+        if (userInfo) userInfo.classList.remove("hidden");
       }
 
-      // Load user foto
-      document.getElementById("currentUserFoto").src =
-        currentUser?.fotoProfil || "/images/default-avatar.png";
-
-      // Load post detail
-      async function loadPostDetail() {
-        try {
-          if (!currentPostId) {
-            throw new Error("ID post tidak ditemukan");
-          }
-
-          // Ambil data post
-          const postRes = await fetch(`${API_BASE}/posts/${currentPostId}`);
-          if (!postRes.ok) throw new Error("Gagal memuat postingan");
-
-          currentPost = await postRes.json();
-
-          // Ambil data user
-          const userRes = await fetch(
-            `${API_BASE}/users/${currentPost.userId}`,
-          );
-          const user = await userRes.json();
-
-          // Update UI
-          document.getElementById("authorName").textContent =
-            user.namaLengkap || "Unknown";
-          document.getElementById("authorTitle").textContent =
-            user.title || "Alumni";
-          document.getElementById("authorFoto").src =
-            user.fotoProfil || "/images/default-avatar.png";
-          document.getElementById("postTitle").textContent = currentPost.judul;
-          document.getElementById("postContent").textContent =
-            currentPost.konten;
-          document.getElementById("postTime").innerHTML =
-            `<i class="fas fa-clock mr-1"></i> ${formatDate(currentPost.createdAt)}`;
-          document.getElementById("likeCount").textContent =
-            currentPost.likeCount || 0;
-          document.getElementById("viewCount").textContent =
-            currentPost.viewCount || 0;
-
-          // School badge
-          const schoolName = getSchoolName(user.asalSekolah);
-          const schoolColor = getSchoolColor(user.asalSekolah);
-          document.getElementById("schoolBadge").textContent = schoolName;
-          document.getElementById("schoolBadge").className =
-            `px-2 py-0.5 text-xs rounded-full ${schoolColor}`;
-
-          // Check if liked
-          const savedLikes = localStorage.getItem(
-            `userLikes_${currentUser.id}`,
-          );
-          if (savedLikes) {
-            const likes = new Set(JSON.parse(savedLikes));
-            isLiked = likes.has(currentPost.id);
-            updateLikeButton();
-          }
-
-          // Track view
-          await fetch(`${API_BASE}/posts/${currentPostId}/view`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${localStorage.getItem("userToken")}`,
-            },
-            body: JSON.stringify({ userId: currentUser.id }),
-          });
-
-          // Load comments
-          await loadComments();
-
-          // Show content
-          document.getElementById("loadingState").classList.add("hidden");
-          document.getElementById("mainContent").classList.remove("hidden");
-        } catch (error) {
-          console.error("Error loading post:", error);
-          document.getElementById("loadingState").classList.add("hidden");
-          document.getElementById("errorState").classList.remove("hidden");
-          document.getElementById("errorMessage").textContent = error.message;
-        }
-      }
-
-      // Load comments
-      async function loadComments() {
-        try {
-          const res = await fetch(
-            `${API_BASE}/posts/${currentPostId}/comments`,
-          );
-          const comments = await res.json();
-
-          document.getElementById("commentCount").textContent =
-            `(${comments.length})`;
-
-          const list = document.getElementById("commentsList");
-
-          if (comments.length === 0) {
-            list.innerHTML =
-              '<p class="text-center text-gray-500 py-4">Belum ada komentar</p>';
-          } else {
-            list.innerHTML = comments
-              .map(
-                (comment) => `
-                    <div class="flex gap-2 comment-item p-2 rounded-lg hover:bg-gray-50 active:bg-gray-100 transition">
-                        <img src="${comment.user?.fotoProfil || "/images/default-avatar.png"}" 
-                             class="w-6 h-6 rounded-full object-cover cursor-pointer flex-shrink-0"
-                             onclick="goToProfile(${comment.user?.id})">
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-center gap-2 flex-wrap">
-                                <span class="font-medium text-xs cursor-pointer hover:text-emerald-600"
-                                      onclick="goToProfile(${comment.user?.id})">${comment.user?.namaLengkap || "Unknown"}</span>
-                                <span class="text-xs text-gray-400">${formatTime(comment.createdAt)}</span>
-                            </div>
-                            <p class="text-sm text-gray-700 break-words">${comment.text}</p>
-                        </div>
-                    </div>
-                `,
-              )
-              .join("");
-          }
-        } catch (error) {
-          console.error("Error loading comments:", error);
-        }
-      }
-
-      // ========== ADD COMMENT DENGAN LOADING ==========
-      async function addComment() {
-        const input = document.getElementById("commentInput");
-        const submitBtn = document.getElementById("commentSubmitBtn");
-
-        if (!input) {
-          console.error("Comment input not found!");
-          showToast("Terjadi kesalahan teknis", "error");
-          return;
-        }
-
-        const text = input.value.trim();
-        if (!text) {
-          showToast("Komentar tidak boleh kosong", "warning");
-          return;
-        }
-
-        // CEK DOUBLE SUBMIT
-        const commentKey = `comment_${currentPostId}`;
-        if (window.loadingStates && window.loadingStates[commentKey]) {
-          showToast("Komentar sedang diproses...", "info");
-          return;
-        }
-
-        // Gunakan window.ButtonLoader (dari loading.js)
-        const loader = new window.ButtonLoader(submitBtn);
-
-        try {
-          window.loadingStates[commentKey] = true;
-          loader.start("Mengirim...");
-
-          const res = await fetch(
-            `${API_BASE}/posts/${currentPostId}/comments`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${localStorage.getItem("userToken")}`,
-              },
-              body: JSON.stringify({
-                userId: currentUser.id,
-                text: text,
-              }),
-            },
-          );
-
-          if (res.ok) {
-            input.value = "";
-            loader.success("Terkirim!");
-            await loadComments();
-            showToast("Komentar berhasil ditambahkan", "success");
-          } else {
-            const errorData = await res.json();
-            loader.error(errorData.error || "Gagal");
-            showToast(errorData.error || "Gagal menambahkan komentar", "error");
-          }
-        } catch (error) {
-          console.error("Error adding comment:", error);
-          loader.error("Error");
-          showToast("Terjadi kesalahan koneksi", "error");
-        } finally {
-          window.loadingStates[commentKey] = false;
-        }
-      }
-
-      // ========== HANDLE LIKE DENGAN LOADING ==========
-      async function handleLike() {
-        const likeKey = `like_${currentPostId}`;
-        if (window.loadingStates && window.loadingStates[likeKey]) {
-          return;
-        }
-
-        const likeButton = document.getElementById("likeButton");
-
-        // Disable button selama proses
-        likeButton.style.pointerEvents = "none";
-        likeButton.style.opacity = "0.7";
-        window.loadingStates[likeKey] = true;
-
-        const savedLikes = localStorage.getItem(`userLikes_${currentUser.id}`);
-        let likes = savedLikes ? new Set(JSON.parse(savedLikes)) : new Set();
-        const wasLiked = isLiked;
-
-        // Optimistic update
-        if (isLiked) {
-          likes.delete(currentPost.id);
-          currentPost.likeCount = (currentPost.likeCount || 0) - 1;
-        } else {
-          likes.add(currentPost.id);
-          currentPost.likeCount = (currentPost.likeCount || 0) + 1;
-        }
-
-        isLiked = !isLiked;
-        updateLikeButton();
-        localStorage.setItem(
-          `userLikes_${currentUser.id}`,
-          JSON.stringify(Array.from(likes)),
-        );
-
-        try {
-          const res = await fetch(`${API_BASE}/posts/${currentPostId}/like`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${localStorage.getItem("userToken")}`,
-            },
-            body: JSON.stringify({ userId: currentUser.id }),
-          });
-
-          if (!res.ok) {
-            // Rollback on error
-            throw new Error("Gagal like postingan");
-          }
-
-          const responseData = await res.json();
-          if (responseData.likeCount !== undefined) {
-            currentPost.likeCount = responseData.likeCount;
-            document.getElementById("likeCount").textContent =
-              responseData.likeCount;
-          }
-        } catch (error) {
-          console.error("Error liking post:", error);
-
-          // Rollback
-          if (wasLiked) {
-            likes.add(currentPost.id);
-            currentPost.likeCount = (currentPost.likeCount || 0) + 1;
-          } else {
-            likes.delete(currentPost.id);
-            currentPost.likeCount = (currentPost.likeCount || 0) - 1;
-          }
-          isLiked = wasLiked;
-          updateLikeButton();
-          localStorage.setItem(
-            `userLikes_${currentUser.id}`,
-            JSON.stringify(Array.from(likes)),
-          );
-
-          showToast("Gagal menyukai postingan", "error");
-        } finally {
-          // RESET LOADING STATE
-          window.loadingStates[likeKey] = false;
-          likeButton.style.pointerEvents = "";
-          likeButton.style.opacity = "1";
-        }
-      }
-
-      // Update like button
-      function updateLikeButton() {
-        const button = document.getElementById("likeButton");
-        const icon = document.getElementById("likeIcon");
-        const count = document.getElementById("likeCount");
-
-        if (isLiked) {
-          button.classList.remove("text-gray-500");
-          button.classList.add("text-red-500");
-          icon.classList.add("text-red-500");
-        } else {
-          button.classList.remove("text-red-500");
-          button.classList.add("text-gray-500");
-          icon.classList.remove("text-red-500");
-        }
-
-        count.textContent = currentPost.likeCount || 0;
-      }
-
-      // Share functions
-      function shareWhatsApp() {
-        const text = `${currentPost.judul}\n\n${currentPost.konten.substring(0, 100)}...\n\nBaca selengkapnya di LebaranQu`;
-        const url = `https://wa.me/?text=${encodeURIComponent(text)}%20${encodeURIComponent(window.location.origin + "/?post=" + currentPostId)}`;
-        window.open(url, "_blank");
-      }
-
-      function shareFacebook() {
-        const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.origin + "/?post=" + currentPostId)}`;
-        window.open(url, "_blank");
-      }
-
-      // Navigation
-      function goBack() {
+      // ========== FUNGSI NAVIGASI ==========
+      window.goBack = function () {
         window.history.back();
-      }
+      };
 
-      function goToProfile(userId) {
+      window.goToProfile = function (userId) {
         window.location.href = `/profile.html?id=${userId || currentPost?.userId}`;
+      };
+
+      window.logout = function () {
+        localStorage.removeItem("currentUser");
+        localStorage.removeItem("userToken");
+        window.location.href = "/login.html";
+      };
+
+      // ========== NOTIFICATION FUNCTIONS ==========
+      window.toggleNotificationDropdown = function () {
+        const dropdown = document.getElementById("notificationDropdown");
+        if (dropdown) dropdown.classList.toggle("hidden");
+      };
+
+      window.markAllNotificationsRead = function () {
+        console.log("Mark all read clicked");
+      };
+
+      window.viewAllNotifications = function () {
+        window.location.href = "/notifications.html";
+      };
+
+      // ========== SHARE MENU FUNCTIONS ==========
+      window.toggleShareMenu = function () {
+        const menu = document.getElementById("shareMenu");
+        const overlay = document.getElementById("shareOverlay");
+        if (menu.classList.contains("hidden")) {
+          menu.classList.remove("hidden");
+          if (overlay) overlay.classList.remove("hidden");
+        } else {
+          menu.classList.add("hidden");
+          if (overlay) overlay.classList.add("hidden");
+        }
+      };
+
+      window.closeShareMenu = function () {
+        const menu = document.getElementById("shareMenu");
+        const overlay = document.getElementById("shareOverlay");
+        if (menu) menu.classList.add("hidden");
+        if (overlay) overlay.classList.add("hidden");
+      };
+
+      // ========== SHARE FUNCTIONS YANG LEBIH MENARIK ==========
+
+      // Format teks share yang menarik
+      function getShareText() {
+        const title = currentPost.judul;
+        const excerpt = currentPost.konten.substring(0, 150);
+        const author = currentPost.user?.namaLengkap || "Alumni";
+        const school = getSchoolName(currentPost.user?.asalSekolah);
+        const likeCount = currentPost.likeCount || 0;
+        const commentCount = currentPost.commentCount || 0;
+        const url = `${window.location.origin}/post-detail.html?id=${currentPostId}`;
+
+        // Template 1: Formal dan informatif
+        const formalTemplate = `📖 *${title}*
+
+✍️ Ditulis oleh: ${author}
+🏫 Asal Sekolah: ${school}
+❤️ ${likeCount} likes • 💬 ${commentCount} komentar
+
+${excerpt}${excerpt.length >= 150 ? "..." : ""}
+
+🔗 Baca selengkapnya di LebaranQu:
+${url}
+
+#LebaranQu #CeritaRamadan #SilaturahmiAlumni`;
+
+        // Template 2: Singkat dan menarik
+        const shortTemplate = `✨ *${title}* ✨
+
+${excerpt.substring(0, 100)}...
+
+📖 Baca selengkapnya di LebaranQu 👇
+${url}`;
+
+        // Template 3: Dengan emoji dan hashtag (lebih menarik)
+        const attractiveTemplate = `🌟 *${title}* 🌟
+
+${excerpt}${excerpt.length >= 150 ? "..." : ""}
+
+━━━━━━━━━━━━━━━━━━━━
+📝 Penulis: ${author}
+🏫 Sekolah: ${school}
+━━━━━━━━━━━━━━━━━━━━
+
+✨ Yuk ikuti kisah inspiratif para alumni!
+🔗 ${url}
+
+#LebaranQu #CeritaRamadan #BerbagiCerita`;
+
+        // Pilih template berdasarkan panjang teks
+        if (excerpt.length > 100) {
+          return attractiveTemplate;
+        } else {
+          return formalTemplate;
+        }
       }
 
-      function scrollToTop() {
-        window.scrollTo({ top: 0, behavior: "smooth" });
+      // Format teks untuk WhatsApp (support markdown)
+      function getWhatsAppText() {
+        const title = currentPost.judul;
+        const excerpt = currentPost.konten.substring(0, 120);
+        const author = currentPost.user?.namaLengkap || "Alumni";
+        const school = getSchoolName(currentPost.user?.asalSekolah);
+        const url = `${window.location.origin}/post-detail.html?id=${currentPostId}`;
+
+        return `📖 *${title}*
+
+✍️ Oleh: ${author} (${school})
+
+💭 ${excerpt}${excerpt.length >= 120 ? "..." : ""}
+
+🔗 Baca selengkapnya:
+${url}
+
+━━━━━━━━━━━━━━━━━━━━
+✨ LebaranQu - Silaturahmi Alumni ✨`;
       }
 
-      // Helper functions
+      // Format teks untuk Facebook (lebih panjang)
+      function getFacebookText() {
+        const title = currentPost.judul;
+        const excerpt = currentPost.konten.substring(0, 200);
+        const author = currentPost.user?.namaLengkap || "Alumni";
+        const school = getSchoolName(currentPost.user?.asalSekolah);
+        const date = formatDate(currentPost.createdAt);
+        const url = `${window.location.origin}/post-detail.html?id=${currentPostId}`;
+
+        return `📖 ${title}
+
+✍️ Ditulis oleh ${author} (Alumni ${school})
+📅 Dipublikasikan: ${date}
+
+${excerpt}${excerpt.length >= 200 ? "..." : ""}
+
+🔗 Baca cerita lengkapnya di LebaranQu:
+${url}
+
+#LebaranQu #CeritaRamadan #SilaturahmiAlumni #BerbagiCerita`;
+      }
+
+      // Format teks untuk Twitter (lebih pendek)
+      function getTwitterText() {
+        const title = currentPost.judul;
+        const excerpt = currentPost.konten.substring(0, 100);
+        const author = currentPost.user?.namaLengkap || "Alumni";
+        const url = `${window.location.origin}/post-detail.html?id=${currentPostId}`;
+
+        return `📖 ${title}\n\n${excerpt}...\n\n— ${author}\n\nBaca selengkapnya: ${url}\n\n#LebaranQu #CeritaRamadan`;
+      }
+
+      // ========== SHARE FUNCTIONS ==========
+      window.shareWhatsApp = function () {
+        const text = getWhatsAppText();
+        const encodedText = encodeURIComponent(text);
+        const url = `https://wa.me/?text=${encodedText}`;
+        window.open(url, "_blank");
+        window.closeShareMenu();
+        window.showToast("Berhasil membuka WhatsApp", "success");
+      };
+
+      window.shareFacebook = function () {
+        const text = getFacebookText();
+        const encodedText = encodeURIComponent(text);
+        const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.origin + "/post-detail.html?id=" + currentPostId)}&quote=${encodedText}`;
+        window.open(url, "_blank");
+        window.closeShareMenu();
+      };
+
+      window.shareTwitter = function () {
+        const text = getTwitterText();
+        const encodedText = encodeURIComponent(text);
+        const url = `https://twitter.com/intent/tweet?text=${encodedText}`;
+        window.open(url, "_blank");
+        window.closeShareMenu();
+      };
+
+      window.copyLink = function () {
+        const text = getShareText();
+        const url = `${window.location.origin}/post-detail.html?id=${currentPostId}`;
+
+        // Copy teks lengkap + link
+        const fullText = `${text}\n\n🔗 ${url}`;
+        navigator.clipboard.writeText(fullText);
+        window.showToast("Cerita dan link berhasil disalin! 📋", "success");
+        window.closeShareMenu();
+      };
+
+      // ========== SHARE DENGAN PREVIEW (Tambahan) ==========
+      window.shareAsImage = function () {
+        // Fitur ini akan membuat screenshot dari postingan
+        window.showToast(
+          "Fitur screenshot sedang dalam pengembangan 📸",
+          "info",
+        );
+      };
+
+      // ========== BAGIKAN KE TELEGRAM ==========
+      window.shareToTelegram = function () {
+        const text = getWhatsAppText();
+        const encodedText = encodeURIComponent(text);
+        const url = `https://t.me/share/url?url=${encodeURIComponent(window.location.origin + "/post-detail.html?id=" + currentPostId)}&text=${encodedText}`;
+        window.open(url, "_blank");
+        window.closeShareMenu();
+      };
+
+      // ========== BAGIKAN KE LINE ==========
+      window.shareToLine = function () {
+        const text = getShareText();
+        const encodedText = encodeURIComponent(text);
+        const url = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(window.location.origin + "/post-detail.html?id=" + currentPostId)}&text=${encodedText}`;
+        window.open(url, "_blank");
+        window.closeShareMenu();
+      };
+      
+      window.copyLink = function () {
+        navigator.clipboard.writeText(
+          `${window.location.origin}/post-detail.html?id=${currentPostId}`,
+        );
+        window.showToast("Link berhasil disalin!", "success");
+        window.closeShareMenu();
+      };
+
+      // ========== TOAST ==========
+      window.showToast = function (message, type = "success") {
+        const toast = document.getElementById("toast");
+        const toastMessage = document.getElementById("toastMessage");
+        const toastIcon = document.getElementById("toastIcon");
+
+        toastMessage.textContent = message;
+        toast.classList.remove("border-red-500", "border-emerald-500");
+        if (type === "success") {
+          toast.classList.add("border-emerald-500");
+          toastIcon.innerHTML =
+            '<i class="fas fa-check-circle text-emerald-500 text-xl"></i>';
+        } else {
+          toast.classList.add("border-red-500");
+          toastIcon.innerHTML =
+            '<i class="fas fa-exclamation-circle text-red-500 text-xl"></i>';
+        }
+        toast.classList.remove("hidden");
+        setTimeout(() => toast.classList.add("hidden"), 3000);
+      };
+
+      // ========== FORMAT FUNCTIONS ==========
       function formatDate(date) {
         return new Date(date).toLocaleDateString("id-ID", {
           day: "numeric",
@@ -761,71 +795,248 @@
 
       function getSchoolColor(sekolah) {
         const colors = {
-          sdit_sahabat: "bg-blue-100 text-blue-800",
-          pptq_almadinah: "bg-green-100 text-green-800",
-          ppqit_almahir: "bg-purple-100 text-purple-800",
+          sdit_sahabat: "bg-blue-100 text-blue-700",
+          pptq_almadinah: "bg-green-100 text-green-700",
+          ppqit_almahir: "bg-purple-100 text-purple-700",
         };
-        return colors[sekolah] || "bg-gray-100 text-gray-800";
+        return colors[sekolah] || "bg-gray-100 text-gray-700";
       }
 
-      // Toast notification function
-      function showToast(message, type = "success") {
-        // Cek apakah sudah ada toast container
-        let toast = document.getElementById("toast");
+      function escapeHtml(text) {
+        if (!text) return "";
+        const div = document.createElement("div");
+        div.textContent = text;
+        return div.innerHTML;
+      }
 
-        if (!toast) {
-          toast = document.createElement("div");
-          toast.id = "toast";
-          toast.className =
-            "fixed bottom-20 right-4 bg-white border-l-4 shadow-lg rounded-lg p-4 max-w-sm z-50 hidden";
-          toast.innerHTML = `
-        <div class="flex items-center">
-          <div id="toastIcon" class="mr-3"></div>
-          <p id="toastMessage" class="text-sm"></p>
-        </div>
-      `;
-          document.body.appendChild(toast);
+      // ========== LOAD POST DETAIL ==========
+      async function loadPostDetail() {
+        try {
+          if (!currentPostId) throw new Error("ID post tidak ditemukan");
+
+          const postRes = await fetch(`${API_BASE}/posts/${currentPostId}`);
+          if (!postRes.ok) throw new Error("Gagal memuat postingan");
+          currentPost = await postRes.json();
+
+          const userRes = await fetch(
+            `${API_BASE}/users/${currentPost.userId}`,
+          );
+          const user = await userRes.json();
+
+          document.getElementById("authorName").textContent =
+            user.namaLengkap || "Unknown";
+          document.getElementById("authorTitle").textContent =
+            user.title || "Alumni";
+          document.getElementById("authorFoto").src =
+            user.fotoProfil || "/images/default-avatar.png";
+          document.getElementById("postTitle").textContent = currentPost.judul;
+          document.getElementById("postContent").innerHTML =
+            currentPost.konten.replace(/\n/g, "<br>");
+          document.getElementById("postTime").innerHTML =
+            `<i class="fas fa-clock mr-1"></i> ${formatDate(currentPost.createdAt)}`;
+          document.getElementById("likeCount").textContent =
+            currentPost.likeCount || 0;
+          document.getElementById("viewCount").textContent =
+            currentPost.viewCount || 0;
+
+          document.getElementById("schoolBadge").textContent = getSchoolName(
+            user.asalSekolah,
+          );
+          document.getElementById("schoolBadge").className =
+            `px-2 py-0.5 text-xs rounded-full ${getSchoolColor(user.asalSekolah)}`;
+
+          const savedLikes = localStorage.getItem(
+            `userLikes_${currentUser.id}`,
+          );
+          if (savedLikes) {
+            const likes = new Set(JSON.parse(savedLikes));
+            isLiked = likes.has(currentPost.id);
+            updateLikeButton();
+          }
+
+          await fetch(`${API_BASE}/posts/${currentPostId}/view`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("userToken")}`,
+            },
+            body: JSON.stringify({ userId: currentUser.id }),
+          });
+
+          await loadComments();
+
+          document.getElementById("loadingState").classList.add("hidden");
+          document.getElementById("mainContent").classList.remove("hidden");
+          document.getElementById("currentUserFoto").src =
+            currentUser.fotoProfil || "/images/default-avatar.png";
+        } catch (error) {
+          console.error("Error loading post:", error);
+          document.getElementById("loadingState").classList.add("hidden");
+          document.getElementById("errorState").classList.remove("hidden");
+          document.getElementById("errorMessage").textContent = error.message;
+        }
+      }
+
+      // ========== LOAD COMMENTS ==========
+      async function loadComments() {
+        try {
+          const res = await fetch(
+            `${API_BASE}/posts/${currentPostId}/comments`,
+          );
+          const comments = await res.json();
+          document.getElementById("commentCount").textContent =
+            `(${comments.length})`;
+          const list = document.getElementById("commentsList");
+
+          if (comments.length === 0) {
+            list.innerHTML =
+              '<p class="text-center text-gray-500 py-8">Belum ada komentar. Jadilah yang pertama!</p>';
+          } else {
+            list.innerHTML = comments
+              .map(
+                (comment) => `
+              <div class="comment-item flex gap-3 p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition">
+                <img src="${comment.user?.fotoProfil || "/images/default-avatar.png"}" 
+                     class="w-8 h-8 rounded-full object-cover cursor-pointer"
+                     onclick="goToProfile(${comment.user?.id})"
+                     onerror="this.src='/images/default-avatar.png'">
+                <div class="flex-1">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <span class="font-semibold text-sm cursor-pointer hover:text-emerald-600"
+                          onclick="goToProfile(${comment.user?.id})">${escapeHtml(comment.user?.namaLengkap || "Unknown")}</span>
+                    <span class="text-xs text-gray-400">${formatTime(comment.createdAt)}</span>
+                  </div>
+                  <p class="text-gray-700 mt-1">${escapeHtml(comment.text)}</p>
+                </div>
+              </div>
+            `,
+              )
+              .join("");
+          }
+        } catch (error) {
+          console.error("Error loading comments:", error);
+        }
+      }
+
+      // ========== ADD COMMENT ==========
+      window.addComment = async function () {
+        const input = document.getElementById("commentInput");
+        const text = input.value.trim();
+        if (!text) {
+          window.showToast("Komentar tidak boleh kosong", "error");
+          return;
         }
 
-        const toastMessage = document.getElementById("toastMessage");
-        const toastIcon = document.getElementById("toastIcon");
+        const submitBtn = document.getElementById("commentSubmitBtn");
+        const originalHtml = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
-        toastMessage.textContent = message;
+        try {
+          const res = await fetch(
+            `${API_BASE}/posts/${currentPostId}/comments`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${localStorage.getItem("userToken")}`,
+              },
+              body: JSON.stringify({ userId: currentUser.id, text: text }),
+            },
+          );
 
-        toast.classList.remove(
-          "border-red-500",
-          "border-emerald-500",
-          "border-blue-500",
-          "border-yellow-500",
+          if (res.ok) {
+            input.value = "";
+            await loadComments();
+            window.showToast("Komentar berhasil ditambahkan!", "success");
+          } else {
+            window.showToast("Gagal menambahkan komentar", "error");
+          }
+        } catch (error) {
+          console.error("Error adding comment:", error);
+          window.showToast("Terjadi kesalahan", "error");
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = originalHtml;
+        }
+      };
+
+      // ========== HANDLE LIKE ==========
+      window.handleLike = async function () {
+        const likeButton = document.getElementById("likeButton");
+        const likeIcon = document.getElementById("likeIcon");
+        const likeCountSpan = document.getElementById("likeCount");
+
+        const currentCount = parseInt(likeCountSpan.textContent);
+        const wasLiked = isLiked;
+
+        // Optimistic update
+        if (isLiked) {
+          isLiked = false;
+          likeCountSpan.textContent = currentCount - 1;
+          likeButton.classList.remove("text-red-500");
+          likeButton.classList.add("text-gray-500");
+          likeIcon.classList.remove("text-red-500");
+        } else {
+          isLiked = true;
+          likeCountSpan.textContent = currentCount + 1;
+          likeButton.classList.remove("text-gray-500");
+          likeButton.classList.add("text-red-500");
+          likeIcon.classList.add("text-red-500");
+        }
+
+        let savedLikes = localStorage.getItem(`userLikes_${currentUser.id}`);
+        let likes = savedLikes ? new Set(JSON.parse(savedLikes)) : new Set();
+        if (isLiked) likes.add(currentPost.id);
+        else likes.delete(currentPost.id);
+        localStorage.setItem(
+          `userLikes_${currentUser.id}`,
+          JSON.stringify(Array.from(likes)),
         );
 
-        if (type === "success") {
-          toast.classList.add("border-emerald-500");
-          toastIcon.innerHTML =
-            '<i class="fas fa-check-circle text-emerald-500 text-xl"></i>';
-        } else if (type === "error") {
-          toast.classList.add("border-red-500");
-          toastIcon.innerHTML =
-            '<i class="fas fa-exclamation-circle text-red-500 text-xl"></i>';
-        } else if (type === "info") {
-          toast.classList.add("border-blue-500");
-          toastIcon.innerHTML =
-            '<i class="fas fa-info-circle text-blue-500 text-xl"></i>';
-        } else if (type === "warning") {
-          toast.classList.add("border-yellow-500");
-          toastIcon.innerHTML =
-            '<i class="fas fa-exclamation-triangle text-yellow-500 text-xl"></i>';
+        try {
+          const res = await fetch(`${API_BASE}/posts/${currentPostId}/like`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("userToken")}`,
+            },
+            body: JSON.stringify({ userId: currentUser.id }),
+          });
+          if (!res.ok) throw new Error("Failed to like");
+          const data = await res.json();
+          likeCountSpan.textContent = data.likeCount;
+        } catch (error) {
+          console.error("Error liking post:", error);
+          isLiked = wasLiked;
+          likeCountSpan.textContent = currentCount;
+          if (wasLiked) {
+            likeButton.classList.add("text-red-500");
+            likeIcon.classList.add("text-red-500");
+          } else {
+            likeButton.classList.remove("text-red-500");
+            likeIcon.classList.remove("text-red-500");
+          }
+          window.showToast("Gagal menyukai postingan", "error");
         }
+      };
 
-        toast.classList.remove("hidden");
-
-        setTimeout(() => {
-          toast.classList.add("hidden");
-        }, 3000);
+      function updateLikeButton() {
+        const likeButton = document.getElementById("likeButton");
+        const likeIcon = document.getElementById("likeIcon");
+        if (isLiked) {
+          likeButton.classList.add("text-red-500");
+          likeIcon.classList.add("text-red-500");
+        } else {
+          likeButton.classList.remove("text-red-500");
+          likeIcon.classList.remove("text-red-500");
+        }
       }
 
-      // Load on page load
-      document.addEventListener("DOMContentLoaded", loadPostDetail);
+      // ========== INIT ==========
+      document.addEventListener("DOMContentLoaded", function () {
+        loadPostDetail();
+      });
     </script>
   </body>
 </html>

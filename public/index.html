@@ -2,65 +2,70 @@
 <html lang="id">
   <head>
     <meta charset="UTF-8" />
-    <!-- Optimasi Mobile -->
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover"
-    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover" />
     <meta name="theme-color" content="#10b981" />
     <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-
-    <!-- Preload critical resources -->
-    <link rel="preload" href="https://cdn.tailwindcss.com" as="script" />
-    <link
-      rel="preload"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
-      as="style"
-    />
-
-    <!-- Optimasi font -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <title>LebaranQu - Dashboard</title>
+    
+    <!-- Tailwind CSS & Font Awesome -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
-    />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    
     <style>
-      @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap");
-      @import url("https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap");
+      @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+      @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap');
 
       * {
-        font-family: "Poppins", sans-serif;
+        font-family: 'Poppins', sans-serif;
         -webkit-tap-highlight-color: transparent;
       }
 
       :root {
-        --sd-color: #3b82f6;
-        --smp-color: #10b981;
-        --sma-color: #8b5cf6;
         --bottom-nav-height: 70px;
         --safe-area-bottom: env(safe-area-inset-bottom, 0px);
       }
 
-      /* Mobile optimizations */
       body {
-        background-color: #f3f4f6;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-        overscroll-behavior-y: contain;
+        background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
         min-height: 100vh;
-        display: flex;
-        flex-direction: column;
+        padding-bottom: calc(var(--bottom-nav-height) + var(--safe-area-bottom));
       }
 
-      /* Main content wrapper */
-      .content-wrapper {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
+      /* Desktop styles */
+      @media (min-width: 768px) {
+        body {
+          padding-bottom: 0;
+        }
+        .desktop-nav {
+          display: block;
+        }
+        .bottom-nav {
+          display: none;
+        }
+        .container {
+          max-width: 1200px;
+          margin: 0 auto;
+        }
+      }
+
+      /* Mobile styles */
+      @media (max-width: 767px) {
+        .desktop-nav {
+          display: none;
+        }
+        .bottom-nav {
+          display: flex;
+        }
+        .container {
+          padding-left: 1rem;
+          padding-right: 1rem;
+        }
+        .greeting-card {
+          padding: 1.5rem;
+        }
+        .greeting-card h2 {
+          font-size: 2rem;
+        }
       }
 
       /* Bottom Navigation */
@@ -70,18 +75,15 @@
         left: 0;
         right: 0;
         height: calc(var(--bottom-nav-height) + var(--safe-area-bottom));
-        background: white;
-        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
         display: flex;
         justify-content: space-around;
         align-items: center;
         padding-bottom: var(--safe-area-bottom);
         z-index: 100;
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        background: rgba(255, 255, 255, 0.95);
         border-top: 1px solid rgba(0, 0, 0, 0.05);
-        transition: transform 0.3s ease;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
       }
 
       .nav-item {
@@ -95,7 +97,6 @@
         transition: all 0.2s ease;
         padding: 8px 0;
         cursor: pointer;
-        -webkit-tap-highlight-color: transparent;
       }
 
       .nav-item.active {
@@ -104,11 +105,6 @@
 
       .nav-item i {
         font-size: 1.5rem;
-        transition: transform 0.2s ease;
-      }
-
-      .nav-item:active i {
-        transform: scale(0.9);
       }
 
       .nav-item span {
@@ -116,176 +112,30 @@
         font-weight: 500;
       }
 
-      /* Pull to refresh indicator */
-      .ptr-indicator {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 60px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: linear-gradient(to bottom, #10b981, transparent);
-        color: white;
-        font-weight: 500;
-        transform: translateY(-100%);
-        transition: transform 0.3s ease;
-        z-index: 99;
-        pointer-events: none;
-      }
-
-      .ptr-indicator.visible {
-        transform: translateY(0);
-      }
-
-      .ptr-spinner {
-        animation: spin 1s linear infinite;
-        margin-right: 8px;
-      }
-
-      /* Swipe animations */
-      .swipe-container {
-        overflow-x: hidden;
-        position: relative;
-        touch-action: pan-y pinch-zoom;
-      }
-
-      .swipe-item {
-        transition: transform 0.3s ease;
-      }
-
-      /* Mobile optimizations for cards */
+      /* Post Card */
       .post-card {
         transition: all 0.3s ease;
         cursor: pointer;
-        -webkit-touch-callout: none;
-        -webkit-user-select: none;
-        user-select: none;
+      }
+
+      .post-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 25px -12px rgba(0, 0, 0, 0.15);
       }
 
       .post-card:active {
         transform: scale(0.98);
-        background-color: #f9fafb;
       }
 
-      .post-card.selected {
-        border-left: 6px solid #10b981;
-        background-color: #f0fdf4;
-      }
-
-      /* Loading skeleton */
-      .loading-skeleton {
-        background: linear-gradient(
-          90deg,
-          #f0f0f0 25%,
-          #e0e0e0 50%,
-          #f0f0f0 75%
-        );
-        background-size: 200% 100%;
-        animation: loading 1.5s infinite;
-      }
-
-      @keyframes loading {
-        0% {
-          background-position: 200% 0;
-        }
-        100% {
-          background-position: -200% 0;
-        }
-      }
-
-      @keyframes spin {
-        from {
-          transform: rotate(0deg);
-        }
-        to {
-          transform: rotate(360deg);
-        }
-      }
-
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-          transform: translateY(20px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-
-      @keyframes slideUp {
-        from {
-          transform: translateY(100%);
-        }
-        to {
-          transform: translateY(0);
-        }
-      }
-
-      @keyframes pulse {
-        0%,
-        100% {
-          opacity: 1;
-        }
-        50% {
-          opacity: 0.5;
-        }
-      }
-
-      .fade-in {
-        animation: fadeIn 0.5s ease-in;
-      }
-
-      .slide-up {
-        animation: slideUp 0.3s ease-out;
-      }
-
-      .pulse {
-        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-      }
-
-      /* Modal */
-      .modal {
-        transition: all 0.3s ease;
-      }
-
-      .modal.show {
-        display: flex;
-        animation: fadeIn 0.3s ease;
-      }
-
-      /* Arabic font */
-      .arabic {
-        font-family: "Amiri", serif;
-      }
-
-      /* Greeting card */
+      /* Greeting Card */
       .greeting-card {
         position: relative;
         overflow: hidden;
         border-radius: 24px;
       }
 
-      .greeting-card::before {
-        content: "";
-        position: absolute;
-        top: -50%;
-        left: -50%;
-        width: 200%;
-        height: 200%;
-        background: radial-gradient(
-          circle,
-          rgba(255, 255, 255, 0.1) 0%,
-          transparent 70%
-        );
-        opacity: 0;
-        transition: opacity 0.5s ease;
-      }
-
-      .greeting-card:active::before {
-        opacity: 1;
+      .arabic {
+        font-family: 'Amiri', serif;
       }
 
       .moon-icon {
@@ -293,245 +143,40 @@
       }
 
       @keyframes float {
-        0%,
-        100% {
-          transform: translateY(0);
-        }
-        50% {
-          transform: translateY(-10px);
-        }
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+      }
+
+      /* Loading Animation */
+      @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+
+      .animate-spin {
+        animation: spin 1s linear infinite;
+      }
+
+      .like-button {
+        transition: all 0.2s ease;
+      }
+
+      .like-button:active {
+        transform: scale(0.95);
       }
 
       /* Leaderboard */
       .leaderboard-item {
         transition: all 0.3s ease;
-        -webkit-touch-callout: none;
-        -webkit-user-select: none;
-        user-select: none;
       }
 
-      .leaderboard-item:active {
+      .leaderboard-item:hover {
         transform: translateX(5px);
         background-color: #f9fafb;
       }
 
-      /* Category buttons */
-      .category-btn {
-        transition: all 0.2s ease;
-        -webkit-tap-highlight-color: transparent;
-      }
-
-      .category-btn:active {
-        transform: scale(0.95);
-      }
-
-      /* Pull to refresh */
-      .ptr-container {
-        min-height: 100vh;
-        transition: transform 0.3s ease;
-      }
-
-      .ptr-loading {
-        transform: translateY(60px);
-      }
-
-      /* Bottom sheet for mobile */
-      .bottom-sheet {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: white;
-        border-radius: 20px 20px 0 0;
-        transform: translateY(100%);
-        transition: transform 0.3s ease;
-        z-index: 1000;
-        max-height: 80vh;
-        overflow-y: auto;
-        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
-      }
-
-      .bottom-sheet.show {
-        transform: translateY(0);
-      }
-
-      .sheet-handle {
-        width: 40px;
-        height: 4px;
-        background: #d1d5db;
-        border-radius: 2px;
-        margin: 12px auto;
-      }
-
-      /* Tablet and Desktop styles */
-      @media (min-width: 768px) {
-        body {
-          padding-bottom: 0;
-        }
-
-        .bottom-nav {
-          display: none;
-        }
-
-        .mobile-only {
-          display: none;
-        }
-
-        .desktop-only {
-          display: block;
-        }
-
-        footer {
-          display: block;
-        }
-
-        /* Grid layout untuk post dan detail sidebar - Sidebar 65% */
-        .posts-grid-layout {
-          display: grid;
-          grid-template-columns: 35% 65%;
-          gap: 1.5rem;
-        }
-
-        .post-detail-sidebar {
-          position: sticky;
-          top: 5rem;
-          height: fit-content;
-          max-height: calc(100vh - 8rem);
-          overflow-y: auto;
-        }
-
-        /* Perbaikan untuk container utama di desktop */
-        .container {
-          max-width: 1280px;
-          margin-left: auto;
-          margin-right: auto;
-          padding-left: 2rem;
-          padding-right: 2rem;
-        }
-
-        /* Hilangkan padding berlebih di section */
-        .space-y-6 {
-          --tw-space-y-reverse: 0;
-          margin-top: calc(1.5rem * calc(1 - var(--tw-space-y-reverse)));
-          margin-bottom: calc(1.5rem * var(--tw-space-y-reverse));
-        }
-
-        .md\\:space-y-8 {
-          --tw-space-y-reverse: 0;
-          margin-top: calc(2rem * calc(1 - var(--tw-space-y-reverse)));
-          margin-bottom: calc(2rem * var(--tw-space-y-reverse));
-        }
-      }
-
-      /* Mobile only */
-      @media (max-width: 767px) {
-        body {
-          padding-bottom: calc(
-            var(--bottom-nav-height) + var(--safe-area-bottom)
-          );
-        }
-
-        .desktop-only {
-          display: none;
-        }
-
-        .mobile-only {
-          display: block;
-        }
-
-        /* Sembunyikan post detail sidebar di mobile */
-        .post-detail-sidebar {
-          display: none;
-        }
-
-        /* Pastikan posts section mengambil full width */
-        .posts-section {
-          width: 100%;
-        }
-
-        /* Footer di mobile - tersembunyi karena bottom nav */
-        footer {
-          display: none;
-        }
-
-        .greeting-card {
-          padding: 1.5rem;
-        }
-
-        .greeting-card h2 {
-          font-size: 2rem;
-        }
-
-        .container {
-          padding-left: 1rem;
-          padding-right: 1rem;
-        }
-      }
-
-      /* Safe area for notched phones */
-      @supports (padding: max(0px)) {
-        .bottom-nav {
-          padding-bottom: max(env(safe-area-inset-bottom), 0px);
-        }
-      }
-
-      /* Hide scrollbar but keep functionality */
-      .no-scrollbar {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-      }
-
-      .no-scrollbar::-webkit-scrollbar {
-        display: none;
-      }
-
-      /* Bottom sheet enhancements */
-      .bottom-sheet {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: white;
-        border-radius: 20px 20px 0 0;
-        transform: translateY(100%);
-        transition: transform 0.3s ease-out;
-        z-index: 1000;
-        max-height: 80vh;
-        overflow-y: auto;
-        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
-        -webkit-overflow-scrolling: touch;
-      }
-
-      .bottom-sheet.show {
-        transform: translateY(0);
-      }
-
-      .sheet-handle {
-        width: 40px;
-        height: 4px;
-        background: #d1d5db;
-        border-radius: 2px;
-        margin: 12px auto;
-        cursor: grab;
-      }
-
-      .sheet-handle:active {
-        cursor: grabbing;
-        background: #9ca3af;
-      }
-
-      /* Notification item animation */
-      .notification-item {
-        transition: all 0.2s ease;
-      }
-
-      .notification-item:active {
-        transform: scale(0.98);
-        background-color: #f3f4f6;
-      }
-
-      /* Badge di bottom nav */
-      .nav-item .notification-badge {
+      /* Notification badge */
+      .notification-badge {
         position: absolute;
         top: -2px;
         right: 50%;
@@ -547,255 +192,84 @@
         justify-content: center;
       }
 
-      /* Styling untuk post detail sidebar */
-      .post-detail-sidebar {
-        scrollbar-width: thin;
-        scrollbar-color: #10b981 #e5e7eb;
+      /* Bottom Sheet */
+      .bottom-sheet {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: white;
+        border-radius: 20px 20px 0 0;
+        transform: translateY(100%);
+        transition: transform 0.3s ease-out;
+        z-index: 1000;
+        max-height: 80vh;
+        overflow-y: auto;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
       }
 
-      .post-detail-sidebar::-webkit-scrollbar {
-        width: 6px;
+      .bottom-sheet.show {
+        transform: translateY(0);
       }
 
-      .post-detail-sidebar::-webkit-scrollbar-track {
-        background: #e5e7eb;
-        border-radius: 3px;
-      }
-
-      .post-detail-sidebar::-webkit-scrollbar-thumb {
-        background: #10b981;
-        border-radius: 3px;
-      }
-
-      .post-detail-sidebar::-webkit-scrollbar-thumb:hover {
-        background: #059669;
-      }
-
-      /* Styling untuk konten di sidebar */
-      .post-detail-content {
-        font-size: 1rem;
-        line-height: 1.6;
-      }
-
-      .post-detail-content h2 {
-        font-size: 1.5rem;
-        font-weight: 700;
-        margin-bottom: 1rem;
-        color: #1f2937;
-      }
-
-      .post-detail-content .post-meta {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        margin-bottom: 1.5rem;
-        padding-bottom: 1rem;
-        border-bottom: 1px solid #e5e7eb;
-      }
-
-      .post-detail-content .post-author {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-      }
-
-      .post-detail-content .post-author img {
-        width: 48px;
-        height: 48px;
-        border-radius: 50%;
-        object-fit: cover;
-      }
-
-      .post-detail-content .post-stats {
-        display: flex;
-        gap: 1.5rem;
-        margin: 1.5rem 0;
-        padding: 1rem 0;
-        border-top: 1px solid #e5e7eb;
-        border-bottom: 1px solid #e5e7eb;
-      }
-
-      .post-detail-content .post-stats span {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        color: #4b5563;
-      }
-
-      .post-detail-content .post-content {
-        font-size: 1.1rem;
-        color: #374151;
-      }
-
-      .post-detail-content .comments-section {
-        margin-top: 2rem;
-      }
-
-      .post-detail-content .comment-item {
-        padding: 1rem;
-        background-color: #f9fafb;
-        border-radius: 0.75rem;
-        margin-bottom: 1rem;
-      }
-
-      /* Perbaikan untuk menghilangkan overlay berlebih di desktop */
-      .desktop-only {
-        display: none;
-      }
-
-      @media (min-width: 768px) {
-        .desktop-only {
-          display: block;
-        }
-
-        /* Pastikan tidak ada padding/margin berlebih */
-        .md\\:py-8 {
-          padding-top: 2rem;
-          padding-bottom: 2rem;
-        }
-
-        .md\\:px-8 {
-          padding-left: 2rem;
-          padding-right: 2rem;
-        }
-      }
-
-      /* Tambahkan di bagian style setiap halaman */
-      @keyframes spin {
-        from {
-          transform: rotate(0deg);
-        }
-        to {
-          transform: rotate(360deg);
-        }
-      }
-
-      .animate-spin {
-        animation: spin 1s linear infinite;
-      }
-
-      button:disabled {
-        cursor: not-allowed;
-        opacity: 0.7;
-      }
-
-      /* Loading skeleton untuk post */
-      .post-skeleton {
-        background: linear-gradient(
-          90deg,
-          #f0f0f0 25%,
-          #e0e0e0 50%,
-          #f0f0f0 75%
-        );
-        background-size: 200% 100%;
-        animation: loading 1.5s infinite;
-      }
-
-      @keyframes loading {
-        0% {
-          background-position: 200% 0;
-        }
-        100% {
-          background-position: -200% 0;
-        }
+      .sheet-handle {
+        width: 40px;
+        height: 4px;
+        background: #d1d5db;
+        border-radius: 2px;
+        margin: 12px auto;
+        cursor: grab;
       }
     </style>
   </head>
+
   <body>
     <!-- Pull to Refresh Indicator -->
-    <div id="ptrIndicator" class="ptr-indicator">
-      <i class="fas fa-arrow-down ptr-spinner"></i>
+    <div id="ptrIndicator" class="fixed top-0 left-0 right-0 h-16 bg-gradient-to-b from-emerald-600 to-transparent text-white flex items-center justify-center transform -translate-y-full transition-transform duration-300 z-50">
+      <i class="fas fa-arrow-down mr-2"></i>
       <span id="ptrText">Tarik untuk refresh</span>
     </div>
 
-    <!-- Navbar (Desktop only) -->
-    <nav class="bg-white shadow-lg sticky top-0 z-50 desktop-only">
+    <!-- Desktop Navbar -->
+    <nav class="desktop-nav bg-white shadow-lg sticky top-0 z-50">
       <div class="container mx-auto px-4">
         <div class="flex justify-between items-center h-16">
-          <div
-            class="flex items-center space-x-2 cursor-pointer"
-            onclick="window.location.href = '/'"
-          >
+          <div class="flex items-center gap-2 cursor-pointer" onclick="window.location.href = '/'">
             <i class="fas fa-mosque text-emerald-600 text-2xl"></i>
-            <span class="font-bold text-xl text-gray-800"
-              >Lebaran<span class="text-emerald-600">Qu</span></span
-            >
+            <span class="font-bold text-xl text-gray-800">Lebaran<span class="text-emerald-600">Qu</span></span>
           </div>
 
-          <div class="hidden md:flex items-center space-x-8">
-            <a
-              href="/"
-              class="text-emerald-600 font-semibold border-b-2 border-emerald-600"
-              >Beranda</a
-            >
-            <a href="/syarat.html" class="text-gray-600 hover:text-emerald-600"
-              >Persyaratan</a
-            >
-            <a href="/profile.html" class="text-gray-600 hover:text-emerald-600"
-              >Profile</a
-            >
+          <div class="flex items-center gap-8">
+            <a href="/" class="text-emerald-600 font-semibold border-b-2 border-emerald-600">Beranda</a>
+            <a href="/syarat.html" class="text-gray-600 hover:text-emerald-600">Persyaratan</a>
+            <a href="/profile.html" class="text-gray-600 hover:text-emerald-600">Profile</a>
           </div>
 
-          <div class="flex items-center space-x-4">
+          <div class="flex items-center gap-4">
             <!-- Notifikasi Bell -->
-            <div class="relative" id="notificationContainer">
-              <button
-                onclick="toggleNotificationDropdown()"
-                class="relative p-2 text-gray-600 hover:text-emerald-600 transition"
-              >
+            <div class="relative">
+              <button onclick="toggleNotificationDropdown()" class="relative p-2 text-gray-600 hover:text-emerald-600 transition">
                 <i class="fas fa-bell text-xl"></i>
-                <span
-                  id="notificationBadge"
-                  class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center hidden"
-                  >0</span
-                >
+                <span id="notificationBadge" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center hidden">0</span>
               </button>
-
-              <!-- Dropdown Notifikasi -->
-              <div
-                id="notificationDropdown"
-                class="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 hidden z-50"
-              >
-                <div
-                  class="p-3 border-b border-gray-200 flex justify-between items-center"
-                >
-                  <h3 class="font-semibold text-gray-800">Notifikasi</h3>
-                  <button
-                    onclick="markAllNotificationsRead()"
-                    class="text-xs text-emerald-600 hover:text-emerald-800"
-                  >
-                    Tandai semua dibaca
-                  </button>
+              <div id="notificationDropdown" class="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 hidden z-50">
+                <div class="p-3 border-b flex justify-between items-center">
+                  <h3 class="font-semibold">Notifikasi</h3>
+                  <button onclick="markAllNotificationsRead()" class="text-xs text-emerald-600">Tandai semua dibaca</button>
                 </div>
-
                 <div id="notificationList" class="max-h-96 overflow-y-auto">
-                  <div class="p-4 text-center text-gray-500">
-                    <i class="fas fa-spinner fa-spin mb-2"></i>
-                    <p class="text-sm">Memuat notifikasi...</p>
-                  </div>
+                  <div class="p-8 text-center text-gray-500"><i class="fas fa-spinner fa-spin mb-2"></i><p>Memuat...</p></div>
                 </div>
-
-                <div class="p-2 border-t border-gray-200 text-center">
-                  <button
-                    onclick="viewAllNotifications()"
-                    class="text-sm text-emerald-600 hover:text-emerald-800 w-full py-1"
-                  >
-                    Lihat Semua
-                  </button>
+                <div class="p-2 border-t text-center">
+                  <button onclick="viewAllNotifications()" class="text-sm text-emerald-600 w-full py-1">Lihat Semua</button>
                 </div>
               </div>
             </div>
 
-            <div id="userInfo" class="hidden items-center">
-              <span
-                class="text-sm text-gray-600 mr-3"
-                id="userNameDisplay"
-              ></span>
+            <div id="userInfo" class="hidden">
+              <span class="text-sm text-gray-600 mr-3" id="userNameDisplay"></span>
             </div>
-            <button
-              onclick="logout()"
-              class="flex items-center space-x-2 bg-red-50 text-red-600 px-4 py-2 rounded-lg hover:bg-red-100 transition"
-            >
+            <button onclick="logout()" class="flex items-center gap-2 bg-red-50 text-red-600 px-4 py-2 rounded-lg hover:bg-red-100 transition">
               <i class="fas fa-sign-out-alt"></i>
               <span class="hidden md:inline">Logout</span>
             </button>
@@ -805,376 +279,166 @@
     </nav>
 
     <!-- Loading State -->
-    <div
-      id="loadingState"
-      class="flex flex-col items-center justify-center min-h-[60vh]"
-    >
-      <div
-        class="animate-spin rounded-full h-16 w-16 border-4 border-emerald-600 border-t-transparent mb-4"
-      ></div>
+    <div id="loadingState" class="flex flex-col items-center justify-center min-h-[60vh]">
+      <div class="animate-spin rounded-full h-16 w-16 border-4 border-emerald-600 border-t-transparent mb-4"></div>
       <p class="text-gray-600 text-lg">Memuat dashboard...</p>
     </div>
 
     <!-- Error State -->
-    <div
-      id="errorState"
-      class="hidden flex flex-col items-center justify-center min-h-[60vh]"
-    >
-      <div class="bg-red-50 rounded-2xl p-8 max-w-md mx-auto text-center">
+    <div id="errorState" class="hidden flex flex-col items-center justify-center min-h-[60vh]">
+      <div class="bg-white rounded-2xl shadow-xl p-8 max-w-md text-center">
         <i class="fas fa-exclamation-circle text-6xl text-red-500 mb-4"></i>
         <h2 class="text-2xl font-bold text-red-700 mb-2">Oops!</h2>
-        <p id="errorMessage" class="text-red-600 mb-6">
-          Terjadi kesalahan saat memuat dashboard
-        </p>
-        <button
-          onclick="window.location.reload()"
-          class="bg-red-600 text-white px-6 py-3 rounded-xl hover:bg-red-700 transition"
-        >
-          <i class="fas fa-sync-alt mr-2"></i>Coba Lagi
-        </button>
-        <button
-          onclick="logout()"
-          class="mt-4 text-gray-600 hover:text-gray-800 block"
-        >
-          <i class="fas fa-sign-out-alt mr-1"></i>Logout
-        </button>
+        <p id="errorMessage" class="text-gray-600 mb-6">Terjadi kesalahan saat memuat dashboard</p>
+        <button onclick="window.location.reload()" class="bg-emerald-600 text-white px-6 py-3 rounded-xl hover:bg-emerald-700 transition w-full">Coba Lagi</button>
+        <button onclick="logout()" class="mt-3 text-gray-500 hover:text-gray-700 w-full">Logout</button>
       </div>
     </div>
 
-    <!-- Main Content Container with Pull to Refresh -->
-    <div id="ptrContainer" class="ptr-container content-wrapper">
-      <!-- Main Content -->
-      <div id="mainContent" class="hidden container mx-auto px-4 py-4 md:py-8">
-        <div class="space-y-6 md:space-y-8 fade-in">
-          <!-- SECTION 1: Greeting Card -->
-          <div
-            class="greeting-card bg-gradient-to-br from-emerald-600 via-emerald-700 to-emerald-800 rounded-3xl p-6 md:p-8 text-white shadow-2xl relative overflow-hidden"
-          >
-            <div
-              class="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-20 -mt-20"
-            ></div>
-            <div
-              class="absolute bottom-0 left-0 w-48 h-48 bg-emerald-500/20 rounded-full -ml-16 -mb-16"
-            ></div>
+    <!-- Main Content -->
+    <div id="mainContent" class="hidden">
+      <div class="container mx-auto px-4 py-6">
+        
+        <!-- GREETING CARD -->
+        <div class="greeting-card bg-gradient-to-br from-emerald-600 via-emerald-700 to-emerald-800 rounded-3xl p-6 md:p-8 text-white shadow-2xl mb-8">
+          <div class="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-20 -mt-20"></div>
+          <div class="absolute bottom-0 left-0 w-48 h-48 bg-emerald-500/20 rounded-full -ml-16 -mb-16"></div>
+          
+          <div class="relative z-10">
+            <div class="text-center mb-4">
+              <p class="arabic text-2xl md:text-4xl text-emerald-200 mb-2">السلام عليكم ورحمة الله وبركاته</p>
+              <div class="w-24 h-1 bg-emerald-400 mx-auto rounded-full"></div>
+            </div>
 
-            <div
-              class="absolute inset-0 opacity-10"
-              style="
-                background-image: url(&quot;data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 5L55 30L30 55L5 30L30 5z' fill='%23ffffff' fill-opacity='0.1'/%3E%3C/svg%3E&quot;);
-              "
-            ></div>
-
-            <div class="relative z-10">
-              <div class="text-center mb-4 md:mb-6">
-                <p class="arabic text-2xl md:text-4xl text-emerald-200 mb-2">
-                  السلام عليكم ورحمة الله وبركاته
-                </p>
-                <div class="w-24 h-1 bg-emerald-400 mx-auto rounded-full"></div>
-              </div>
-
-              <div
-                class="flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6"
-              >
-                <div class="flex-1 text-center md:text-left">
-                  <div
-                    class="inline-flex items-center gap-2 bg-emerald-500/30 backdrop-blur-sm px-3 py-1 md:px-4 md:py-2 rounded-full mb-3 md:mb-4"
-                  >
-                    <i class="fas fa-star text-yellow-300 text-sm"></i>
-                    <span
-                      class="text-xs md:text-sm font-medium text-emerald-100"
-                      >Ramadan 1447 H</span
-                    >
-                  </div>
-
-                  <h2
-                    class="text-3xl md:text-5xl font-bold mb-2 md:mb-3 greeting-message"
-                  >
-                    <span
-                      class="bg-gradient-to-r from-yellow-200 to-yellow-400 bg-clip-text text-transparent"
-                      >Mohon Maaf</span
-                    >
-                    <br />Lahir & Batin
-                  </h2>
-
-                  <p
-                    class="text-lg md:text-2xl text-emerald-100 mb-3 md:mb-4 flex items-center justify-center md:justify-start gap-2"
-                  >
-                    <i class="fas fa-user-circle text-2xl"></i>
-                    <span id="ucapanNama" class="font-semibold">-</span>
-                  </p>
-
-                  <p
-                    class="text-base md:text-lg text-emerald-200 max-w-2xl italic"
-                  >
-                    "Di bulan yang suci ini, mari kita sambung tali silaturahmi,
-                    saling memaafkan, dan berbagi kebahagiaan."
-                  </p>
-
-                  <div
-                    class="flex flex-wrap gap-2 md:gap-3 mt-4 md:mt-6 justify-center md:justify-start"
-                  >
-                    <div
-                      class="bg-white/10 backdrop-blur-sm px-3 py-1 md:px-4 md:py-2 rounded-full"
-                    >
-                      <i
-                        class="fas fa-pray text-yellow-300 mr-2 text-xs md:text-sm"
-                      ></i>
-                      <span class="text-xs md:text-sm"
-                        >Taqabbalallahu minna wa minkum</span
-                      >
-                    </div>
-                    <div
-                      class="bg-white/10 backdrop-blur-sm px-3 py-1 md:px-4 md:py-2 rounded-full"
-                    >
-                      <i
-                        class="fas fa-heart text-red-300 mr-2 text-xs md:text-sm"
-                      ></i>
-                      <span class="text-xs md:text-sm"
-                        >Minal aidin wal faizin</span
-                      >
-                    </div>
-                  </div>
+            <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+              <div class="flex-1 text-center md:text-left">
+                <div class="inline-flex items-center gap-2 bg-emerald-500/30 backdrop-blur-sm px-4 py-2 rounded-full mb-4">
+                  <i class="fas fa-star text-yellow-300 text-sm"></i>
+                  <span class="text-sm font-medium">Ramadan 1447 H</span>
                 </div>
-
-                <div class="hidden lg:block relative">
-                  <div
-                    class="moon-icon w-48 h-48 bg-gradient-to-br from-yellow-200 to-yellow-400 rounded-full shadow-2xl flex items-center justify-center"
-                  >
-                    <div
-                      class="w-32 h-32 bg-gradient-to-br from-emerald-600 to-emerald-800 rounded-full flex items-center justify-center"
-                    >
-                      <i class="fas fa-moon text-6xl text-yellow-200"></i>
-                    </div>
+                <h2 class="text-3xl md:text-5xl font-bold mb-3">
+                  <span class="bg-gradient-to-r from-yellow-200 to-yellow-400 bg-clip-text text-transparent">Mohon Maaf</span><br />Lahir & Batin
+                </h2>
+                <p class="text-xl text-emerald-100 mb-4 flex items-center justify-center md:justify-start gap-2">
+                  <i class="fas fa-user-circle text-2xl"></i>
+                  <span id="ucapanNama" class="font-semibold">-</span>
+                </p>
+                <p class="text-emerald-200 italic max-w-2xl">"Di bulan yang suci ini, mari kita sambung tali silaturahmi, saling memaafkan, dan berbagi kebahagiaan."</p>
+                <div class="flex flex-wrap gap-3 mt-6 justify-center md:justify-start">
+                  <div class="bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full text-sm">Taqabbalallahu minna wa minkum</div>
+                  <div class="bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full text-sm">Minal aidin wal faizin</div>
+                </div>
+              </div>
+              <div class="hidden lg:block">
+                <div class="moon-icon w-48 h-48 bg-gradient-to-br from-yellow-200 to-yellow-400 rounded-full shadow-2xl flex items-center justify-center">
+                  <div class="w-32 h-32 bg-gradient-to-br from-emerald-600 to-emerald-800 rounded-full flex items-center justify-center">
+                    <i class="fas fa-moon text-6xl text-yellow-200"></i>
                   </div>
                 </div>
               </div>
-
-              <div
-                class="mt-6 md:mt-8 pt-4 md:pt-6 border-t border-white/20 text-center"
-              >
-                <p class="arabic text-lg md:text-xl text-emerald-200 mb-2">
-                  وَسَارِعُوا إِلَىٰ مَغْفِرَةٍ مِّن رَّبِّكُمْ وَجَنَّةٍ
-                  عَرْضُهَا السَّمَاوَاتُ وَالْأَرْضُ
-                </p>
-                <p class="text-xs md:text-sm text-emerald-300">
-                  "Dan bersegeralah kamu kepada ampunan dari Tuhanmu..." (QS.
-                  Ali Imran: 133)
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <!-- SECTION 2: Penjelasan Sekolah -->
-          <div id="schoolInfo" class="space-y-6">
-            <div
-              class="bg-white rounded-2xl shadow-lg p-4 md:p-6 loading-skeleton"
-              style="height: 250px"
-            ></div>
-          </div>
-
-          <!-- SECTION 3: Leaderboard -->
-          <div class="bg-white rounded-2xl shadow-lg p-4 md:p-6">
-            <div
-              class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-4"
-            >
-              <h2
-                class="text-xl md:text-2xl font-bold text-gray-800 flex items-center"
-              >
-                <i class="fas fa-trophy text-yellow-500 mr-2"></i>
-                Leaderboard
-              </h2>
-              <span class="text-xs md:text-sm text-gray-500"
-                >Total 27 pemenang • 9 per sekolah</span
-              >
             </div>
 
-            <!-- Filter Sekolah -->
-            <div class="mb-4">
-              <select
-                id="leaderboardFilter"
-                class="w-full md:w-auto px-3 py-2 border border-gray-300 rounded-lg text-sm"
-              >
-                <option value="all">Semua Sekolah</option>
-                <option value="sdit_sahabat">SDIT Sahabat</option>
-                <option value="pptq_almadinah">PPTQ Al-Madinah</option>
-                <option value="ppqit_almahir">PPQIT Al-Mahir</option>
+            <div class="mt-6 pt-6 border-t border-white/20 text-center">
+              <p class="arabic text-lg text-emerald-200 mb-2">وَسَارِعُوا إِلَىٰ مَغْفِرَةٍ مِّن رَّبِّكُمْ</p>
+              <p class="text-xs text-emerald-300">"Dan bersegeralah kamu kepada ampunan dari Tuhanmu..." (QS. Ali Imran: 133)</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- SCHOOL INFO SECTION -->
+        <div id="schoolInfo" class="mb-8">
+          <div class="bg-white rounded-2xl shadow-lg p-6 loading-skeleton" style="height: 250px"></div>
+        </div>
+
+        <!-- LEADERBOARD SECTION -->
+        <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-4">
+            <h2 class="text-xl md:text-2xl font-bold text-gray-800 flex items-center gap-2">
+              <i class="fas fa-trophy text-yellow-500"></i> Leaderboard
+            </h2>
+            <span class="text-xs text-gray-500">Total 27 pemenang • 9 per sekolah</span>
+          </div>
+
+          <div class="mb-4">
+            <select id="leaderboardFilter" class="w-full md:w-auto px-3 py-2 border border-gray-300 rounded-lg text-sm">
+              <option value="all">Semua Sekolah</option>
+              <option value="sdit_sahabat">SDIT Sahabat</option>
+              <option value="pptq_almadinah">PPTQ Al-Madinah</option>
+              <option value="ppqit_almahir">PPQIT Al-Mahir</option>
+            </select>
+          </div>
+
+          <div class="overflow-x-auto no-scrollbar mb-6">
+            <div id="leaderboardCategories" class="flex gap-2 pb-2" style="min-width: max-content"></div>
+          </div>
+
+          <div id="leaderboardList" class="space-y-2 min-h-[300px]"></div>
+
+          <div class="mt-6 p-4 bg-emerald-50 rounded-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+            <div>
+              <h3 class="font-semibold text-emerald-800">🏆 Info Pemenang</h3>
+              <p class="text-sm text-emerald-700">9 pemenang per sekolah • Total 27 pemenang • Hadiah Rp 50.000</p>
+            </div>
+            <div class="text-xs text-emerald-600 bg-white px-3 py-2 rounded-lg">Pemilihan: 29 April 2026</div>
+          </div>
+        </div>
+
+        <!-- POSTS SECTION (Tanpa Sidebar) -->
+        <div class="bg-white rounded-2xl shadow-lg p-6">
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl md:text-2xl font-bold text-gray-800 flex items-center gap-2">
+              <i class="fas fa-newspaper text-emerald-600"></i> Cerita Alumni
+            </h2>
+            <button onclick="showCreatePostModal()" class="bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-emerald-700 transition active:scale-95">
+              <i class="fas fa-plus mr-2"></i>Buat Cerita
+            </button>
+          </div>
+
+          <!-- Search & Filter -->
+          <div class="bg-gray-50 rounded-xl p-4 space-y-3 mb-6">
+            <div class="relative">
+              <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+              <input type="text" id="searchInput" placeholder="Cari cerita..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm">
+            </div>
+            <div class="flex flex-col sm:flex-row gap-3">
+              <select id="userFilter" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                <option value="">Semua Penulis</option>
+              </select>
+              <select id="sortFilter" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                <option value="newest">Terbaru</option>
+                <option value="oldest">Terlama</option>
+                <option value="popular">Populer</option>
               </select>
             </div>
-
-            <!-- Category Buttons - Horizontal Scroll di Mobile -->
-            <div class="overflow-x-auto no-scrollbar mb-4 md:mb-6">
-              <div
-                id="leaderboardCategories"
-                class="flex gap-2 pb-2"
-                style="min-width: max-content"
-              >
-                <!-- Akan diisi JavaScript -->
-              </div>
-            </div>
-
-            <!-- Leaderboard List -->
-            <div
-              id="leaderboardList"
-              class="space-y-2 min-h-[300px] md:min-h-[400px]"
-            >
-              <!-- Akan diisi JavaScript -->
-            </div>
-
-            <!-- Info Pemenang -->
-            <div
-              class="mt-4 md:mt-6 p-3 md:p-4 bg-emerald-50 rounded-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-3"
-            >
-              <div>
-                <h3 class="font-semibold text-emerald-800 text-sm md:text-base">
-                  🏆 Info Pemenang
-                </h3>
-                <p class="text-xs md:text-sm text-emerald-700">
-                  9 pemenang per sekolah • Total 27 pemenang
-                </p>
-                <p class="text-xs md:text-sm text-emerald-700 mt-1">
-                  Hadiah Rp 50.000 untuk setiap pemenang
-                </p>
-              </div>
-              <div
-                class="text-xs text-emerald-600 bg-white px-3 py-2 rounded-lg"
-              >
-                Pemilihan: 29 April 2026
-              </div>
-            </div>
+            <div id="activeFilters" class="flex flex-wrap gap-2 text-sm hidden"></div>
           </div>
 
-          <!-- SECTION 4: Posts dengan Sidebar di Tablet/Desktop - Sidebar 65% -->
-          <div class="posts-grid-layout">
-            <!-- Bagian Kiri: Posts List (35%) -->
-            <div class="posts-section space-y-4 md:space-y-6">
-              <div class="flex justify-between items-center">
-                <h2 class="text-xl md:text-2xl font-bold text-gray-800">
-                  <i class="fas fa-newspaper text-emerald-600 mr-2"></i>
-                  Cerita Alumni
-                </h2>
-                <button
-                  onclick="showCreatePostModal()"
-                  class="bg-emerald-600 text-white px-3 py-2 md:px-4 md:py-2 rounded-lg text-sm md:text-base hover:bg-emerald-700 transition active:scale-95"
-                >
-                  <i class="fas fa-plus mr-2"></i>Buat
-                </button>
-              </div>
-
-              <!-- Search & Filter -->
-              <div class="bg-white rounded-xl shadow p-4 space-y-3">
-                <!-- Search Input -->
-                <div class="relative">
-                  <i
-                    class="fas fa-search absolute left-3 top-3 text-gray-400"
-                  ></i>
-                  <input
-                    type="text"
-                    id="searchInput"
-                    placeholder="Cari cerita..."
-                    class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm"
-                  />
-                </div>
-
-                <!-- Filter Row -->
-                <div class="flex flex-col sm:flex-row gap-3">
-                  <select
-                    id="userFilter"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm"
-                  >
-                    <option value="">Semua Penulis</option>
-                  </select>
-
-                  <select
-                    id="sortFilter"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm"
-                  >
-                    <option value="newest">Terbaru</option>
-                    <option value="oldest">Terlama</option>
-                    <option value="popular">Populer</option>
-                  </select>
-                </div>
-
-                <!-- Active Filters -->
-                <div
-                  id="activeFilters"
-                  class="flex flex-wrap gap-2 text-sm hidden"
-                ></div>
-              </div>
-
-              <!-- Posts List -->
-              <div id="postsList" class="space-y-4">
-                <!-- Posts will be loaded here -->
-              </div>
-
-              <!-- Pagination -->
-              <div
-                id="paginationContainer"
-                class="flex justify-center items-center space-x-2 mt-6"
-              ></div>
-            </div>
-
-            <!-- Bagian Kanan: Post Detail Sidebar (65%) -->
-            <div class="hidden md:block">
-              <div
-                id="postDetailSidebar"
-                class="bg-white rounded-2xl shadow-lg p-6 post-detail-sidebar"
-              >
-                <div
-                  id="postDetailContent"
-                  class="post-detail-content space-y-4"
-                >
-                  <!-- Default/Empty State -->
-                  <div class="text-center py-8">
-                    <i
-                      class="fas fa-hand-pointer text-4xl text-gray-300 mb-3"
-                    ></i>
-                    <h3 class="text-lg font-semibold text-gray-700">
-                      Belum ada post dipilih
-                    </h3>
-                    <p class="text-sm text-gray-500 mt-1">
-                      Klik pada salah satu post untuk melihat detail lengkapnya
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <!-- Posts List -->
+          <div id="postsList" class="space-y-4">
+            <!-- Posts akan di-load di sini -->
           </div>
+
+          <!-- Pagination -->
+          <div id="paginationContainer" class="flex justify-center items-center gap-2 mt-6"></div>
         </div>
       </div>
     </div>
 
-    <!-- Bottom Navigation untuk Mobile - Perbaiki bagian profile -->
+    <!-- BOTTOM NAVIGATION (MOBILE) -->
     <div class="bottom-nav md:hidden">
-      <div
-        class="nav-item"
-        data-page="home"
-        onclick="window.location.href = '/'"
-      >
+      <div class="nav-item active" onclick="window.location.href = '/'">
         <i class="fas fa-home"></i>
         <span>Beranda</span>
       </div>
-      <div
-        class="nav-item"
-        data-page="syarat"
-        onclick="window.location.href = '/syarat.html'"
-      >
+      <div class="nav-item" onclick="window.location.href = '/syarat.html'">
         <i class="fas fa-file-alt"></i>
         <span>Syarat</span>
       </div>
-      <div
-        class="nav-item"
-        data-page="create"
-        onclick="window.location.href = '/'"
-      >
+      <div class="nav-item" onclick="showCreatePostModal()">
         <i class="fas fa-plus-circle text-emerald-600 text-2xl"></i>
         <span>Buat</span>
       </div>
-      <div
-        class="nav-item"
-        data-page="notifications"
-        onclick="toggleNotificationSheet()"
-        style="position: relative"
-      >
+      <div class="nav-item" onclick="toggleNotificationSheet()" style="position: relative">
         <i class="fas fa-bell"></i>
         <span>Notif</span>
         <span id="mobileNotifBadge" class="notification-badge hidden">0</span>
@@ -1185,636 +449,76 @@
       </div>
     </div>
 
-    <!-- Bottom Sheet untuk Notifikasi (Mobile) -->
+    <!-- BOTTOM SHEET NOTIFIKASI (MOBILE) -->
     <div id="notificationSheet" class="bottom-sheet">
       <div class="sheet-handle"></div>
       <div class="p-4">
         <div class="flex justify-between items-center mb-4">
           <h3 class="text-xl font-bold">Notifikasi</h3>
-          <button
-            onclick="markAllMobileNotificationsRead()"
-            class="text-xs text-emerald-600"
-          >
-            Tandai semua dibaca
-          </button>
+          <button onclick="markAllNotificationsRead()" class="text-xs text-emerald-600">Tandai semua dibaca</button>
         </div>
-
-        <!-- Loading State -->
         <div id="mobileNotificationLoading" class="text-center py-8">
-          <div
-            class="animate-spin rounded-full h-8 w-8 border-4 border-emerald-600 border-t-transparent mx-auto mb-3"
-          ></div>
-          <p class="text-sm text-gray-500">Memuat notifikasi...</p>
+          <div class="animate-spin rounded-full h-8 w-8 border-4 border-emerald-600 border-t-transparent mx-auto mb-3"></div>
+          <p class="text-sm text-gray-500">Memuat...</p>
         </div>
-
-        <!-- Empty State -->
         <div id="mobileNotificationEmpty" class="hidden text-center py-8">
           <i class="fas fa-bell-slash text-4xl text-gray-300 mb-3"></i>
           <p class="text-sm text-gray-500">Belum ada notifikasi</p>
         </div>
-
-        <!-- Notifikasi List -->
-        <div
-          id="mobileNotificationList"
-          class="space-y-3 max-h-[60vh] overflow-y-auto hidden"
-        >
-          <!-- Akan diisi JavaScript -->
-        </div>
-
-        <button
-          onclick="hideNotificationSheet()"
-          class="mt-4 w-full bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300 transition active:scale-95"
-        >
-          Tutup
-        </button>
+        <div id="mobileNotificationList" class="space-y-3 max-h-[60vh] overflow-y-auto hidden"></div>
+        <button onclick="hideNotificationSheet()" class="mt-4 w-full bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300 transition">Tutup</button>
       </div>
     </div>
 
-    <!-- Modal Buat Postingan -->
-    <div
-      id="createPostModal"
-      class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 modal"
-    >
-      <div class="bg-white rounded-2xl p-6 md:p-8 max-w-lg w-full mx-4">
-        <h3 class="text-xl md:text-2xl font-bold mb-4">Buat Cerita Baru</h3>
+    <!-- MODAL BUAT POSTINGAN -->
+    <div id="createPostModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50">
+      <div class="bg-white rounded-2xl p-6 max-w-lg w-full mx-4">
+        <h3 class="text-2xl font-bold mb-4">Buat Cerita Baru</h3>
         <form id="createPostForm" class="space-y-4">
-          <input
-            type="text"
-            id="postJudul"
-            placeholder="Judul Cerita"
-            required
-            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm"
-          />
-          <textarea
-            id="postKonten"
-            rows="4"
-            placeholder="Tulis cerita Anda..."
-            required
-            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm"
-          ></textarea>
-          <button
-            type="submit"
-            class="w-full bg-emerald-600 text-white py-3 rounded-lg hover:bg-emerald-700 active:bg-emerald-800 transition"
-          >
-            Posting Cerita
-          </button>
+          <input type="text" id="postJudul" placeholder="Judul Cerita" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500">
+          <textarea id="postKonten" rows="4" placeholder="Tulis cerita Anda..." required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"></textarea>
+          <button type="submit" class="w-full bg-emerald-600 text-white py-3 rounded-lg hover:bg-emerald-700 transition">Posting Cerita</button>
         </form>
-        <button
-          onclick="hideCreatePostModal()"
-          class="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
-        >
-          <i class="fas fa-times text-xl"></i>
-        </button>
+        <button onclick="hideCreatePostModal()" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700"><i class="fas fa-times text-xl"></i></button>
       </div>
     </div>
 
-    <!-- FOOTER (Desktop only) -->
-    <footer class="bg-gray-900 text-white mt-16 desktop-only">
+    <!-- FOOTER (DESKTOP) -->
+    <footer class="desktop-nav bg-gray-900 text-white mt-16">
       <div class="container mx-auto px-4 py-12">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <!-- Profil Pembuat -->
           <div>
-            <div class="flex items-center space-x-4 mb-4">
-              <div
-                class="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center"
-              >
-                <span class="text-2xl font-bold text-white">A</span>
-              </div>
-              <div>
-                <h3 class="font-bold text-lg">Ahmad Afan Shobari</h3>
-                <p class="text-gray-400 text-sm">Web Developer & Alumni</p>
-              </div>
+            <div class="flex items-center gap-4 mb-4">
+              <div class="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center"><span class="text-2xl font-bold text-white">A</span></div>
+              <div><h3 class="font-bold text-lg">Ahmad Afan Shobari</h3><p class="text-gray-400 text-sm">Web Developer & Alumni</p></div>
             </div>
-            <p class="text-gray-400 text-sm">
-              Penggagas silaturahmi alumni lintas generasi. Dari santri untuk
-              ummat, membangun koneksi dan berbagi berkah.
-            </p>
+            <p class="text-gray-400 text-sm">Penggagas silaturahmi alumni lintas generasi. Dari santri untuk ummat, membangun koneksi dan berbagi berkah.</p>
           </div>
-
-          <!-- Pintasan -->
           <div>
             <h4 class="font-bold text-lg mb-4">Pintasan</h4>
             <ul class="space-y-2">
-              <li>
-                <a href="/" class="text-gray-400 hover:text-white transition"
-                  ><i class="fas fa-chevron-right text-xs mr-2"></i>Beranda</a
-                >
-              </li>
-              <li>
-                <a
-                  href="/syarat.html"
-                  class="text-gray-400 hover:text-white transition"
-                  ><i class="fas fa-chevron-right text-xs mr-2"></i
-                  >Persyaratan</a
-                >
-              </li>
-              <li>
-                <a
-                  href="/profile.html"
-                  class="text-gray-400 hover:text-white transition"
-                  ><i class="fas fa-chevron-right text-xs mr-2"></i>Profile</a
-                >
-              </li>
-              <li>
-                <a
-                  href="#"
-                  onclick="scrollToTop()"
-                  class="text-gray-400 hover:text-white transition"
-                  ><i class="fas fa-chevron-right text-xs mr-2"></i>Kembali ke
-                  Atas</a
-                >
-              </li>
+              <li><a href="/" class="text-gray-400 hover:text-white transition"><i class="fas fa-chevron-right text-xs mr-2"></i>Beranda</a></li>
+              <li><a href="/syarat.html" class="text-gray-400 hover:text-white transition"><i class="fas fa-chevron-right text-xs mr-2"></i>Persyaratan</a></li>
+              <li><a href="/profile.html" class="text-gray-400 hover:text-white transition"><i class="fas fa-chevron-right text-xs mr-2"></i>Profile</a></li>
             </ul>
           </div>
-
-          <!-- Info Kontak -->
           <div>
             <h4 class="font-bold text-lg mb-4">Info Alumni</h4>
             <ul class="space-y-2 text-gray-400">
-              <li>
-                <i class="fas fa-school mr-2"></i>SDIT Sahabat - Karanganyar
-              </li>
+              <li><i class="fas fa-school mr-2"></i>SDIT Sahabat - Karanganyar</li>
               <li><i class="fas fa-mosque mr-2"></i>PPTQ Al-Madinah - Solo</li>
-              <li>
-                <i class="fas fa-laptop-code mr-2"></i>PPQIT Al-Mahir - IT &
-                Tahfidz
-              </li>
+              <li><i class="fas fa-laptop-code mr-2"></i>PPQIT Al-Mahir - IT & Tahfidz</li>
             </ul>
           </div>
         </div>
-
-        <div
-          class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400"
-        >
+        <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
           <p>© 2026 LebaranQu. All rights reserved.</p>
-          <p class="text-sm mt-2">
-            Dibuat dengan <i class="fas fa-heart text-red-500"></i> oleh Ahmad
-            Afan Shobari
-          </p>
+          <p class="text-sm mt-2">Dibuat dengan <i class="fas fa-heart text-red-500"></i> oleh Ahmad Afan Shobari</p>
         </div>
       </div>
     </footer>
 
-    <script>
-      // Pull to Refresh
-      let startY = 0;
-      let currentY = 0;
-      let isPulling = false;
-      let mobileNotifications = [];
-      let mobileUnreadCount = 0;
-      const ptrIndicator = document.getElementById("ptrIndicator");
-      const ptrContainer = document.getElementById("ptrContainer");
-      const ptrText = document.getElementById("ptrText");
-
-      document.addEventListener(
-        "touchstart",
-        (e) => {
-          if (window.scrollY === 0) {
-            startY = e.touches[0].clientY;
-            isPulling = true;
-          }
-        },
-        { passive: true },
-      );
-
-      document.addEventListener(
-        "touchmove",
-        (e) => {
-          if (!isPulling) return;
-
-          currentY = e.touches[0].clientY;
-          const diff = currentY - startY;
-
-          if (diff > 0 && diff < 100) {
-            ptrIndicator.classList.add("visible");
-            ptrText.textContent =
-              diff > 50 ? "Lepaskan untuk refresh" : "Tarik untuk refresh";
-          } else if (diff >= 100) {
-            ptrText.textContent = "Lepaskan untuk refresh";
-          }
-        },
-        { passive: true },
-      );
-
-      document.addEventListener("touchend", () => {
-        if (!isPulling) return;
-
-        const diff = currentY - startY;
-
-        if (diff >= 100) {
-          // Refresh
-          ptrText.innerHTML =
-            '<i class="fas fa-spinner fa-spin mr-2"></i>Memuat ulang...';
-          setTimeout(() => {
-            window.location.reload();
-          }, 500);
-        } else {
-          ptrIndicator.classList.remove("visible");
-        }
-
-        isPulling = false;
-        startY = 0;
-        currentY = 0;
-      });
-
-      // Swipe untuk navigasi
-      let touchStartX = 0;
-      let touchEndX = 0;
-      const minSwipeDistance = 50;
-
-      document.addEventListener(
-        "touchstart",
-        (e) => {
-          touchStartX = e.changedTouches[0].screenX;
-        },
-        { passive: true },
-      );
-
-      document.addEventListener(
-        "touchend",
-        (e) => {
-          touchEndX = e.changedTouches[0].screenX;
-          handleSwipe();
-        },
-        { passive: true },
-      );
-
-      function handleSwipe() {
-        const swipeDistance = touchEndX - touchStartX;
-
-        if (Math.abs(swipeDistance) > minSwipeDistance) {
-          if (swipeDistance > 0) {
-            // Swipe kanan
-          } else {
-            // Swipe kiri
-          }
-        }
-      }
-
-      // Bottom Navigation
-      function navigateToPage(page) {
-        document.querySelectorAll(".nav-item").forEach((item) => {
-          item.classList.remove("active");
-        });
-        event.currentTarget.classList.add("active");
-
-        switch (page) {
-          case "home":
-            window.scrollTo({ top: 0, behavior: "smooth" });
-            break;
-          case "leaderboard":
-            document
-              .getElementById("leaderboardList")
-              .scrollIntoView({ behavior: "smooth" });
-            break;
-          case "profile":
-            goToProfile();
-            break;
-        }
-      }
-
-      // Notification Bottom Sheet
-      function toggleNotificationSheet() {
-        const sheet = document.getElementById("notificationSheet");
-        sheet.classList.toggle("show");
-
-        if (sheet.classList.contains("show")) {
-          loadMobileNotifications();
-        }
-      }
-
-      function hideNotificationSheet() {
-        document.getElementById("notificationSheet").classList.remove("show");
-      }
-
-      // ========== GO TO PROFILE FUNCTION ==========
-      function goToProfile(userId) {
-        console.log("🚀 Navigating to profile");
-
-        // Jika userId diberikan (untuk lihat profile orang lain)
-        if (userId && userId !== "undefined" && userId !== "null") {
-          window.location.href = `/profile.html?id=${userId}`;
-          return;
-        }
-
-        // Untuk profile sendiri - TANPA PARAMETER ID
-        if (window.currentUser && window.currentUser.id) {
-          console.log("✅ Going to own profile");
-          window.location.href = `/profile.html`; // <-- TANPA ?id=
-        } else {
-          console.log("❌ No user found, redirecting to login");
-          window.location.href = "/login.html";
-        }
-      }
-
-      // Export ke window
-      window.goToProfile = goToProfile;
-
-      // Double tap to top
-      let lastTap = 0;
-      document.addEventListener("touchend", (e) => {
-        const currentTime = new Date().getTime();
-        const tapLength = currentTime - lastTap;
-
-        if (tapLength < 300 && tapLength > 0) {
-          window.scrollTo({ top: 0, behavior: "smooth" });
-        }
-
-        lastTap = currentTime;
-      });
-
-      // Hide bottom nav on scroll
-      let lastScrollTop = 0;
-      const bottomNav = document.querySelector(".bottom-nav");
-
-      window.addEventListener("scroll", () => {
-        const scrollTop =
-          window.pageYOffset || document.documentElement.scrollTop;
-
-        if (scrollTop > lastScrollTop && scrollTop > 100) {
-          bottomNav.style.transform = "translateY(100%)";
-        } else {
-          bottomNav.style.transform = "translateY(0)";
-        }
-
-        lastScrollTop = scrollTop;
-      });
-
-      // Save data mode for 2G connections
-      if (
-        "connection" in navigator &&
-        navigator.connection.effectiveType?.includes("2g")
-      ) {
-        document.querySelectorAll("img").forEach((img) => {
-          if (img.dataset.src) {
-            img.src = img.dataset.src;
-          }
-        });
-      }
-
-      // ========== NOTIFIKASI MOBILE ==========
-
-      async function loadMobileNotifications() {
-        if (!window.currentUser) return;
-
-        const loadingEl = document.getElementById("mobileNotificationLoading");
-        const emptyEl = document.getElementById("mobileNotificationEmpty");
-        const listEl = document.getElementById("mobileNotificationList");
-
-        loadingEl.classList.remove("hidden");
-        emptyEl.classList.add("hidden");
-        listEl.classList.add("hidden");
-
-        try {
-          const response = await fetch(
-            `${API_BASE}/notifications?userId=${window.currentUser.id}&limit=20`,
-          );
-
-          if (!response.ok) throw new Error("Gagal memuat notifikasi");
-
-          const data = await response.json();
-          mobileNotifications = data.notifications || [];
-          mobileUnreadCount = data.unreadCount || 0;
-
-          loadingEl.classList.add("hidden");
-
-          if (mobileNotifications.length === 0) {
-            emptyEl.classList.remove("hidden");
-          } else {
-            renderMobileNotifications();
-            listEl.classList.remove("hidden");
-          }
-
-          updateMobileNotificationBadge();
-        } catch (error) {
-          console.error("Error loading mobile notifications:", error);
-          loadingEl.classList.add("hidden");
-          emptyEl.classList.remove("hidden");
-          emptyEl.innerHTML = `
-            <i class="fas fa-exclamation-circle text-4xl text-red-300 mb-3"></i>
-            <p class="text-sm text-red-500">Gagal memuat notifikasi</p>
-            <button onclick="loadMobileNotifications()" class="mt-2 text-xs text-emerald-600">
-              Coba lagi
-            </button>
-          `;
-        }
-      }
-
-      function renderMobileNotifications() {
-        const listEl = document.getElementById("mobileNotificationList");
-
-        listEl.innerHTML = mobileNotifications
-          .map((notif) => {
-            const isUnread = !notif.isRead;
-            const timeAgo = getTimeAgo(notif.createdAt);
-            const icon = getNotificationIcon(notif.type);
-
-            return `
-              <div class="p-3 bg-gray-50 rounded-lg ${isUnread ? "border-l-4 border-emerald-500" : ""} active:bg-gray-100 transition cursor-pointer"
-                   onclick="handleMobileNotificationClick(${notif.id}, '${notif.type}', ${notif.postId || "null"})">
-                <div class="flex gap-3">
-                  <div class="flex-shrink-0 w-8 h-8 rounded-full bg-${icon.bgColor} flex items-center justify-center">
-                    <i class="fas ${icon.icon} text-${icon.color}"></i>
-                  </div>
-                  <div class="flex-1">
-                    <div class="flex justify-between items-start">
-                      <p class="text-sm text-gray-800">${notif.message}</p>
-                      ${isUnread ? '<span class="w-2 h-2 bg-emerald-500 rounded-full"></span>' : ""}
-                    </div>
-                    <div class="flex items-center gap-2 mt-1">
-                      ${
-                        notif.fromUser
-                          ? `
-                            <img src="${notif.fromUser.fotoProfil || "/images/default-avatar.png"}" 
-                                 class="w-4 h-4 rounded-full object-cover">
-                            <span class="text-xs text-gray-500">${notif.fromUser.namaLengkap}</span>
-                          `
-                          : ""
-                      }
-                      <span class="text-xs text-gray-400">${timeAgo}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            `;
-          })
-          .join("");
-      }
-
-      async function handleMobileNotificationClick(
-        notificationId,
-        type,
-        postId,
-      ) {
-        await markNotificationRead([notificationId]);
-        await loadMobileNotifications();
-        updateMobileNotificationBadge();
-
-        if (postId) {
-          hideNotificationSheet();
-          setTimeout(() => {
-            window.location.href = `/post-detail.html?id=${postId}`;
-          }, 300);
-        }
-      }
-
-      function updateMobileNotificationBadge() {
-        const badge = document.querySelector(
-          '.nav-item[data-page="notifications"] .notification-badge',
-        );
-
-        if (mobileUnreadCount > 0) {
-          if (!badge) {
-            const notifItem = document.querySelector(
-              '.nav-item[data-page="notifications"]',
-            );
-            const badgeEl = document.createElement("span");
-            badgeEl.className =
-              "notification-badge absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center";
-            badgeEl.textContent =
-              mobileUnreadCount > 9 ? "9+" : mobileUnreadCount;
-            notifItem.style.position = "relative";
-            notifItem.appendChild(badgeEl);
-          } else {
-            badge.textContent =
-              mobileUnreadCount > 9 ? "9+" : mobileUnreadCount;
-            badge.classList.remove("hidden");
-          }
-        } else {
-          if (badge) badge.classList.add("hidden");
-        }
-      }
-
-      // ========== MARK ALL AS READ ==========
-      async function markAllNotificationsRead() {
-        if (!window.currentUser) return;
-
-        try {
-          // Gunakan endpoint yang benar
-          const response = await fetch(
-            `${API_BASE}/notifications/mark-all-read`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${localStorage.getItem("userToken")}`,
-              },
-              body: JSON.stringify({ userId: window.currentUser.id }),
-            },
-          );
-
-          if (response.ok) {
-            // Update semua notifikasi di frontend
-            if (window.mobileNotifications) {
-              window.mobileNotifications = window.mobileNotifications.map(
-                (n) => ({
-                  ...n,
-                  isRead: true,
-                }),
-              );
-              window.mobileUnreadCount = 0;
-            }
-
-            if (window.desktopNotifications) {
-              window.desktopNotifications = window.desktopNotifications.map(
-                (n) => ({
-                  ...n,
-                  isRead: true,
-                }),
-              );
-              window.desktopUnreadCount = 0;
-            }
-
-            // Render ulang
-            if (typeof renderMobileNotifications === "function") {
-              renderMobileNotifications();
-            }
-            if (typeof renderDesktopNotifications === "function") {
-              renderDesktopNotifications();
-            }
-
-            // Update badge
-            updateNotificationBadges();
-
-            // Tutup dropdown
-            const dropdown = document.getElementById("notificationDropdown");
-            if (dropdown) dropdown.classList.add("hidden");
-
-            showToast("Semua notifikasi telah dibaca", "success");
-          }
-        } catch (error) {
-          console.error("Error marking all notifications as read:", error);
-          showToast("Gagal menandai notifikasi", "error");
-        }
-      }
-
-      async function markAllMobileNotificationsRead() {
-        await markNotificationRead();
-        await loadMobileNotifications();
-      }
-
-      function toggleNotificationSheet() {
-        const sheet = document.getElementById("notificationSheet");
-        sheet.classList.toggle("show");
-
-        if (sheet.classList.contains("show")) {
-          loadMobileNotifications();
-          document.body.style.overflow = "hidden";
-        } else {
-          document.body.style.overflow = "";
-        }
-      }
-
-      function hideNotificationSheet() {
-        document.getElementById("notificationSheet").classList.remove("show");
-        document.body.style.overflow = "";
-      }
-
-      let sheetStartY = 0;
-      let sheetCurrentY = 0;
-
-      function setupSheetDrag() {
-        const sheet = document.getElementById("notificationSheet");
-        const handle = document.querySelector(".sheet-handle");
-
-        handle.addEventListener(
-          "touchstart",
-          (e) => {
-            sheetStartY = e.touches[0].clientY;
-          },
-          { passive: true },
-        );
-
-        handle.addEventListener(
-          "touchmove",
-          (e) => {
-            sheetCurrentY = e.touches[0].clientY;
-            const diff = sheetCurrentY - sheetStartY;
-
-            if (diff > 0) {
-              sheet.style.transform = `translateY(${diff}px)`;
-            }
-          },
-          { passive: true },
-        );
-
-        handle.addEventListener("touchend", () => {
-          const diff = sheetCurrentY - sheetStartY;
-
-          if (diff > 100) {
-            hideNotificationSheet();
-          }
-
-          sheet.style.transform = "";
-          sheetStartY = 0;
-          sheetCurrentY = 0;
-        });
-      }
-
-      document.addEventListener("DOMContentLoaded", setupSheetDrag);
-    </script>
-
-    <!-- Scripts -->
+    <!-- SCRIPTS -->
     <script src="js/config.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/loading.js"></script>
@@ -1830,89 +534,79 @@
     <script src="js/school.js"></script>
     <script src="js/create-post.js"></script>
     <script src="js/dashboard.js"></script>
+
     <script>
+      // Pull to Refresh
+      let startY = 0, currentY = 0, isPulling = false;
+      const ptrIndicator = document.getElementById('ptrIndicator');
+      const ptrText = document.getElementById('ptrText');
+
+      document.addEventListener('touchstart', (e) => {
+        if (window.scrollY === 0) { startY = e.touches[0].clientY; isPulling = true; }
+      }, { passive: true });
+
+      document.addEventListener('touchmove', (e) => {
+        if (!isPulling) return;
+        currentY = e.touches[0].clientY;
+        const diff = currentY - startY;
+        if (diff > 0 && diff < 100) {
+          ptrIndicator.classList.add('visible');
+          ptrText.textContent = diff > 50 ? 'Lepaskan untuk refresh' : 'Tarik untuk refresh';
+        } else if (diff >= 100) {
+          ptrText.textContent = 'Lepaskan untuk refresh';
+        }
+      }, { passive: true });
+
+      document.addEventListener('touchend', () => {
+        if (!isPulling) return;
+        const diff = currentY - startY;
+        if (diff >= 100) {
+          ptrText.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Memuat ulang...';
+          setTimeout(() => window.location.reload(), 500);
+        } else {
+          ptrIndicator.classList.remove('visible');
+        }
+        isPulling = false;
+        startY = 0; currentY = 0;
+      });
+
+      // Double tap to top
+      let lastTap = 0;
+      document.addEventListener('touchend', (e) => {
+        const now = Date.now();
+        if (now - lastTap < 300) window.scrollTo({ top: 0, behavior: 'smooth' });
+        lastTap = now;
+      });
+
+      // Hide bottom nav on scroll (mobile)
+      let lastScrollTop = 0;
+      const bottomNav = document.querySelector('.bottom-nav');
+      window.addEventListener('scroll', () => {
+        const scrollTop = window.pageYOffset;
+        if (scrollTop > lastScrollTop && scrollTop > 100) {
+          bottomNav.style.transform = 'translateY(100%)';
+        } else {
+          bottomNav.style.transform = 'translateY(0)';
+        }
+        lastScrollTop = scrollTop;
+      });
+
       // Heartbeat
       function startHeartbeat() {
         if (!window.currentUser) return;
-
         setInterval(async () => {
           try {
-            await fetch(
-              `${API_BASE}/users/${window.currentUser.id}/heartbeat`,
-              {
-                method: "POST",
-                headers: {
-                  Authorization: `Bearer ${localStorage.getItem("userToken")}`,
-                },
-              },
-            );
-          } catch (error) {
-            console.error("Heartbeat error:", error);
-          }
+            await fetch(`${API_BASE}/users/${window.currentUser.id}/heartbeat`, {
+              method: 'POST', headers: { Authorization: `Bearer ${localStorage.getItem('userToken')}` }
+            });
+          } catch (error) { console.error('Heartbeat error:', error); }
         }, 120000);
-
         fetch(`${API_BASE}/users/${window.currentUser.id}/heartbeat`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("userToken")}`,
-          },
-        }).catch((error) => console.error("Initial heartbeat error:", error));
+          method: 'POST', headers: { Authorization: `Bearer ${localStorage.getItem('userToken')}` }
+        }).catch(e => console.error(e));
       }
 
-      // Share functions
-      window.shareToWhatsApp = function (post) {
-        try {
-          const postData = typeof post === "string" ? JSON.parse(post) : post;
-          const text = `${postData.judul}\n\n${postData.konten.substring(0, 100)}...\n\nDibaca selengkapnya di LebaranQu`;
-          const url = `https://wa.me/?text=${encodeURIComponent(text)}%20${encodeURIComponent(window.location.origin + "/?post=" + postData.id)}`;
-          window.open(url, "_blank");
-        } catch (error) {
-          console.error("WhatsApp share error:", error);
-          showToast("Gagal membagikan ke WhatsApp", "error");
-        }
-      };
-
-      window.shareToFacebook = function (post) {
-        try {
-          const postData = typeof post === "string" ? JSON.parse(post) : post;
-          const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.origin + "/?post=" + postData.id)}&quote=${encodeURIComponent(postData.judul)}`;
-          window.open(url, "_blank");
-        } catch (error) {
-          console.error("Facebook share error:", error);
-          showToast("Gagal membagikan ke Facebook", "error");
-        }
-      };
-
-      window.shareToTwitter = function (post) {
-        try {
-          const postData = typeof post === "string" ? JSON.parse(post) : post;
-          const text = `${postData.judul}`;
-          const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(window.location.origin + "/?post=" + postData.id)}`;
-          window.open(url, "_blank");
-        } catch (error) {
-          console.error("Twitter share error:", error);
-          showToast("Gagal membagikan ke Twitter", "error");
-        }
-      };
-
-      window.shareToInstagram = function (post) {
-        try {
-          const postData = typeof post === "string" ? JSON.parse(post) : post;
-          const text = `${postData.judul}\n\n${window.location.origin}/?post=${postData.id}`;
-          navigator.clipboard
-            .writeText(text)
-            .then(() =>
-              showToast(
-                "Link berhasil disalin! Silakan paste di Instagram",
-                "success",
-              ),
-            )
-            .catch(() => showToast("Gagal menyalin link", "error"));
-        } catch (error) {
-          console.error("Instagram share error:", error);
-          showToast("Gagal memproses link Instagram", "error");
-        }
-      };
+      window.startHeartbeat = startHeartbeat;
     </script>
   </body>
 </html>
