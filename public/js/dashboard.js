@@ -55,7 +55,7 @@ function cleanup() {
   }
 }
 
-// ========== CHECK APAKAH SEMUA FUNGSI PENTING TERSEDIA ==========
+// ========== CHECK DEPENDENCIES ==========
 function checkDependencies() {
   const requiredFunctions = [
     'setupSearchAndFilters',
@@ -68,14 +68,27 @@ function checkDependencies() {
     'startHeartbeat'
   ];
   
-  const missing = requiredFunctions.filter(fn => typeof window[fn] !== 'function' && typeof eval(fn) !== 'function');
+  const missing = [];
+  
+  for (const fn of requiredFunctions) {
+    if (typeof window[fn] !== 'function') {
+      missing.push(fn);
+    }
+  }
   
   if (missing.length > 0) {
     console.warn("⚠️ Missing functions:", missing);
-    return false;
+    
+    // Coba cek di global scope juga
+    for (const fn of missing) {
+      if (typeof eval(fn) === 'function') {
+        window[fn] = eval(fn);
+        console.log(`✅ Fixed: ${fn} moved to window`);
+      }
+    }
   }
   
-  return true;
+  return missing.length === 0;
 }
 
 // ========== INIT DASHBOARD ==========

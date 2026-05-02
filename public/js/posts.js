@@ -10,7 +10,7 @@ let selectedPostId = null;
 
 let isLoadingPosts = false;
 let hasMorePosts = true;
-const POSTS_PER_PAGE = 10; // <-- HARUS DITAMBAHKAN!
+const POSTS_PER_PAGE = window.POSTS_PER_PAGE || 5; // <-- HARUS DITAMBAHKAN!
 
 let searchQuery = "";
 let selectedUser = "";
