@@ -31,44 +31,21 @@
         padding-bottom: calc(var(--bottom-nav-height) + var(--safe-area-bottom));
       }
 
-      /* Desktop styles */
       @media (min-width: 768px) {
-        body {
-          padding-bottom: 0;
-        }
-        .desktop-nav {
-          display: block;
-        }
-        .bottom-nav {
-          display: none;
-        }
-        .container {
-          max-width: 1200px;
-          margin: 0 auto;
-        }
+        body { padding-bottom: 0; }
+        .desktop-nav { display: block; }
+        .bottom-nav { display: none; }
+        .container { max-width: 1200px; margin: 0 auto; }
       }
 
-      /* Mobile styles */
       @media (max-width: 767px) {
-        .desktop-nav {
-          display: none;
-        }
-        .bottom-nav {
-          display: flex;
-        }
-        .container {
-          padding-left: 1rem;
-          padding-right: 1rem;
-        }
-        .greeting-card {
-          padding: 1.5rem;
-        }
-        .greeting-card h2 {
-          font-size: 2rem;
-        }
+        .desktop-nav { display: none; }
+        .bottom-nav { display: flex; }
+        .container { padding-left: 1rem; padding-right: 1rem; }
+        .greeting-card { padding: 1.5rem; }
+        .greeting-card h2 { font-size: 2rem; }
       }
 
-      /* Bottom Navigation */
       .bottom-nav {
         position: fixed;
         bottom: 0;
@@ -99,83 +76,49 @@
         cursor: pointer;
       }
 
-      .nav-item.active {
-        color: #10b981;
-      }
+      .nav-item.active { color: #10b981; }
+      .nav-item i { font-size: 1.5rem; }
+      .nav-item span { font-size: 0.7rem; font-weight: 500; }
 
-      .nav-item i {
-        font-size: 1.5rem;
-      }
-
-      .nav-item span {
-        font-size: 0.7rem;
-        font-weight: 500;
-      }
-
-      /* Post Card */
       .post-card {
         transition: all 0.3s ease;
         cursor: pointer;
       }
-
       .post-card:hover {
         transform: translateY(-4px);
         box-shadow: 0 20px 25px -12px rgba(0, 0, 0, 0.15);
       }
+      .post-card:active { transform: scale(0.98); }
 
-      .post-card:active {
-        transform: scale(0.98);
-      }
-
-      /* Greeting Card */
       .greeting-card {
         position: relative;
         overflow: hidden;
         border-radius: 24px;
       }
 
-      .arabic {
-        font-family: 'Amiri', serif;
-      }
+      .arabic { font-family: 'Amiri', serif; }
 
-      .moon-icon {
-        animation: float 3s ease-in-out infinite;
-      }
-
+      .moon-icon { animation: float 3s ease-in-out infinite; }
       @keyframes float {
         0%, 100% { transform: translateY(0); }
         50% { transform: translateY(-10px); }
       }
 
-      /* Loading Animation */
       @keyframes spin {
         from { transform: rotate(0deg); }
         to { transform: rotate(360deg); }
       }
+      .animate-spin { animation: spin 1s linear infinite; }
 
-      .animate-spin {
-        animation: spin 1s linear infinite;
-      }
+      .like-button { transition: all 0.2s ease; }
+      .like-button:active { transform: scale(0.95); }
 
-      .like-button {
-        transition: all 0.2s ease;
-      }
-
-      .like-button:active {
-        transform: scale(0.95);
-      }
-
-      /* Leaderboard */
-      .leaderboard-item {
-        transition: all 0.3s ease;
-      }
-
+      .leaderboard-item { transition: all 0.3s ease; }
       .leaderboard-item:hover {
         transform: translateX(5px);
         background-color: #f9fafb;
       }
 
-      /* Notification badge */
       .notification-badge {
         position: absolute;
         top: -2px;
@@ -192,7 +135,6 @@
         justify-content: center;
       }
 
-      /* Bottom Sheet */
       .bottom-sheet {
         position: fixed;
         bottom: 0;
@@ -207,11 +149,7 @@
         overflow-y: auto;
         box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
       }
-
-      .bottom-sheet.show {
-        transform: translateY(0);
-      }
-
+      .bottom-sheet.show { transform: translateY(0); }
       .sheet-handle {
         width: 40px;
         height: 4px;
@@ -246,7 +184,6 @@
           </div>
 
           <div class="flex items-center gap-4">
-            <!-- Notifikasi Bell -->
             <div class="relative">
               <button onclick="toggleNotificationDropdown()" class="relative p-2 text-gray-600 hover:text-emerald-600 transition">
                 <i class="fas fa-bell text-xl"></i>
@@ -383,7 +320,7 @@
           </div>
         </div>
 
-        <!-- POSTS SECTION (Tanpa Sidebar) -->
+        <!-- POSTS SECTION -->
         <div class="bg-white rounded-2xl shadow-lg p-6">
           <div class="flex justify-between items-center mb-6">
             <h2 class="text-xl md:text-2xl font-bold text-gray-800 flex items-center gap-2">
@@ -414,9 +351,7 @@
           </div>
 
           <!-- Posts List -->
-          <div id="postsList" class="space-y-4">
-            <!-- Posts akan di-load di sini -->
-          </div>
+          <div id="postsList" class="space-y-4"></div>
 
           <!-- Pagination -->
           <div id="paginationContainer" class="flex justify-center items-center gap-2 mt-6"></div>
@@ -518,12 +453,12 @@
       </div>
     </footer>
 
-    <!-- SCRIPTS -->
+    <!-- SCRIPTS - Urutan sangat penting! -->
     <script src="js/config.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/loading.js"></script>
     <script src="js/like-system.js"></script>
-    <script src="js/auth.js"></script>
+    <script src="js/auth.js"></script>        <!-- HARUS sebelum yang lain -->
     <script src="js/realtime.js"></script>
     <script src="js/likes.js"></script>
     <script src="js/leaderboard.js"></script>

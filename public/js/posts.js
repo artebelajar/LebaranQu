@@ -10,7 +10,7 @@ let selectedPostId = null;
 
 let isLoadingPosts = false;
 let hasMorePosts = true;
-// const POSTS_PER_PAGE = 10;
+const POSTS_PER_PAGE = 10; // <-- HARUS DITAMBAHKAN!
 
 let searchQuery = "";
 let selectedUser = "";
@@ -88,14 +88,14 @@ function updateActiveFilters() {
   let filters = [];
   if (searchQuery) {
     filters.push(
-      `<span class="bg-emerald-100 text-emerald-800 px-2 py-1 rounded-full text-xs">Pencarian: "${searchQuery}"</span>`,
+      `<span class="bg-emerald-100 text-emerald-800 px-2 py-1 rounded-full text-xs">Pencarian: "${escapeHtml(searchQuery)}"</span>`,
     );
   }
   if (selectedUser) {
     const user = allUsers.find((u) => u.id === parseInt(selectedUser));
     if (user) {
       filters.push(
-        `<span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">Penulis: ${user.namaLengkap}</span>`,
+        `<span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">Penulis: ${escapeHtml(user.namaLengkap)}</span>`,
       );
     }
   }
@@ -117,13 +117,11 @@ function updateActiveFilters() {
 function applyFiltersAndRender() {
   const filtered = filterPostsBySearch();
   filteredPosts = sortPosts(filtered);
-  totalPosts = filteredPosts.length; // PASTIKAN INI TERUPDATE
+  totalPosts = filteredPosts.length;
 
-  // console.log("Total posts after filter:", totalPosts); // Debug
-
-  currentPage = 1; // Reset ke halaman 1
+  currentPage = 1;
   renderFilteredPosts();
-  renderPagination(); // PANGGIL PAGINATION!
+  renderPagination();
   updateActiveFilters();
 }
 
@@ -143,8 +141,35 @@ function renderFilteredPosts() {
     </div>`;
   } else {
     postsList.innerHTML = currentPosts.map((post) => {
-      const isLiked = userLikes.has(post.id);
-      const isOnline = onlineStatus[post.user?.id]?.online || false;
+      // Fallback untuk userLikes
+      let isLiked = false;
+      if (window.userLikes) {
+        isLiked = window.userLikes.has(post.id);
+      } else if (window.LikeSystem && window.LikeSystem.isLiked) {
+        isLiked = window.LikeSystem.isLiked(post.id);
+      }
+      
+      // Fallback untuk onlineStatus
+      const isOnline = (window.onlineStatus && window.onlineStatus[post.user?.id]?.online) || false;
+      
+      // Get school color and name dari window
+      const schoolColor = (window.getSchoolColor && window.getSchoolColor(post.user?.asalSekolah)) || 'bg-gray-100 text-gray-800';
+      const schoolName = (window.getSchoolName && window.getSchoolName(post.user?.asalSekolah)) || post.user?.asalSekolah || '-';
+      
+      // Format date dengan fallback
+      let formattedDate = '-';
+      if (window.formatDate && post.createdAt) {
+        formattedDate = window.formatDate(post.createdAt);
+      } else if (post.createdAt) {
+        formattedDate = new Date(post.createdAt).toLocaleDateString('id-ID');
+      }
+      
+      let formattedTime = '-';
+      if (window.formatTime && post.createdAt) {
+        formattedTime = window.formatTime(post.createdAt);
+      } else if (post.createdAt) {
+        formattedTime = new Date(post.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+      }
 
       return `
         <div class="bg-white rounded-xl shadow p-6 post-card cursor-pointer hover:shadow-lg transition-all duration-300" 
@@ -162,18 +187,18 @@ function renderFilteredPosts() {
               <div>
                 <h3 class="font-semibold text-gray-800"
                     onclick="event.stopPropagation(); window.goToProfile(${post.user?.id})">
-                  ${post.user?.namaLengkap || "Unknown"}
+                  ${escapeHtml(post.user?.namaLengkap || "Unknown")}
                 </h3>
-                <p class="text-xs text-gray-500">${post.user?.title || "Alumni"} • ${formatDate(post.createdAt)}</p>
+                <p class="text-xs text-gray-500">${escapeHtml(post.user?.title || "Alumni")} • ${formattedDate}</p>
               </div>
             </div>
-            <span class="px-2 py-1 text-xs rounded-full ${getSchoolColor(post.user?.asalSekolah)}">
-              ${getSchoolName(post.user?.asalSekolah)}
+            <span class="px-2 py-1 text-xs rounded-full ${schoolColor}">
+              ${escapeHtml(schoolName)}
             </span>
           </div>
-          <h4 class="font-bold text-xl mt-4">${post.judul}</h4>
-          <p class="text-gray-600 mt-2 line-clamp-3">${post.konten.substring(0, 200)}${post.konten.length > 200 ? "..." : ""}</p>
-          ${post.gambar ? `<img src="${post.gambar}" class="mt-4 rounded-lg max-h-48 object-cover w-full">` : ""}
+          <h4 class="font-bold text-xl mt-4">${escapeHtml(post.judul)}</h4>
+          <p class="text-gray-600 mt-2 line-clamp-3">${escapeHtml(post.konten.substring(0, 200))}${post.konten.length > 200 ? "..." : ""}</p>
+          ${post.gambar ? `<img src="${post.gambar}" class="mt-4 rounded-lg max-h-48 object-cover w-full" onerror="this.style.display='none'">` : ""}
           <div class="flex items-center justify-between mt-4 pt-4 border-t">
             <div class="flex items-center space-x-4">
               <button onclick="event.stopPropagation(); window.handleLike(${post.id})" 
@@ -188,7 +213,7 @@ function renderFilteredPosts() {
                 <i class="fas fa-comment mr-1"></i> ${post.commentCount || 0}
               </span>
             </div>
-            <span class="text-xs text-gray-400"><i class="fas fa-clock mr-1"></i> ${formatTime(post.createdAt)}</span>
+            <span class="text-xs text-gray-400"><i class="fas fa-clock mr-1"></i> ${formattedTime}</span>
           </div>
         </div>
       `;
@@ -199,26 +224,13 @@ function renderFilteredPosts() {
 // ========== RENDER PAGINATION ==========
 function renderPagination() {
   const paginationContainer = document.getElementById("paginationContainer");
-  // console.log("Total posts:", totalPosts);
-  // console.log("Posts per page:", POSTS_PER_PAGE);
-  // console.log("Total pages:", Math.ceil(totalPosts / POSTS_PER_PAGE));
-  // console.log(
-  //   "Pagination container:",
-  //   document.getElementById("paginationContainer"),
-  // );
-
-  // Jika container tidak ada, exit
   if (!paginationContainer) {
     console.warn("Pagination container not found");
     return;
   }
 
   const totalPages = Math.ceil(totalPosts / POSTS_PER_PAGE);
-  // console.log(
-  //   `Rendering pagination: totalPosts=${totalPosts}, POSTS_PER_PAGE=${POSTS_PER_PAGE}, totalPages=${totalPages}`,
-  // );
 
-  // Jika hanya 1 halaman atau tidak ada posts, sembunyikan pagination
   if (totalPages <= 1 || totalPosts === 0) {
     paginationContainer.innerHTML = "";
     return;
@@ -232,7 +244,6 @@ function renderPagination() {
     </button>
   `;
 
-  // Tampilkan halaman pertama jika currentPage > 3
   if (currentPage > 3) {
     paginationHTML += `
       <button onclick="window.changePage(1)" class="px-3 py-1 rounded-lg border hover:bg-gray-100">1</button>
@@ -240,12 +251,7 @@ function renderPagination() {
     `;
   }
 
-  // Tampilkan halaman di sekitar currentPage
-  for (
-    let i = Math.max(1, currentPage - 2);
-    i <= Math.min(totalPages, currentPage + 2);
-    i++
-  ) {
+  for (let i = Math.max(1, currentPage - 2); i <= Math.min(totalPages, currentPage + 2); i++) {
     paginationHTML += `
       <button onclick="window.changePage(${i})" 
               class="px-3 py-1 rounded-lg border ${i === currentPage ? "bg-emerald-600 text-white" : "hover:bg-gray-100"}">
@@ -254,7 +260,6 @@ function renderPagination() {
     `;
   }
 
-  // Tampilkan halaman terakhir jika currentPage < totalPages - 2
   if (currentPage < totalPages - 2) {
     paginationHTML += `
       <span class="px-2">...</span>
@@ -277,25 +282,14 @@ function renderPagination() {
 function changePage(newPage) {
   const totalPages = Math.ceil(totalPosts / POSTS_PER_PAGE);
 
-  // console.log(
-  //   `Changing page from ${currentPage} to ${newPage}, totalPages: ${totalPages}`,
-  // );
-
-  // Validasi
   if (newPage < 1 || newPage > totalPages || newPage === currentPage) {
-    // console.log("Page change cancelled - invalid or same page");
     return;
   }
 
   currentPage = newPage;
-
-  // Render posts untuk halaman baru
   renderFilteredPosts();
-
-  // Update pagination
   renderPagination();
 
-  // Scroll ke atas posts list
   const postsList = document.getElementById("postsList");
   if (postsList) {
     postsList.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -319,62 +313,28 @@ function clearAllFilters() {
   applyFiltersAndRender();
 }
 
-// ========== FILTER POSTS (by sekolah) ==========
-function filterPosts(sekolah) {
-  // console.log("Filtering posts by sekolah:", sekolah);
-  if (!isAdmin && sekolah !== currentUser?.asalSekolah) return;
-
-  // Update currentFilter jika ada
-  if (typeof currentFilter !== "undefined") {
-    currentFilter = sekolah;
-  }
-
-  // Update active button
-  document.querySelectorAll(".filter-btn").forEach((btn) => {
-    btn.classList.remove("bg-emerald-600", "text-white");
-    btn.classList.add("bg-gray-100", "text-gray-700");
-  });
-
-  // Find and update the clicked button
-  const buttons = document.querySelectorAll(".filter-btn");
-  for (let btn of buttons) {
-    if (
-      btn.textContent.includes(getSchoolName(sekolah)) ||
-      (sekolah === "all" && btn.textContent.includes("Semua"))
-    ) {
-      btn.classList.remove("bg-gray-100", "text-gray-700");
-      btn.classList.add("bg-emerald-600", "text-white");
-      break;
-    }
-  }
-
-  loadAllPosts();
-}
-
-// ========== LOAD ALL POSTS DENGAN MULTIPLE REQUESTS ==========
+// ========== LOAD ALL POSTS ==========
 async function loadAllPosts() {
   try {
     let allPostsData = [];
     let page = 1;
     let hasMore = true;
+    const limit = 100;
 
     while (hasMore) {
-      const url = `${API_BASE}/posts?page=${page}&limit=100`;
-      // console.log(`Loading page ${page}...`);
-
+      const url = `${API_BASE}/posts?page=${page}&limit=${limit}`;
       const response = await fetch(url);
       if (!response.ok) throw new Error(`HTTP error ${response.status}`);
 
       const result = await response.json();
 
-      // Handle response
       let postsBatch = [];
       if (result.data && Array.isArray(result.data)) {
         postsBatch = result.data;
-        hasMore = result.data.length === 100; // Jika limit tercapai, mungkin masih ada
+        hasMore = result.data.length === limit;
       } else if (Array.isArray(result)) {
         postsBatch = result;
-        hasMore = result.length === 100;
+        hasMore = result.length === limit;
       } else {
         hasMore = false;
       }
@@ -382,8 +342,13 @@ async function loadAllPosts() {
       allPostsData = [...allPostsData, ...postsBatch];
       page++;
 
-      // Hentikan jika batch kosong
       if (postsBatch.length === 0) {
+        hasMore = false;
+      }
+      
+      // Safety limit
+      if (page > 10) {
+        console.warn("Too many pages, stopping");
         hasMore = false;
       }
     }
@@ -391,148 +356,22 @@ async function loadAllPosts() {
     allPosts = allPostsData;
     totalPosts = allPosts.length;
 
-    // console.log("Total posts loaded:", totalPosts);
-
     await loadAllUsers();
     applyFiltersAndRender();
   } catch (error) {
     console.error("Error loading posts:", error);
-  }
-}
-
-// ========== SELECT POST ==========
-async function selectPost(postId) {
-  // console.log(`Selecting post ${postId}`);
-
-  // Deteksi apakah mobile (lebar layar < 768px)
-  const isMobile = window.innerWidth < 768;
-
-  if (isMobile) {
-    // Di mobile: redirect ke halaman detail
-    window.location.href = `/post-detail.html?id=${postId}`;
-    return;
-  }
-
-  // Di desktop: tampilkan di sidebar
-  selectedPostId = postId;
-
-  if (typeof renderFilteredPosts === "function") {
-    renderFilteredPosts();
-  } else if (typeof renderPosts === "function") {
-    renderPosts();
-  }
-
-  // Track view
-  try {
-    const viewResponse = await fetch(`${API_BASE}/posts/${postId}/view`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${localStorage.getItem("userToken")}`,
-      },
-      body: JSON.stringify({ userId: currentUser.id }),
-    });
-
-    if (viewResponse.ok) {
-      const viewData = await viewResponse.json();
-      const postIndex = allPosts.findIndex((p) => p.id === postId);
-      if (postIndex !== -1) {
-        allPosts[postIndex].viewCount = viewData.viewCount;
-      }
-
-      if (typeof renderFilteredPosts === "function") {
-        renderFilteredPosts();
-      } else if (typeof renderPosts === "function") {
-        renderPosts();
-      }
-    }
-  } catch (error) {
-    console.error("Error tracking view:", error);
-  }
-
-  // Render post detail di sidebar (untuk desktop)
-  if (typeof renderPostDetail === "function") {
-    await renderPostDetail(postId);
-  }
-}
-
-// ========== DEBOUNCE IMPROVED ==========
-function debounce(func, wait) {
-  let timeout;
-  let lastArgs;
-
-  return function executedFunction(...args) {
-    lastArgs = args;
-
-    const later = () => {
-      timeout = null;
-      if (!timeout) func.apply(this, lastArgs);
-    };
-
-    clearTimeout(timeout);
-    timeout = setTimeout(later, wait);
-  };
-}
-
-// ========== CACHE DATA DI LOCALSTORAGE ==========
-const cache = {
-  set(key, data, ttl = 300000) {
-    // 5 menit default
-    const item = {
-      data,
-      timestamp: Date.now(),
-      ttl,
-    };
-    localStorage.setItem(key, JSON.stringify(item));
-  },
-
-  get(key) {
-    const item = localStorage.getItem(key);
-    if (!item) return null;
-
-    const { data, timestamp, ttl } = JSON.parse(item);
-    if (Date.now() - timestamp > ttl) {
-      localStorage.removeItem(key);
-      return null;
-    }
-
-    return data;
-  },
-
-  clear() {
-    localStorage.clear();
-  },
-};
-
-// Gunakan untuk data yang jarang berubah
-async function loadSchoolInfo() {
-  const cached = cache.get("schoolInfo");
-  if (cached) {
-    document.getElementById("schoolInfo").innerHTML = cached;
-    return;
-  }
-
-  // Load from API
-  const html = await generateSchoolInfo();
-  cache.set("schoolInfo", html);
-  document.getElementById("schoolInfo").innerHTML = html;
-}
-
-// Gunakan untuk search dengan 300ms delay
-const debouncedSearch = debounce((query) => {
-  searchPosts(query);
-}, 300);
-
-// Tambahkan event listener untuk resize window
-window.addEventListener("resize", function () {
-  // Jika resize dari mobile ke desktop, reload posts
-  if (window.innerWidth >= 768 && selectedPostId) {
-    // Refresh post list untuk menampilkan sidebar
-    if (typeof renderFilteredPosts === "function") {
-      renderFilteredPosts();
+    const postsList = document.getElementById("postsList");
+    if (postsList) {
+      postsList.innerHTML = `
+        <div class="text-center py-12 bg-white rounded-xl">
+          <i class="fas fa-exclamation-triangle text-4xl text-red-400 mb-3"></i>
+          <p class="text-gray-500">Gagal memuat postingan</p>
+          <button onclick="loadAllPosts()" class="mt-4 text-emerald-600 hover:text-emerald-800">Coba Lagi</button>
+        </div>
+      `;
     }
   }
-});
+}
 
 // ========== SETUP SEARCH AND FILTERS ==========
 function setupSearchAndFilters() {
@@ -564,44 +403,25 @@ function setupSearchAndFilters() {
   }
 }
 
-function initInfiniteScroll() {
-  const observer = new IntersectionObserver(
-    async (entries) => {
-      const target = entries[0];
-      if (target.isIntersecting && hasMorePosts && !isLoadingPosts) {
-        await loadMorePosts();
-      }
-    },
-    { threshold: 0.5 },
-  );
-
-  const sentinel = document.getElementById("scroll-sentinel");
-  if (sentinel) observer.observe(sentinel);
+// ========== DEBOUNCE ==========
+function debounce(func, wait) {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
 }
 
-async function loadMorePosts() {
-  if (isLoadingPosts || !hasMorePosts) return;
-
-  isLoadingPosts = true;
-  currentPage++;
-
-  try {
-    const response = await fetch(
-      `${API_BASE}/posts?page=${currentPage}&limit=${POSTS_PER_PAGE}`,
-    );
-    const data = await response.json();
-
-    if (data.data.length === 0) {
-      hasMorePosts = false;
-      return;
-    }
-
-    appendPosts(data.data);
-  } catch (error) {
-    console.error("Error loading more posts:", error);
-  } finally {
-    isLoadingPosts = false;
-  }
+// ========== ESCAPE HTML ==========
+function escapeHtml(text) {
+  if (!text) return '';
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
 }
 
 // ========== EXPORT FUNCTIONS ==========
@@ -612,3 +432,6 @@ window.clearAllFilters = clearAllFilters;
 window.changePage = changePage;
 window.setupSearchAndFilters = setupSearchAndFilters;
 window.renderFilteredPosts = renderFilteredPosts;
+window.applyFiltersAndRender = applyFiltersAndRender;
+
+console.log("✅ Posts.js loaded");

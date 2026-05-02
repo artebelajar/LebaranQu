@@ -1,6 +1,5 @@
 // ===================================================
 // FILE: public/js/notifications.js
-// FILE: public/js/notifications.js
 // ===================================================
 
 let notifications = [];
@@ -13,35 +12,15 @@ function getNotificationIcon(type) {
     case "like":
       return { icon: "fa-heart", color: "text-red-500", bgColor: "red-100" };
     case "comment":
-      return {
-        icon: "fa-comment",
-        color: "text-blue-500",
-        bgColor: "blue-100",
-      };
+      return { icon: "fa-comment", color: "text-blue-500", bgColor: "blue-100" };
     case "rank_up":
-      return {
-        icon: "fa-arrow-up",
-        color: "text-emerald-500",
-        bgColor: "emerald-100",
-      };
+      return { icon: "fa-arrow-up", color: "text-emerald-500", bgColor: "emerald-100" };
     case "rank_down":
-      return {
-        icon: "fa-arrow-down",
-        color: "text-yellow-500",
-        bgColor: "yellow-100",
-      };
+      return { icon: "fa-arrow-down", color: "text-yellow-500", bgColor: "yellow-100" };
     case "event":
-      return {
-        icon: "fa-calendar-alt",
-        color: "text-purple-500",
-        bgColor: "purple-100",
-      };
+      return { icon: "fa-calendar-alt", color: "text-purple-500", bgColor: "purple-100" };
     case "achievement":
-      return {
-        icon: "fa-trophy",
-        color: "text-amber-500",
-        bgColor: "amber-100",
-      };
+      return { icon: "fa-trophy", color: "text-amber-500", bgColor: "amber-100" };
     default:
       return { icon: "fa-bell", color: "text-gray-500", bgColor: "gray-100" };
   }
@@ -82,8 +61,6 @@ async function loadNotifications() {
   try {
     if (!window.currentUser) return;
     
-    if (!window.currentUser) return;
-    
     const response = await fetch(
       `${API_BASE}/notifications?userId=${window.currentUser.id}&limit=20`,
       {
@@ -91,14 +68,7 @@ async function loadNotifications() {
           Authorization: `Bearer ${localStorage.getItem("userToken")}`,
         },
       }
-      `${API_BASE}/notifications?userId=${window.currentUser.id}&limit=20`,
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("userToken")}`,
-        },
-      }
     );
-    
     
     if (!response.ok) throw new Error("Gagal memuat notifikasi");
     
@@ -115,7 +85,6 @@ async function loadNotifications() {
 }
 
 // ========== RENDER NOTIFICATIONS (DESKTOP) ==========
-// ========== RENDER NOTIFICATIONS (DESKTOP) ==========
 function renderNotifications() {
   const notificationList = document.getElementById("notificationList");
   if (!notificationList) return;
@@ -125,15 +94,11 @@ function renderNotifications() {
     return;
   }
   
-  notificationList.innerHTML = notifications
-    .slice(0, 5)
-    .slice(0, 5)
-    .map((notif) => {
-      const isUnread = !notif.isRead;
-      const timeAgo = getTimeAgo(notif.createdAt);
-      const icon = getNotificationIcon(notif.type);
-      const icon = getNotificationIcon(notif.type);
-      return `
+  notificationList.innerHTML = notifications.slice(0, 5).map((notif) => {
+    const isUnread = !notif.isRead;
+    const timeAgo = getTimeAgo(notif.createdAt);
+    const icon = getNotificationIcon(notif.type);
+    return `
       <div class="p-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition ${isUnread ? "bg-emerald-50" : ""}"
            onclick="handleNotificationClick(${notif.id}, '${notif.type}', ${notif.postId || "null"})">
         <div class="flex gap-3">
@@ -142,20 +107,18 @@ function renderNotifications() {
           </div>
           <div class="flex-1">
             <div class="flex justify-between items-start">
-              <p class="text-sm text-gray-800">${notif.message}</p>
-              ${isUnread ? '<span class="w-2 h-2 bg-emerald-500 rounded-full ml-1"></span>' : ''}
+              <p class="text-sm text-gray-800">${escapeHtml(notif.message)}</p>
               ${isUnread ? '<span class="w-2 h-2 bg-emerald-500 rounded-full ml-1"></span>' : ''}
             </div>
             <div class="flex items-center gap-2 mt-1">
-              ${notif.fromUser ? `<img src="${notif.fromUser.fotoProfil || "/images/default-avatar.png"}" class="w-4 h-4 rounded-full"><span class="text-xs text-gray-500">${notif.fromUser.namaLengkap}</span>` : ""}
+              ${notif.fromUser ? `<img src="${notif.fromUser.fotoProfil || "/images/default-avatar.png"}" class="w-4 h-4 rounded-full"><span class="text-xs text-gray-500">${escapeHtml(notif.fromUser.namaLengkap)}</span>` : ""}
               <span class="text-xs text-gray-400">${timeAgo}</span>
             </div>
           </div>
         </div>
       </div>
     `;
-    })
-    .join("");
+  }).join("");
 }
 
 // ========== TOGGLE NOTIFICATION DROPDOWN ==========
@@ -163,9 +126,6 @@ function toggleNotificationDropdown() {
   const dropdown = document.getElementById("notificationDropdown");
   if (dropdown) {
     dropdown.classList.toggle("hidden");
-    if (!dropdown.classList.contains("hidden")) {
-      loadNotifications();
-    }
     if (!dropdown.classList.contains("hidden")) {
       loadNotifications();
     }
@@ -284,6 +244,36 @@ function getTimeAgo(timestamp) {
   return `${diffDays} hari lalu`;
 }
 
+// ========== ESCAPE HTML ==========
+function escapeHtml(text) {
+  if (!text) return '';
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+// ========== START AUTO-REFRESH NOTIFICATIONS ==========
+function startNotificationAutoRefresh(intervalMs = 30000) {
+  if (notificationInterval) clearInterval(notificationInterval);
+  
+  notificationInterval = setInterval(() => {
+    if (document.visibilityState === 'visible') {
+      loadNotifications();
+    }
+  }, intervalMs);
+  
+  console.log(`📢 Notification auto-refresh started (${intervalMs / 1000}s)`);
+}
+
+// ========== STOP AUTO-REFRESH ==========
+function stopNotificationAutoRefresh() {
+  if (notificationInterval) {
+    clearInterval(notificationInterval);
+    notificationInterval = null;
+    console.log("📢 Notification auto-refresh stopped");
+  }
+}
+
 // ========== EXPORT ==========
 window.loadNotifications = loadNotifications;
 window.renderNotifications = renderNotifications;
@@ -295,3 +285,7 @@ window.viewAllNotifications = viewAllNotifications;
 window.getNotificationIcon = getNotificationIcon;
 window.updateMobileNotificationBadge = updateMobileNotificationBadge;
 window.updateNotificationBadges = updateNotificationBadges;
+window.startNotificationAutoRefresh = startNotificationAutoRefresh;
+window.stopNotificationAutoRefresh = stopNotificationAutoRefresh;
+
+console.log("✅ Notifications.js loaded");
