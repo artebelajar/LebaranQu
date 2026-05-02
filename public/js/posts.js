@@ -1,6 +1,10 @@
 // ===================================================
-// FILE: posts.js - Semua Fungsi Terkait Posts
+// FILE: public/js/posts.js - UI Frontend
 // ===================================================
+
+// HAPUS deklarasi POSTS_PER_PAGE di sini, gunakan dari config.js
+// Jangan tulis: const POSTS_PER_PAGE = 10;
+// Gunakan yang sudah ada di config.js
 
 let currentPage = 1;
 let totalPosts = 0;
@@ -10,7 +14,6 @@ let selectedPostId = null;
 
 let isLoadingPosts = false;
 let hasMorePosts = true;
-const POSTS_PER_PAGE = window.POSTS_PER_PAGE || 5; // <-- HARUS DITAMBAHKAN!
 
 let searchQuery = "";
 let selectedUser = "";
@@ -125,6 +128,35 @@ function applyFiltersAndRender() {
   updateActiveFilters();
 }
 
+// ========== FILTER POSTS BY SCHOOL ==========
+function filterPosts(sekolah) {
+  console.log("Filtering posts by sekolah:", sekolah);
+  
+  // Update currentFilter jika ada
+  if (typeof currentFilter !== "undefined") {
+    currentFilter = sekolah;
+  }
+  
+  // Update active button
+  document.querySelectorAll(".filter-btn").forEach((btn) => {
+    btn.classList.remove("bg-emerald-600", "text-white");
+    btn.classList.add("bg-gray-100", "text-gray-700");
+  });
+  
+  // Find and update the clicked button
+  const buttons = document.querySelectorAll(".filter-btn");
+  for (let btn of buttons) {
+    if (btn.textContent.includes(getSchoolName(sekolah)) ||
+        (sekolah === "all" && btn.textContent.includes("Semua"))) {
+      btn.classList.remove("bg-gray-100", "text-gray-700");
+      btn.classList.add("bg-emerald-600", "text-white");
+      break;
+    }
+  }
+  
+  loadAllPosts();
+}
+
 // ========== RENDER FILTERED POSTS ==========
 function renderFilteredPosts() {
   const postsList = document.getElementById("postsList");
@@ -141,7 +173,6 @@ function renderFilteredPosts() {
     </div>`;
   } else {
     postsList.innerHTML = currentPosts.map((post) => {
-      // Fallback untuk userLikes
       let isLiked = false;
       if (window.userLikes) {
         isLiked = window.userLikes.has(post.id);
@@ -149,14 +180,10 @@ function renderFilteredPosts() {
         isLiked = window.LikeSystem.isLiked(post.id);
       }
       
-      // Fallback untuk onlineStatus
       const isOnline = (window.onlineStatus && window.onlineStatus[post.user?.id]?.online) || false;
-      
-      // Get school color and name dari window
       const schoolColor = (window.getSchoolColor && window.getSchoolColor(post.user?.asalSekolah)) || 'bg-gray-100 text-gray-800';
       const schoolName = (window.getSchoolName && window.getSchoolName(post.user?.asalSekolah)) || post.user?.asalSekolah || '-';
       
-      // Format date dengan fallback
       let formattedDate = '-';
       if (window.formatDate && post.createdAt) {
         formattedDate = window.formatDate(post.createdAt);
@@ -164,13 +191,6 @@ function renderFilteredPosts() {
         formattedDate = new Date(post.createdAt).toLocaleDateString('id-ID');
       }
       
-      let formattedTime = '-';
-      if (window.formatTime && post.createdAt) {
-        formattedTime = window.formatTime(post.createdAt);
-      } else if (post.createdAt) {
-        formattedTime = new Date(post.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-      }
-
       return `
         <div class="bg-white rounded-xl shadow p-6 post-card cursor-pointer hover:shadow-lg transition-all duration-300" 
              data-post-id="${post.id}"
@@ -182,7 +202,7 @@ function renderFilteredPosts() {
                      class="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
                      onclick="event.stopPropagation(); window.goToProfile(${post.user?.id})"
                      onerror="this.src='/images/default-avatar.png'">
-                <span class="online-status-dot w-2 h-2 ${isOnline ? "bg-green-500" : "bg-gray-400"} rounded-full absolute bottom-0 right-0 border-2 border-white"></span>
+                <span class="online-status-dot w-2 h-2 ${isOnline ? "bg-green-500" : "bg-gray-400"} rounded-full absolute bottom-0 right-0"></span>
               </div>
               <div>
                 <h3 class="font-semibold text-gray-800"
@@ -213,7 +233,7 @@ function renderFilteredPosts() {
                 <i class="fas fa-comment mr-1"></i> ${post.commentCount || 0}
               </span>
             </div>
-            <span class="text-xs text-gray-400"><i class="fas fa-clock mr-1"></i> ${formattedTime}</span>
+            <span class="text-xs text-gray-400"><i class="fas fa-clock mr-1"></i> ${window.formatTime ? window.formatTime(post.createdAt) : ''}</span>
           </div>
         </div>
       `;
@@ -224,10 +244,7 @@ function renderFilteredPosts() {
 // ========== RENDER PAGINATION ==========
 function renderPagination() {
   const paginationContainer = document.getElementById("paginationContainer");
-  if (!paginationContainer) {
-    console.warn("Pagination container not found");
-    return;
-  }
+  if (!paginationContainer) return;
 
   const totalPages = Math.ceil(totalPosts / POSTS_PER_PAGE);
 
@@ -281,19 +298,12 @@ function renderPagination() {
 // ========== CHANGE PAGE ==========
 function changePage(newPage) {
   const totalPages = Math.ceil(totalPosts / POSTS_PER_PAGE);
-
-  if (newPage < 1 || newPage > totalPages || newPage === currentPage) {
-    return;
-  }
-
+  if (newPage < 1 || newPage > totalPages || newPage === currentPage) return;
   currentPage = newPage;
   renderFilteredPosts();
   renderPagination();
-
   const postsList = document.getElementById("postsList");
-  if (postsList) {
-    postsList.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
+  if (postsList) postsList.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 // ========== CLEAR ALL FILTERS ==========
@@ -301,94 +311,61 @@ function clearAllFilters() {
   searchQuery = "";
   selectedUser = "";
   selectedSort = "newest";
-
   const searchInput = document.getElementById("searchInput");
   const userFilter = document.getElementById("userFilter");
   const sortFilter = document.getElementById("sortFilter");
-
   if (searchInput) searchInput.value = "";
   if (userFilter) userFilter.value = "";
   if (sortFilter) sortFilter.value = "newest";
-
   applyFiltersAndRender();
 }
 
 // ========== LOAD ALL POSTS ==========
 async function loadAllPosts() {
   try {
-    let allPostsData = [];
-    let page = 1;
-    let hasMore = true;
-    const limit = 100;
-
-    while (hasMore) {
-      const url = `${API_BASE}/posts?page=${page}&limit=${limit}`;
-      const response = await fetch(url);
-      if (!response.ok) throw new Error(`HTTP error ${response.status}`);
-
-      const result = await response.json();
-
-      let postsBatch = [];
-      if (result.data && Array.isArray(result.data)) {
-        postsBatch = result.data;
-        hasMore = result.data.length === limit;
-      } else if (Array.isArray(result)) {
-        postsBatch = result;
-        hasMore = result.length === limit;
-      } else {
-        hasMore = false;
-      }
-
-      allPostsData = [...allPostsData, ...postsBatch];
-      page++;
-
-      if (postsBatch.length === 0) {
-        hasMore = false;
-      }
-      
-      // Safety limit
-      if (page > 10) {
-        console.warn("Too many pages, stopping");
-        hasMore = false;
-      }
+    const response = await fetch(`${API_BASE}/posts?page=1&limit=100`);
+    if (!response.ok) throw new Error(`HTTP error ${response.status}`);
+    const result = await response.json();
+    
+    if (result.data && Array.isArray(result.data)) {
+      allPosts = result.data;
+    } else if (Array.isArray(result)) {
+      allPosts = result;
+    } else {
+      allPosts = [];
     }
-
-    allPosts = allPostsData;
+    
     totalPosts = allPosts.length;
-
     await loadAllUsers();
     applyFiltersAndRender();
   } catch (error) {
     console.error("Error loading posts:", error);
     const postsList = document.getElementById("postsList");
     if (postsList) {
-      postsList.innerHTML = `
-        <div class="text-center py-12 bg-white rounded-xl">
-          <i class="fas fa-exclamation-triangle text-4xl text-red-400 mb-3"></i>
-          <p class="text-gray-500">Gagal memuat postingan</p>
-          <button onclick="loadAllPosts()" class="mt-4 text-emerald-600 hover:text-emerald-800">Coba Lagi</button>
-        </div>
-      `;
+      postsList.innerHTML = `<div class="text-center py-12 bg-white rounded-xl">
+        <i class="fas fa-exclamation-triangle text-4xl text-red-400 mb-3"></i>
+        <p class="text-gray-500">Gagal memuat postingan</p>
+        <button onclick="loadAllPosts()" class="mt-4 text-emerald-600">Coba Lagi</button>
+      </div>`;
     }
   }
 }
 
 // ========== SETUP SEARCH AND FILTERS ==========
 function setupSearchAndFilters() {
+  console.log("🔍 Setting up search and filters...");
+  
   const searchInput = document.getElementById("searchInput");
   if (searchInput) {
-    searchInput.addEventListener(
-      "input",
-      debounce(function (e) {
-        searchQuery = e.target.value;
-        applyFiltersAndRender();
-      }, 500),
-    );
+    searchInput.addEventListener("input", debounce(function(e) {
+      searchQuery = e.target.value;
+      applyFiltersAndRender();
+    }, 500));
   }
 
   const userFilter = document.getElementById("userFilter");
   if (userFilter) {
-    userFilter.addEventListener("change", function (e) {
+    userFilter.addEventListener("change", function(e) {
       selectedUser = e.target.value;
       applyFiltersAndRender();
     });
@@ -396,7 +373,7 @@ function setupSearchAndFilters() {
 
   const sortFilter = document.getElementById("sortFilter");
   if (sortFilter) {
-    sortFilter.addEventListener("change", function (e) {
+    sortFilter.addEventListener("change", function(e) {
       selectedSort = e.target.value;
       applyFiltersAndRender();
     });
@@ -407,10 +384,7 @@ function setupSearchAndFilters() {
 function debounce(func, wait) {
   let timeout;
   return function executedFunction(...args) {
-    const later = () => {
-      clearTimeout(timeout);
-      func(...args);
-    };
+    const later = () => { clearTimeout(timeout); func(...args); };
     clearTimeout(timeout);
     timeout = setTimeout(later, wait);
   };
@@ -424,9 +398,9 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
-// ========== EXPORT FUNCTIONS ==========
+// ========== EXPORT KE WINDOW ==========
 window.loadAllPosts = loadAllPosts;
-window.selectPost = selectPost;
+window.selectPost = (postId) => { window.location.href = `/post-detail.html?id=${postId}`; };
 window.filterPosts = filterPosts;
 window.clearAllFilters = clearAllFilters;
 window.changePage = changePage;

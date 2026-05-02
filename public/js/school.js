@@ -153,42 +153,25 @@ function setupFilterUI() {
   const filterContainer = document.getElementById("filterContainer");
   if (!filterContainer) return;
 
-  if (!isAdmin) {
-    filterContainer.innerHTML = `
-      <button onclick="window.filterPosts('${currentUser.asalSekolah}')" 
-              class="filter-btn px-4 py-2 bg-emerald-600 text-white rounded-lg">
-          ${getSchoolName(currentUser.asalSekolah)}
-      </button>
-    `;
-
-    const leaderboardFilter = document.getElementById("leaderboardFilter");
-    if (leaderboardFilter) {
-      leaderboardFilter.innerHTML = `
-        <option value="${currentUser.asalSekolah}">${getSchoolName(currentUser.asalSekolah)}</option>
-      `;
-      leaderboardFilter.disabled = true;
-    }
-  } else {
-    // Untuk admin, tampilkan semua filter
-    filterContainer.innerHTML = `
-      <button onclick="window.filterPosts('all')" 
-              class="filter-btn px-4 py-2 bg-emerald-600 text-white rounded-lg">
-          Semua
-      </button>
-      <button onclick="window.filterPosts('sdit_sahabat')" 
-              class="filter-btn px-4 py-2 bg-blue-100 text-blue-800 rounded-lg">
-          SDIT Sahabat
-      </button>
-      <button onclick="window.filterPosts('pptq_almadinah')" 
-              class="filter-btn px-4 py-2 bg-green-100 text-green-800 rounded-lg">
-          PPTQ Al-Madinah
-      </button>
-      <button onclick="window.filterPosts('ppqit_almahir')" 
-              class="filter-btn px-4 py-2 bg-purple-100 text-purple-800 rounded-lg">
-          PPQIT Al-Mahir
-      </button>
-    `;
-  }
+  // Tampilkan semua filter untuk semua user (jangan batasi hanya admin)
+  filterContainer.innerHTML = `
+    <button onclick="window.filterPosts('all')" 
+            class="filter-btn px-4 py-2 bg-emerald-600 text-white rounded-lg">
+        Semua
+    </button>
+    <button onclick="window.filterPosts('sdit_sahabat')" 
+            class="filter-btn px-4 py-2 bg-blue-100 text-blue-800 rounded-lg">
+        SDIT Sahabat
+    </button>
+    <button onclick="window.filterPosts('pptq_almadinah')" 
+            class="filter-btn px-4 py-2 bg-green-100 text-green-800 rounded-lg">
+        PPTQ Al-Madinah
+    </button>
+    <button onclick="window.filterPosts('ppqit_almahir')" 
+            class="filter-btn px-4 py-2 bg-purple-100 text-purple-800 rounded-lg">
+        PPQIT Al-Mahir
+    </button>
+  `;
 }
 
 // Export functions

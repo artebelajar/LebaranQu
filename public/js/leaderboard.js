@@ -2,14 +2,11 @@
 // FILE: leaderboard.js - Multi-Category Leaderboard
 // ===================================================
 
-// Cek apakah sudah dideklarasikan sebelumnya
 if (typeof window.leaderboardInitialized === 'undefined') {
   
-  // Deklarasi variabel global
   window.currentLeaderboardCategory = 'badge';
   window.leaderboardData = [];
   
-  // Kategori leaderboard yang tersedia
   window.LEADERBOARD_CATEGORIES = [
     { id: 'badge', name: 'Badge', icon: 'fa-medal', unit: 'badge' },
     { id: 'post', name: 'Postingan', icon: 'fa-newspaper', unit: 'post' },
@@ -28,7 +25,7 @@ if (typeof window.leaderboardInitialized === 'undefined') {
       
       const sekolah = document.getElementById("leaderboardFilter")?.value || "all";
       
-      // console.log(`Loading ${category} leaderboard for sekolah: ${sekolah}`);
+      console.log(`Loading ${category} leaderboard for sekolah: ${sekolah}`);
       
       const response = await fetch(`${API_BASE}/leaderboard/${category}?sekolah=${sekolah}`);
       
@@ -37,20 +34,23 @@ if (typeof window.leaderboardInitialized === 'undefined') {
       }
 
       window.leaderboardData = await response.json();
-      // console.log(`Loaded ${window.leaderboardData.length} entries for ${category} leaderboard`);
+      console.log(`Loaded ${window.leaderboardData.length} entries for ${category} leaderboard`);
       
       renderLeaderboard();
       updateActiveCategoryButton(category);
       
     } catch (error) {
       console.error("Error loading leaderboard:", error);
-      document.getElementById("leaderboardList").innerHTML = `
-        <div class="text-center py-8 text-red-500">
-          <i class="fas fa-exclamation-triangle text-3xl mb-2"></i>
+      const leaderboardList = document.getElementById("leaderboardList");
+      if (leaderboardList) {
+        leaderboardList.innerHTML = `
+          <div class="text-center py-8 text-red-500">
+            <i class="fas fa-exclamation-triangle text-3xl mb-2"></i>
           <p>Gagal memuat leaderboard</p>
           <p class="text-sm">${error.message}</p>
-        </div>
-      `;
+          </div>
+        `;
+      }
     } finally {
       hideLeaderboardLoading();
     }
@@ -202,6 +202,20 @@ if (typeof window.leaderboardInitialized === 'undefined') {
   window.initLeaderboardFilters = function() {
     const filter = document.getElementById("leaderboardFilter");
     if (filter) {
+      // Pastikan filter tidak disabled
+      filter.disabled = false;
+      
+      // Pastikan semua option ada
+      const options = filter.querySelectorAll('option');
+      if (options.length < 4) {
+        filter.innerHTML = `
+          <option value="all">Semua Sekolah</option>
+          <option value="sdit_sahabat">SDIT Sahabat</option>
+          <option value="pptq_almadinah">PPTQ Al-Madinah</option>
+          <option value="ppqit_almahir">PPQIT Al-Mahir</option>
+        `;
+      }
+      
       filter.addEventListener("change", () => {
         loadLeaderboard(window.currentLeaderboardCategory);
       });
@@ -209,24 +223,41 @@ if (typeof window.leaderboardInitialized === 'undefined') {
   }
 
   // ========== RENDER CATEGORY BUTTONS ==========
-  window.renderCategoryButtons = function() {
-    const container = document.getElementById("leaderboardCategories");
-    if (!container) return;
-    
-    container.innerHTML = window.LEADERBOARD_CATEGORIES.map(cat => `
-      <button 
-        class="leaderboard-category-btn px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2
-               ${cat.id === 'badge' ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}"
-        data-category="${cat.id}"
-        onclick="loadLeaderboard('${cat.id}')">
-        <i class="fas ${cat.icon}"></i>
-        ${cat.name}
-      </button>
-    `).join('');
+window.renderCategoryButtons = function() {
+  const container = document.getElementById("leaderboardCategories");
+  if (!container) {
+    console.error("Element #leaderboardCategories not found!");
+    return;
+  }
+  
+  console.log("Rendering category buttons...");
+  
+  container.innerHTML = window.LEADERBOARD_CATEGORIES.map(cat => `
+    <button 
+      class="leaderboard-category-btn px-4 py-2 rounded-lg text-sm font-medium transition flex-shrink-0
+             ${cat.id === window.currentLeaderboardCategory ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}"
+      data-category="${cat.id}"
+      onclick="loadLeaderboard('${cat.id}')">
+      <i class="fas ${cat.icon} mr-1"></i>
+      ${cat.name}
+    </button>
+  `).join('');
+  
+  console.log("Category buttons rendered:", container.children.length);
+}
+
+  // Fungsi bantu getSchoolName
+  function getSchoolName(sekolah) {
+    const names = {
+      sdit_sahabat: "SDIT Sahabat",
+      pptq_almadinah: "PPTQ Al-Madinah",
+      ppqit_almahir: "PPQIT Al-Mahir",
+    };
+    return names[sekolah] || sekolah || '-';
   }
 
   // Tandai sudah diinisialisasi
   window.leaderboardInitialized = true;
   
-  // console.log("✅ Leaderboard module initialized");
+  console.log("✅ Leaderboard module initialized");
 }

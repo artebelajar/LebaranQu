@@ -102,6 +102,13 @@ async function initDashboard() {
     return;
   }
 
+  // PANGGIL RENDER CATEGORY BUTTONS UNTUK LEADERBOARD
+  if (typeof renderCategoryButtons === 'function') {
+    renderCategoryButtons();
+  } else if (typeof window.renderCategoryButtons === 'function') {
+    window.renderCategoryButtons();
+  }
+  
   // Update UI dengan data user
   const userNameSpan = document.getElementById("userNameDisplay");
   const ucapanNamaSpan = document.getElementById("ucapanNama");

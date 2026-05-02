@@ -1,5 +1,5 @@
 // ===================================================
-// FILE: src/api/notifications.js (BACKEND)
+// FILE: src/api/notifications.js (BACKEND - FULL CODE)
 // ===================================================
 
 import { Hono } from "hono";
@@ -20,10 +20,9 @@ app.get("/", async (c) => {
       return c.json({ error: "User ID diperlukan" }, 400);
     }
 
-    // Batasi limit maksimal 100
     const safeLimit = Math.min(limit, 100);
-    
-    // Ambil notifikasi dengan pagination
+
+    // Ambil notifikasi dengan cara yang lebih sederhana
     const userNotifications = await db
       .select({
         id: notifications.id,
@@ -32,24 +31,57 @@ app.get("/", async (c) => {
         data: notifications.data,
         isRead: notifications.isRead,
         createdAt: notifications.createdAt,
-        updatedAt: notifications.updatedAt,
-        fromUser: {
-          id: users_26.id,
-          namaLengkap: users_26.namaLengkap,
-          fotoProfil: users_26.fotoProfil,
-        },
-        post: {
-          id: posts.id,
-          judul: posts.judul,
-        }
+        fromUserId: notifications.fromUserId,
+        postId: notifications.postId,
       })
       .from(notifications)
-      .leftJoin(users_26, eq(notifications.fromUserId, users_26.id))
-      .leftJoin(posts, eq(notifications.postId, posts.id))
       .where(eq(notifications.userId, userId))
       .orderBy(desc(notifications.createdAt))
       .limit(safeLimit)
       .offset(offset);
+
+    // Ambil data user untuk setiap notifikasi (manual join)
+    const notificationsWithUser = await Promise.all(
+      userNotifications.map(async (notif) => {
+        let fromUser = null;
+        if (notif.fromUserId) {
+          const [user] = await db
+            .select({
+              id: users_26.id,
+              namaLengkap: users_26.namaLengkap,
+              fotoProfil: users_26.fotoProfil,
+            })
+            .from(users_26)
+            .where(eq(users_26.id, notif.fromUserId))
+            .limit(1);
+          fromUser = user;
+        }
+
+        let post = null;
+        if (notif.postId) {
+          const [postData] = await db
+            .select({
+              id: posts.id,
+              judul: posts.judul,
+            })
+            .from(posts)
+            .where(eq(posts.id, notif.postId))
+            .limit(1);
+          post = postData;
+        }
+
+        return {
+          id: notif.id,
+          type: notif.type,
+          message: notif.message,
+          data: notif.data,
+          isRead: notif.isRead,
+          createdAt: notif.createdAt,
+          fromUser: fromUser,
+          post: post,
+        };
+      })
+    );
 
     // Hitung total notifikasi
     const [totalResult] = await db
@@ -68,7 +100,7 @@ app.get("/", async (c) => {
 
     return c.json({
       success: true,
-      notifications: userNotifications,
+      notifications: notificationsWithUser,
       unreadCount: parseInt(unreadResult?.count || '0'),
       total: parseInt(totalResult?.count || '0'),
       limit: safeLimit,
@@ -97,19 +129,15 @@ app.post("/mark-read", async (c) => {
       return c.json({ error: "User ID diperlukan" }, 400);
     }
 
-    // Konversi userId ke integer
     const parsedUserId = parseInt(userId);
     if (isNaN(parsedUserId)) {
       return c.json({ error: "User ID tidak valid" }, 400);
     }
 
     let updatedCount = 0;
-
-    // Pastikan notificationIds adalah array
     const ids = Array.isArray(notificationIds) ? notificationIds : [];
     
     if (ids.length > 0) {
-      // Validasi bahwa ids adalah array of numbers
       const validIds = ids
         .filter(id => id !== null && id !== undefined && !isNaN(parseInt(id)))
         .map(id => parseInt(id));
@@ -118,31 +146,24 @@ app.post("/mark-read", async (c) => {
         return c.json({ error: "ID notifikasi tidak valid" }, 400);
       }
       
-      console.log('✅ Valid IDs:', validIds);
-      
-      // MARK SPECIFIC NOTIFICATIONS
-      const result = await db
-        .update(notifications)
-        .set({ 
-          isRead: true,
-          updatedAt: new Date()
-        })
-        .where(
-          and(
-            inArray(notifications.id, validIds),
-            eq(notifications.userId, parsedUserId)
-          )
-        );
-      
+      // Update specific notifications
+      for (const id of validIds) {
+        await db
+          .update(notifications)
+          .set({ isRead: true })
+          .where(
+            and(
+              eq(notifications.id, id),
+              eq(notifications.userId, parsedUserId)
+            )
+          );
+      }
       updatedCount = validIds.length;
     } else {
-      // MARK ALL AS READ
+      // Mark all as read
       const result = await db
         .update(notifications)
-        .set({ 
-          isRead: true,
-          updatedAt: new Date()
-        })
+        .set({ isRead: true })
         .where(
           and(
             eq(notifications.userId, parsedUserId),
@@ -150,7 +171,6 @@ app.post("/mark-read", async (c) => {
           )
         );
       
-      // Dapatkan jumlah yang diupdate
       const [countResult] = await db
         .select({ count: sql`count(*)` })
         .from(notifications)
@@ -204,8 +224,7 @@ app.get("/unread-count", async (c) => {
     console.error("❌ Unread count error:", error);
     return c.json({ 
       success: false,
-      error: "Gagal mendapatkan jumlah notifikasi",
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: "Gagal mendapatkan jumlah notifikasi"
     }, 500);
   }
 });
@@ -231,10 +250,7 @@ app.post("/:id/read", async (c) => {
 
     await db
       .update(notifications)
-      .set({ 
-        isRead: true,
-        updatedAt: new Date()
-      })
+      .set({ isRead: true })
       .where(
         and(
           eq(notifications.id, notificationId),
@@ -251,8 +267,7 @@ app.post("/:id/read", async (c) => {
     console.error("❌ Mark single notification read error:", error);
     return c.json({ 
       success: false,
-      error: "Gagal menandai notifikasi",
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: "Gagal menandai notifikasi"
     }, 500);
   }
 });
@@ -285,8 +300,7 @@ app.delete("/clear", async (c) => {
     console.error("❌ Clear notifications error:", error);
     return c.json({ 
       success: false,
-      error: "Gagal menghapus notifikasi",
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: "Gagal menghapus notifikasi"
     }, 500);
   }
 });
@@ -323,14 +337,12 @@ app.delete("/:id", async (c) => {
     console.error("❌ Delete notification error:", error);
     return c.json({ 
       success: false,
-      error: "Gagal menghapus notifikasi",
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: "Gagal menghapus notifikasi"
     }, 500);
   }
 });
 
 // ========== CREATE NOTIFICATION (HELPER) ==========
-// Fungsi ini bisa dipanggil dari file lain
 export async function createNotification(notificationData) {
   try {
     const { userId, fromUserId, postId, type, message, data } = notificationData;
@@ -346,7 +358,6 @@ export async function createNotification(notificationData) {
         data: data ? JSON.stringify(data) : null,
         isRead: false,
         createdAt: new Date(),
-        updatedAt: new Date()
       })
       .returning();
 
