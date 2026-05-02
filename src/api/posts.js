@@ -210,3 +210,5 @@ app.get("/search", async (c) => {
     return c.json({ error: error.message }, 500);
   }
 });
+
+export default app;
